@@ -1,0 +1,98 @@
+rules:
+  # ── Required Field Checks ────────────────────────────────────────────────────
+  - id: required_source_system
+    description: Source system is required
+    tags: [validation, required]
+    condition: source_system is null OR source_system == ""
+    message: "Source system is required. Example: s4hana, afs, wms, salesforce"
+    severity: error
+
+  - id: required_target_system
+    description: Target system is required
+    tags: [validation, required]
+    condition: target_system is null OR target_system == ""
+    message: "Target system is required. Example: kafka, afs, rest, ems"
+    severity: error
+
+  - id: required_business_object
+    description: Business object is required
+    tags: [validation, required]
+    condition: business_object is null OR business_object == ""
+    message: "Business object is required. Example: article, invoice, order, stock"
+    severity: error
+
+  - id: required_interface_type
+    description: Interface type is required
+    tags: [validation, required]
+    condition: interface_type is null OR interface_type == ""
+    message: "Interface type is required. Must be one of: pub, sub, service"
+    severity: error
+
+  - id: required_template_type
+    description: Template type is required
+    tags: [validation, required]
+    condition: template_type is null OR template_type == ""
+    message: "Template type is required. Use /suggest to see recommendations"
+    severity: error
+
+  # ── Interface Type Membership ────────────────────────────────────────────────
+  - id: valid_interface_type
+    description: Interface type must be pub, sub, or service
+    tags: [validation, interface_type]
+    condition: interface_type NOT in ["pub", "sub", "service"]
+    message: "Invalid interface type '{{ interface_type }}'. Must be one of: pub, sub, service"
+    severity: error
+
+  # ── Email Validation ─────────────────────────────────────────────────────────
+  - id: valid_email_format
+    description: Email must be a valid format
+    tags: [validation, email]
+    condition: email is not null AND email != "NA" AND email does not match /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    message: "Invalid email format: '{{ email }}'"
+    severity: error
+
+  - id: valid_email_domain
+    description: Email domain must be in the allowed list
+    tags: [validation, email, domain]
+    condition: email is not null AND email != "NA" AND email domain NOT in ["adidas.com", "adidas-group.com", "tibco.com", "cloud.tibco.com"]
+    message: "Email domain not allowed. Must use adidas.com, adidas-group.com, tibco.com, or cloud.tibco.com"
+    severity: error
+
+  # ── Bitbucket URL Validation ─────────────────────────────────────────────────
+  - id: valid_bitbucket_url
+    description: Bitbucket URL must be a valid HTTPS URL
+    tags: [validation, url, bitbucket]
+    condition: bitbucket_url is not null AND bitbucket_url != "NA" AND bitbucket_url does not match /^https:\/\/[a-zA-Z0-9.-]+\//
+    message: "Invalid Bitbucket URL format. Must start with https://"
+    severity: error
+
+  # ── Repository Name Length ───────────────────────────────────────────────────
+  - id: repo_name_max_length
+    description: Repository name must not exceed 50 characters
+    tags: [validation, naming]
+    condition: repo_name is not null AND length(repo_name) > 50
+    message: "Repository name '{{ repo_name }}' exceeds maximum length of 50 characters ({{ length(repo_name) }} chars)"
+    severity: error
+
+  - id: repo_name_valid_chars
+    description: Repository name must contain only kebab-case characters
+    tags: [validation, naming]
+    condition: repo_name is not null AND repo_name does not match /^[a-z0-9-]+$/
+    message: "Repository name '{{ repo_name }}' contains invalid characters. Only lowercase letters, numbers, and hyphens allowed"
+    severity: error
+
+  # ── Environment Validation ───────────────────────────────────────────────────
+  - id: valid_environment
+    description: Environment must be DEV, SIT, UAT, or PROD (or comma-separated combination)
+    tags: [validation, environment]
+    condition: env is not null AND env not matches /^(DEV|SIT|UAT|PROD)(,(DEV|SIT|UAT|PROD))*$/
+    message: "Invalid environment '{{ env }}'. Must be one or more of: DEV, SIT, UAT, PROD"
+    severity: warning
+
+  # ── Source != Target Check ───────────────────────────────────────────────────
+  - id: source_not_equal_target
+    description: Source and target systems should not be the same
+    tags: [validation, logic]
+    condition: source_system == target_system AND source_system != "rest"
+    message: "Source and target systems are the same ('{{ source_system }}'). Please verify this is intentional."
+    severity: warning

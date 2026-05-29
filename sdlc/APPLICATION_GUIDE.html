@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BWCE AI Generator - Application Guide</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #5b6472;
+      --primary: #0f766e;
+      --primary-soft: #ccfbf1;
+      --accent: #b45309;
+      --line: #d9e2ec;
+      --code-bg: #0f172a;
+      --code-ink: #e2e8f0;
+      --ok: #166534;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 0% 0%, #dbeafe 0, transparent 30%),
+        radial-gradient(circle at 100% 100%, #fef3c7 0, transparent 35%),
+        var(--bg);
+      line-height: 1.5;
+    }
+
+    .container {
+      width: min(1100px, 94vw);
+      margin: 24px auto 48px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(130deg, #0f766e, #155e75);
+      color: #f8fafc;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 12px 28px rgba(15, 118, 110, 0.25);
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 4vw, 34px);
+      letter-spacing: 0.4px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #e2f8f3;
+      max-width: 880px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: #0f172a;
+      font-size: 22px;
+    }
+
+    h3 {
+      margin: 14px 0 6px;
+      color: #111827;
+      font-size: 17px;
+    }
+
+    p, li {
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fcfdff;
+    }
+
+    .mini strong {
+      color: #111827;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .diagram {
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #f8fafc;
+      padding: 14px;
+      overflow-x: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: #0f172a;
+      white-space: pre;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: #134e4a;
+      border: 1px solid #99f6e4;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-ink);
+      padding: 12px;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin: 8px 0 0;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+    }
+
+    .steps {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .steps li {
+      margin-bottom: 8px;
+    }
+
+    .ok {
+      color: var(--ok);
+      font-weight: 600;
+    }
+
+    .warn {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .footer {
+      color: #64748b;
+      text-align: center;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <h1>BWCE AI Integration REPO Generator</h1>
+      <p>
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>1) What This Application Does</h2>
+      <div class="grid">
+        <div class="mini">
+          <strong>Natural Language to Integration Spec</strong>
+          Converts prompts like "from s4hana to poc for article data using rest to kafka" into structured BWCE config fields.
+        </div>
+        <div class="mini">
+          <strong>Template Selection and Generation</strong>
+          Detects best matching template and executes code generation through shell automation.
+        </div>
+        <div class="mini">
+          <strong>Chat + API Experience</strong>
+          Supports Web Chat UI, CLI chatbot, and REST APIs for human and programmatic usage.
+        </div>
+        <div class="mini">
+          <strong>Enterprise-Friendly Outputs</strong>
+          Produces repository structure, updates IKD registry files, and prepares configs/scripts for delivery pipelines.
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2) Architecture Diagram</h2>
+      <div class="diagram">+----------------------------- USERS -----------------------------+
+| Browser Chat UI | CLI Chat | API Clients (curl/Postman/etc.) |
++-------------------------------+--------------------------------+
+                                |
+                                v
++--------------------------- FASTAPI APP -------------------------+
+| Endpoints: /, /health, /api/chat/*, /extract, /generate/*      |
+| Session store: session_id -> InteractiveBWCEChat instance       |
++-------------------------------+--------------------------------+
+                                |
+                                v
++---------------------- INTERACTIVE CHAT ENGINE ------------------+
+| parse_nlu + optional LLM extraction + validation + prompts      |
+| field defaults + template detection + generation orchestration  |
++-------------------------------+--------------------------------+
+                                |
+                                v
++--------------------- GENERATION SCRIPT LAYER -------------------+
+| scripts/GenerateCodeFromTemplate.sh                             |
+| - resolves config/templates                                     |
+| - builds repo name                                               |
+| - updates IKD registry                                            |
+| - materializes and renames template content                      |
+| - fills configs (fallback files when needed)                     |
++-------------------------------+--------------------------------+
+                                |
+                                v
++-------------------------- OUTPUT ARTIFACTS ---------------------+
+| Data/GeneratedCode | BuildHistory | Logs | GoLiveTracker        |
++-----------------------------------------------------------------+</div>
+    </section>
+
+    <section class="card">
+      <h2>3) Tools, Plugins, LLMs, and Models</h2>
+
+      <h3>Core tools required</h3>
+      <span class="tag">Python 3.10+</span>
+      <span class="tag">pip</span>
+      <span class="tag">Git</span>
+      <span class="tag">Bash (Git Bash/WSL)</span>
+      <p>
+        <strong>Why:</strong> Python runs FastAPI/chat modules, Bash runs the generation script, and Git is required for template/source control workflows.
+      </p>
+
+      <h3>Recommended VS Code plugins</h3>
+      <ul>
+        <li>Python (Microsoft): run/debug Python code.</li>
+        <li>Pylance: faster IntelliSense and type checks.</li>
+        <li>Docker: manage Docker and Compose setup.</li>
+        <li>YAML: edit deployment/config files safely.</li>
+        <li>REST Client or Thunder Client: quickly test APIs.</li>
+      </ul>
+
+      <h3>LLM backends supported</h3>
+      <div class="grid">
+        <div class="mini">
+          <strong>Ollama (Local, preferred for offline)</strong>
+          Good for private/local execution with no per-call cloud charges.
+        </div>
+        <div class="mini">
+          <strong>OpenAI-compatible endpoints</strong>
+          Useful when you already have hosted model endpoints.
+        </div>
+        <div class="mini">
+          <strong>Anthropic</strong>
+          Optional cloud LLM backend.
+        </div>
+        <div class="mini">
+          <strong>No LLM Mode</strong>
+          Regex/rule fallback still works for many requests.
+        </div>
+      </div>
+
+      <h3>Model recommendations</h3>
+      <ul>
+        <li><strong>qwen2.5:7b</strong>: balanced quality and speed for local use.</li>
+        <li><strong>llama3.1:8b</strong>: strong general extraction quality.</li>
+        <li><strong>llama3</strong>: stable fallback model.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>4) How to Install</h2>
+      <ol class="steps">
+        <li>Open terminal at project root.</li>
+        <li>Create virtual environment and activate.</li>
+        <li>Install dependencies.</li>
+        <li>Create <code>.env</code> from <code>.env.example</code>.</li>
+        <li>(Optional) install and run Ollama, then pull a model.</li>
+      </ol>
+
+      <h3>Windows CMD</h3>
+      <pre><code>cd /d c:\Projects\Automations\bwce_ai_usecase\bwce-ai-generator\bwce-ai-generator
+python -m venv .venv
+call .venv\Scripts\activate.bat
+python -m pip install -r requirements.txt
+if not exist .env copy .env.example .env
+</code></pre>
+
+      <h3>Optional Ollama setup</h3>
+      <pre><code>ollama serve
+ollama pull qwen2.5:7b</code></pre>
+    </section>
+
+    <section class="card">
+      <h2>5) How to Run the Application</h2>
+      <h3>Run API server</h3>
+      <pre><code>cd /d c:\Projects\Automations\bwce_ai_usecase\bwce-ai-generator\bwce-ai-generator
+call .venv\Scripts\activate.bat
+python -m uvicorn src.api:app --reload --port 8080</code></pre>
+      <p class="ok">Open: http://localhost:8080 and API docs at http://localhost:8080/docs</p>
+
+      <h3>Run CLI chatbot</h3>
+      <pre><code>cd /d c:\Projects\Automations\bwce_ai_usecase\bwce-ai-generator\bwce-ai-generator
+call .venv\Scripts\activate.bat
+python -m src.chatbot</code></pre>
+
+      <h3>Example prompt</h3>
+      <pre><code>create a repo from s4hana to poc for article data in cite namespace using rest to kafka
+/generate</code></pre>
+
+      <h3>Template transparency commands</h3>
+      <pre><code>/templates   # list all template folders
+    /analyze     # detailed capability view
+    /suggest     # top 5 matches with score and reason</code></pre>
+
+      <h3>Default behavior in current setup</h3>
+      <ul>
+        <li>Scenario ID default: <strong>1234</strong> (if not provided)</li>
+        <li>K8s domain default: <strong>cite</strong> (if not provided)</li>
+        <li>Generation output path: <code>Data/GeneratedCode/...</code></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>6) Generation Modes (Full vs Config-Only)</h2>
+      <p>
+        Use full mode for first-time generation. Use config-only mode to refresh config and job artifacts for an existing repository without regenerating code.
+      </p>
+
+      <h3>Full mode</h3>
+      <pre><code>bash scripts/GenerateCodeFromTemplate.sh \
+  &lt;template_type&gt; &lt;bitbucket_project&gt; &lt;bitbucket_url&gt; &lt;object_name&gt; &lt;cdm&gt; \
+  &lt;interface_type&gt; &lt;source_system&gt; &lt;target_system&gt; &lt;interface_id&gt; &lt;scenario_id&gt; \
+  &lt;environment&gt; &lt;bw_profile&gt; &lt;email&gt; &lt;k8s_domain&gt; &lt;need_secret&gt; &lt;unique_id&gt; [country_code]</code></pre>
+
+      <h3>Config-only mode</h3>
+      <pre><code>bash scripts/GenerateCodeFromTemplate.sh \
+  &lt;template_type&gt; &lt;bitbucket_project&gt; &lt;bitbucket_url&gt; &lt;object_name&gt; &lt;cdm&gt; \
+  &lt;interface_type&gt; &lt;source_system&gt; &lt;target_system&gt; &lt;interface_id&gt; &lt;scenario_id&gt; \
+  &lt;environment&gt; &lt;bw_profile&gt; &lt;email&gt; &lt;k8s_domain&gt; &lt;need_secret&gt; &lt;unique_id&gt; [country_code] \
+  --config-only</code></pre>
+
+      <p class="ok">Config-only mode reuses existing output from BuildHistory first, then Data/GeneratedCode, and regenerates configs/jobs only.</p>
+
+      <h3>Real filled example (s4hana-article-poc-service)</h3>
+      <pre><code># Full mode
+bash scripts/GenerateCodeFromTemplate.sh \
+  REST_SERVICE_To_KAFKATopic \
+  core_integration-coreintegration \
+  NA \
+  article \
+  false \
+  service \
+  s4hana \
+  poc \
+  NA \
+  1234 \
+  DEV,SIT \
+  default \
+  NA \
+  cite \
+  false \
+  NA \
+  1none
+
+# Config-only mode
+bash scripts/GenerateCodeFromTemplate.sh \
+  REST_SERVICE_To_KAFKATopic \
+  core_integration-coreintegration \
+  NA \
+  article \
+  false \
+  service \
+  s4hana \
+  poc \
+  NA \
+  1234 \
+  DEV,SIT \
+  default \
+  NA \
+  cite \
+  false \
+  NA \
+  1none \
+  --config-only</code></pre>
+    </section>
+
+    <div class="footer">BWCE AI Generator - Application Guide</div>
+  </main>
+</body>
+</html>

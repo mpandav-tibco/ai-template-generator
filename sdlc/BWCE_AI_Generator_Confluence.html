@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BWCE AI Integration Template Generator</title>
+    <style>
+        /* ─── Confluence-Inspired Theme ─── */
+        :root {
+            --ds-surface: #ffffff;
+            --ds-background-neutral: #f4f5f7;
+            --ds-background-brand: #0052CC;
+            --ds-background-accent-blue: #DEEBFF;
+            --ds-background-accent-green: #E3FCEF;
+            --ds-background-accent-purple: #EAE6FF;
+            --ds-background-accent-teal: #E6FCFF;
+            --ds-background-accent-yellow: #FFFAE6;
+            --ds-text: #172b4d;
+            --ds-text-subtle: #6b778c;
+            --ds-text-brand: #0052CC;
+            --ds-border: #dfe1e6;
+            --ds-border-bold: #c1c7d0;
+            --ds-link: #0052CC;
+            --ds-link-hover: #0065FF;
+            --status-green: #00875A;
+            --status-yellow: #FF991F;
+            --status-blue: #0052CC;
+            --status-purple: #5243AA;
+            --status-red: #DE350B;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            font-size: 14px;
+            line-height: 1.714;
+            color: var(--ds-text);
+            background: #f4f5f7;
+        }
+
+        /* ─── Page Shell ─── */
+        .confluence-page-header {
+            background: var(--ds-surface);
+            border-bottom: 1px solid var(--ds-border);
+            padding: 16px 0;
+        }
+        .confluence-page-header-inner {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .confluence-page-header .breadcrumbs {
+            font-size: 12px;
+            color: var(--ds-text-subtle);
+        }
+        .confluence-page-header .breadcrumbs a {
+            color: var(--ds-link);
+            text-decoration: none;
+        }
+        .confluence-page-header .breadcrumbs a:hover { text-decoration: underline; }
+        .confluence-page-header .breadcrumbs .sep { margin: 0 4px; }
+
+        .page-container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 32px 60px;
+            background: var(--ds-surface);
+            min-height: 100vh;
+        }
+
+        /* ─── Title ─── */
+        h1.page-title {
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--ds-text);
+            margin: 32px 0 8px;
+            line-height: 1.25;
+        }
+
+        .page-metadata {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--ds-text-subtle);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--ds-border);
+        }
+        .page-metadata .avatar {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: var(--ds-background-brand);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .page-metadata a { color: var(--ds-link); text-decoration: none; }
+
+        /* ─── Headings ─── */
+        h2 {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--ds-text);
+            margin: 32px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--ds-border);
+        }
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--ds-text);
+            margin: 24px 0 8px;
+        }
+        h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ds-text);
+            margin: 16px 0 8px;
+        }
+
+        /* ─── Body Text ─── */
+        p { margin: 8px 0 12px; }
+        ul, ol { margin: 8px 0 12px 24px; }
+        li { margin: 4px 0; }
+
+        /* ─── Status Lozenges ─── */
+        .status-lozenge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+        }
+        .status-green  { background: #E3FCEF; color: #006644; }
+        .status-blue   { background: #DEEBFF; color: #0747A6; }
+        .status-yellow { background: #FFFAE6; color: #FF8B00; }
+        .status-purple { background: #EAE6FF; color: #403294; }
+        .status-red    { background: #FFEBE6; color: #BF2600; }
+        .status-teal   { background: #E6FCFF; color: #008DA6; }
+
+        /* ─── Confluence Tables ─── */
+        .confluenceTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 20px;
+            font-size: 14px;
+        }
+        .confluenceTable th,
+        .confluenceTable td {
+            border: 1px solid var(--ds-border);
+            padding: 8px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .confluenceTable th {
+            background: var(--ds-background-neutral);
+            font-weight: 600;
+            color: var(--ds-text);
+        }
+        .confluenceTable .highlight-grey {
+            background: var(--ds-background-neutral);
+            font-weight: 600;
+            width: 220px;
+            white-space: nowrap;
+        }
+        .confluenceTable tr:hover td {
+            background: #fafbfc;
+        }
+        .confluenceTable .highlight-grey:hover {
+            background: #ecedf0;
+        }
+        .table-narrow {
+            width: auto;
+            min-width: 380px;
+            max-width: 520px;
+        }
+        .table-medium {
+            width: auto;
+            min-width: 520px;
+            max-width: 760px;
+        }
+
+        /* ─── Info / Tip / Warning Panels ─── */
+        .panel {
+            border-radius: 3px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+        }
+        .panel-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+        .panel-content { flex: 1; }
+        .panel-content p:first-child { margin-top: 0; }
+        .panel-content p:last-child  { margin-bottom: 0; }
+
+        .panel-info    { background: var(--ds-background-accent-blue);   border-left: 3px solid #4C9AFF; }
+        .panel-success { background: var(--ds-background-accent-green);  border-left: 3px solid #57D9A3; }
+        .panel-warning { background: var(--ds-background-accent-yellow); border-left: 3px solid #FFC400; }
+        .panel-note    { background: var(--ds-background-accent-purple); border-left: 3px solid #998DD9; }
+
+        /* ─── Code Blocks ─── */
+        .code-block {
+            background: #f4f5f7;
+            border: 1px solid var(--ds-border);
+            border-radius: 3px;
+            padding: 12px 16px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin: 12px 0 16px;
+            white-space: pre;
+        }
+        code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 12px;
+            background: #f4f5f7;
+            padding: 1px 5px;
+            border-radius: 3px;
+            color: #de350b;
+        }
+
+        /* ─── Expand / Collapse ─── */
+        details {
+            border: 1px solid var(--ds-border);
+            border-radius: 3px;
+            margin: 12px 0;
+        }
+        details summary {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            background: var(--ds-background-neutral);
+            user-select: none;
+        }
+        details summary:hover { background: #ecedf0; }
+        details[open] summary { border-bottom: 1px solid var(--ds-border); }
+        details .expand-content { padding: 16px; }
+
+        /* ─── Architecture Diagram (ASCII) ─── */
+        .architecture-diagram {
+            background: #ffffff;
+            border: 2px solid var(--ds-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 16px 0 24px;
+            overflow-x: auto;
+        }
+        .architecture-diagram pre {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 11.5px;
+            line-height: 1.45;
+            margin: 0;
+            color: var(--ds-text);
+        }
+
+        /* ─── Divider ─── */
+        hr {
+            border: none;
+            border-top: 1px solid var(--ds-border);
+            margin: 32px 0;
+        }
+
+        /* ─── Links ─── */
+        a { color: var(--ds-link); text-decoration: none; }
+        a:hover { color: var(--ds-link-hover); text-decoration: underline; }
+
+        /* ─── TOC ─── */
+        .toc {
+            background: var(--ds-background-neutral);
+            border: 1px solid var(--ds-border);
+            border-radius: 3px;
+            padding: 16px 24px;
+            margin: 16px 0 24px;
+        }
+        .toc-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--ds-text);
+        }
+        .toc ul { list-style: none; margin: 0; padding: 0; }
+        .toc li { margin: 3px 0; }
+        .toc li a { font-size: 13px; }
+        .toc .toc-level-2 { padding-left: 18px; }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 768px) {
+            .page-container { padding: 0 16px 40px; }
+            h1.page-title { font-size: 22px; }
+            .confluenceTable { font-size: 12px; }
+            .table-narrow, .table-medium { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER BAR ═══════════════ -->
+<div class="confluence-page-header">
+    <div class="confluence-page-header-inner">
+        <div class="breadcrumbs">
+            <a href="#">Core Integration</a>
+            <span class="sep">/</span>
+            <a href="#">AI &amp; Automation</a>
+            <span class="sep">/</span>
+            <a href="#">Use Cases</a>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ PAGE BODY ═══════════════ -->
+<div class="page-container">
+
+    <h1 class="page-title">BWCE AI Integration Template Generator</h1>
+
+    <div class="page-metadata">
+        <span class="avatar">VS</span>
+        <span>Created by <a href="mailto:Vishnu.singh@adidas.com">Vishnu Singh</a> &middot; Apr 09, 2026 &middot; <span class="status-lozenge status-green">Operational</span></span>
+    </div>
+
+    <!-- ──── Use Case Description ──── -->
+    <p>
+        An <strong>AI-powered accelerator</strong> that generates production-ready
+        <strong>BWCE (TIBCO BusinessWorks Container Edition)</strong> integration repository templates
+        through natural language interaction. Developers describe their integration requirement in
+        plain English — the system extracts source/target/object details, asks follow-up questions for
+        anything missing, then produces a fully scaffolded repository with CI/CD pipelines, Git
+        initialisation, Kubernetes manifests, and Bitbucket integration — <em>all in seconds</em>.
+    </p>
+
+    <!-- ──── Table of Contents ──── -->
+    <div class="toc">
+        <div class="toc-title">On this page</div>
+        <ul>
+            <li><a href="#usage-details">Usage Details</a></li>
+            <li><a href="#knowledge-base">Knowledge Base Used / To be Used</a></li>
+            <li><a href="#metadata">Metadata Used / To be Used</a></li>
+            <li><a href="#architecture">Architecture &amp; Flow Diagram</a></li>
+            <li><a href="#technical-details">Technical Details</a></li>
+            <li><a href="#core-components">Core Components</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#deployment-options">Deployment Options</a></li>
+            <li><a href="#potential-impact">Potential Impact</a></li>
+            <li><a href="#finance">Finance</a></li>
+        </ul>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="usage-details">Usage Details</h2>
+
+    <table class="confluenceTable table-narrow">
+        <colgroup>
+            <col style="width:40%">
+            <col style="width:60%">
+        </colgroup>
+        <tbody>
+            <tr>
+                <td class="highlight-grey">Pattern</td>
+                <td>Conversational AI &middot; GUI &middot; CLI &middot; REST API</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Target Audience</td>
+                <td>Integration Engineers, Dev, SRE, Operations</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Implementation Stage</td>
+                <td><span class="status-lozenge status-green">Operational</span></td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Current State</td>
+                <td><span class="status-lozenge status-blue">In Use</span> &mdash; 34 repositories generated</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Repository</td>
+                <td><code>bwce-ai-generator</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="knowledge-base">Knowledge Base Used / To be Used</h2>
+
+    <ul>
+        <li>
+            <strong>Integration Domain Knowledge</strong>
+            <ul>
+                <li>Enterprise system aliases &amp; mappings (S4HANA, AFS, WMS, Demandware, Salesforce, Kafka, etc.)</li>
+                <li>Interface type taxonomy &rarr; <code>pub</code> / <code>sub</code> / <code>service</code></li>
+            </ul>
+        </li>
+        <li>
+            <strong>Template Pattern Library</strong>
+            <ul>
+                <li>33+ BWCE templates covering REST, SOAP, JMS, Kafka, HTTP, EMS combinations</li>
+                <li>Intelligent scoring algorithm (0–100) for auto-selection</li>
+            </ul>
+        </li>
+        <li>
+            <strong>Configuration &amp; Naming Knowledge Base</strong>
+            <ul>
+                <li>IKD Interface IDs &amp; Scenario IDs registry</li>
+                <li>33 Bitbucket project mapping files (core_integration, product_area families)</li>
+                <li>Build properties &mdash; Harbor registry, BWCE runtime version, Jenkins workspace</li>
+            </ul>
+        </li>
+        <li>
+            <strong>NLU Extraction Patterns</strong>
+            <ul>
+                <li>Regex-based entity extraction for source/target/object/scenario</li>
+                <li>LLM-augmented semantic understanding (optional)</li>
+            </ul>
+        </li>
+    </ul>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="metadata">Metadata Used / To be Used</h2>
+
+    <p>Integration metadata for each generated interface is captured and persisted:</p>
+    <ul>
+        <li><strong>Generation Registry</strong> &mdash; SQLite database (<code>accelerator_registry.db</code>) for duplicate detection and idempotent re-generation</li>
+        <li><strong>Go-Live Tracker</strong> &mdash; Tilde-delimited CSV audit trail (<code>GoLiveTracker/CodeGenerateTracker.csv</code>)</li>
+        <li><strong>Build Metadata</strong> &mdash; <code>generation-metadata.json</code> &amp; <code>generation.properties</code> per repository</li>
+        <li><strong>Environment Manifests</strong> &mdash; Per-environment configs (DEV, SIT, UAT, PROD)</li>
+    </ul>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="architecture">Architecture &amp; Flow Diagram</h2>
+
+    <div class="architecture-diagram">
+<pre>
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      BWCE AI Generator System                           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────┐   ┌──────────────────┐   ┌─────────────────┐
+  │   Web Chat UI       │   │   CLI Chatbot    │   │   REST API      │
+  │   (chat.html)       │   │   (terminal)     │   │   (JSON)        │
+  │                     │   │                  │   │                 │
+  │  ✓ Message bubbles  │   │  ✓ Real-time Q&A │   │  ✓ Session mgmt │
+  │  ✓ Config sidebar   │   │  ✓ Command input │   │  ✓ Programmatic │
+  │  ✓ Mobile ready     │   │  ✓ Terminal mode │   │  ✓ Full control │
+  └────────┬────────────┘   └────────┬─────────┘   └────────┬────────┘
+           │                         │                       │
+           └─────────────────────────┼───────────────────────┘
+                                     ▼
+           ┌─────────────────────────────────────────────────────────┐
+           │               FastAPI Web Framework (api.py)            │
+           │                                                         │
+           │  GET  /                    → Serve chat UI              │
+           │  POST /api/chat/init      → Start session              │
+           │  POST /api/chat/message   → Process message            │
+           │  POST /api/chat/reset     → Reset session              │
+           │  GET  /health             → Health check               │
+           │  POST /extract, /generate → Legacy endpoints           │
+           └────────────────────────┬────────────────────────────────┘
+                                    ▼
+           ┌─────────────────────────────────────────────────────────┐
+           │      Interactive Chat Engine (interactive_chatbot.py)   │
+           │                                                         │
+           │  1. Receive user input                                  │
+           │  2. Regex-based NLU parsing (instant, no LLM needed)   │
+           │  3. LLM semantic extraction (optional, if available)   │
+           │  4. Alias resolution &amp; type mapping                    │
+           │  5. IntegrationSpec update                              │
+           │  6. Auto-detect &amp; score best template                  │
+           │  7. Generate follow-up question or completion           │
+           └────────────────────────┬────────────────────────────────┘
+                                    ▼
+           ┌─────────────────────────────────────────────────────────┐
+           │          Accelerator Service (service.py)               │
+           │                                                         │
+           │  Validate → Name → Check Registry → Materialise        │
+           │  Template → Write Config → Create Bitbucket Repo →     │
+           │  Scaffold CI/CD → Init Git → Record Registry →         │
+           │  Send Notifications                                     │
+           └──────┬───────┬────────┬────────┬────────┬──────────────┘
+                  ▼       ▼        ▼        ▼        ▼
+            ┌─────────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌───────┐
+            │Validator│ │Naming│ │Templ.│ │GitOps│ │ CI/CD │
+            │         │ │Engine│ │Engine│ │      │ │       │
+            └─────────┘ └──────┘ └──────┘ └──────┘ └───────┘
+                  │       │        │        │        │
+                  ▼       ▼        ▼        ▼        ▼
+             Registry   CSV     Generated  Bitbucket Jenkinsfile
+             (SQLite)  Tracker    Repo      Push    + GH Actions
+                                                    + K8s YAML
+</pre>
+    </div>
+
+    <h3>User Conversation Flow</h3>
+
+    <div class="architecture-diagram">
+<pre>
+  👤 User Input                    🤖 System Response
+  ──────────────                   ─────────────────
+
+  "from S4HANA to AFS             ✓ Extracted: source=s4hana,
+   for article data"         ──►     target=AFS, object=article
+                                  ❓ What is the interface type?
+                                     1) pub  2) sub  3) service
+
+  "sub"                      ──►  ✓ interface_type = sub
+                                  ❓ What template type?
+
+  "REST_SUB"                 ──►  ✅ Configuration complete!
+                                  📋 Ready to generate repository
+</pre>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="technical-details">Technical Details</h2>
+
+    <table class="confluenceTable table-narrow">
+        <colgroup>
+            <col style="width:40%">
+            <col style="width:60%">
+        </colgroup>
+        <tbody>
+            <tr>
+                <td class="highlight-grey">LLM Models Supported</td>
+                <td>Ollama (qwen2.5:7b, llama3), OpenAI, Anthropic Claude</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Provider</td>
+                <td>Local (Ollama) / AWS / OpenAI / Anthropic</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Platform</td>
+                <td>Self-hosted (Docker / Kubernetes / Local)</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Agent Framework</td>
+                <td>LangChain + LangChain Community</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Language</td>
+                <td>Python 3.11+</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Web Framework</td>
+                <td>FastAPI + Uvicorn (ASGI)</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Data Validation</td>
+                <td>Pydantic v2</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Template Engine</td>
+                <td>Jinja2 + custom placeholder replacement</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Registry / Persistence</td>
+                <td>SQLite</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Version Control</td>
+                <td>Git + Bitbucket API integration</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Key Dependencies</h3>
+
+    <table class="confluenceTable table-medium">
+        <thead>
+            <tr>
+                <th>Package</th>
+                <th>Version</th>
+                <th>Purpose</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>fastapi</code></td><td>&ge; 0.110.0</td><td>Web framework / REST API</td></tr>
+            <tr><td><code>uvicorn[standard]</code></td><td>&ge; 0.29.0</td><td>ASGI server</td></tr>
+            <tr><td><code>pydantic</code></td><td>&ge; 2.0</td><td>Request/response models</td></tr>
+            <tr><td><code>langchain</code></td><td>&ge; 0.1.0</td><td>LLM framework &amp; chat chains</td></tr>
+            <tr><td><code>langchain-community</code></td><td>&ge; 0.1.0</td><td>Community LLM integrations</td></tr>
+            <tr><td><code>jinja2</code></td><td>&ge; 3.1.0</td><td>Template rendering</td></tr>
+            <tr><td><code>requests</code></td><td>&ge; 2.31.0</td><td>HTTP client (Bitbucket API, webhooks)</td></tr>
+            <tr><td><code>python-dotenv</code></td><td>&ge; 1.0.0</td><td>.env file loading</td></tr>
+        </tbody>
+    </table>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="core-components">Core Components</h2>
+
+    <table class="confluenceTable">
+        <thead>
+            <tr>
+                <th style="width:220px">Component</th>
+                <th>File</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>REST API Server</strong></td>
+                <td><code>src/api.py</code></td>
+                <td>FastAPI application defining all HTTP endpoints &mdash; session management, chat processing, health checks, legacy extraction &amp; generation endpoints. Serves the Web Chat UI.</td>
+            </tr>
+            <tr>
+                <td><strong>NLU Engine</strong></td>
+                <td><code>src/chatbot.py</code></td>
+                <td>Core natural language understanding: <code>IntegrationSpec</code> dataclass, <code>LLMBackend</code> class (Ollama/OpenAI/Anthropic), regex parser, alias mappings, and template generator.</td>
+            </tr>
+            <tr>
+                <td><strong>Interactive Chat</strong></td>
+                <td><code>src/interactive_chatbot.py</code></td>
+                <td>Multi-turn conversation engine &mdash; processes messages, detects integration patterns, auto-scores templates, generates follow-up questions, and handles slash commands.</td>
+            </tr>
+            <tr>
+                <td><strong>Accelerator Service</strong></td>
+                <td><code>src/accelerator/service.py</code></td>
+                <td>Orchestrator for the full generation pipeline: validate &rarr; name &rarr; check registry &rarr; materialise template &rarr; write config &rarr; create Bitbucket repo &rarr; scaffold CI/CD &rarr; init Git &rarr; record &rarr; notify.</td>
+            </tr>
+            <tr>
+                <td><strong>Template Engine</strong></td>
+                <td><code>src/accelerator/template_engine.py</code></td>
+                <td>Copies template directory to output, replaces all <code>{{PLACEHOLDER}}</code> tokens across files, and renames paths containing placeholders.</td>
+            </tr>
+            <tr>
+                <td><strong>Naming Engine</strong></td>
+                <td><code>src/accelerator/naming.py</code></td>
+                <td>Generates sanitised repository names: <code>{source}-{object}-{target}[-{id}][-{country}]-{type}</code>, max 50 chars.</td>
+            </tr>
+            <tr>
+                <td><strong>Validators</strong></td>
+                <td><code>src/accelerator/validators.py</code></td>
+                <td>Input normalisation &amp; validation for all fields, including email domain restrictions and Bitbucket URL format checks.</td>
+            </tr>
+            <tr>
+                <td><strong>GitOps</strong></td>
+                <td><code>src/accelerator/gitops.py</code></td>
+                <td>Creates remote Bitbucket repositories, initialises local Git repos with <code>main</code> and <code>release/1.0.0</code> branches, and pushes to remote.</td>
+            </tr>
+            <tr>
+                <td><strong>CI/CD Scaffolding</strong></td>
+                <td><code>src/accelerator/cicd.py</code></td>
+                <td>Generates GitHub Actions workflow, Jenkinsfile, and K8s deployment YAMLs per environment.</td>
+            </tr>
+            <tr>
+                <td><strong>Registry</strong></td>
+                <td><code>src/accelerator/registry.py</code></td>
+                <td>SQLite database + CSV tracker. Enables duplicate detection and idempotent re-generation.</td>
+            </tr>
+            <tr>
+                <td><strong>Kubernetes Ops</strong></td>
+                <td><code>src/accelerator/k8s_operations.py</code></td>
+                <td>Built-in <code>kubectl</code> wrapper for listing pods/deployments/services, scaling, restarting, and fetching logs.</td>
+            </tr>
+            <tr>
+                <td><strong>Notifications</strong></td>
+                <td><code>src/accelerator/notify.py</code></td>
+                <td>Non-blocking webhook POST and SMTP email notifications on repository creation.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="how-it-works">How It Works</h2>
+
+    <h3>Smart Extraction Examples</h3>
+
+    <table class="confluenceTable table-medium">
+        <thead>
+            <tr>
+                <th>What You Type</th>
+                <th>What It Understands</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>from wms to Demandware for salesorder sub</code></td>
+                <td>src=wms, tgt=Demandware, obj=salesorder, type=sub</td>
+            </tr>
+            <tr>
+                <td><code>create pub for invoice from s4hana</code></td>
+                <td>src=s4hana, obj=invoice, type=pub</td>
+            </tr>
+            <tr>
+                <td><code>REST service from SAPRetail to AFS for inventory cdm</code></td>
+                <td>type=service, cdm=true, src=SAPRetail, tgt=AFS, obj=inventory</td>
+            </tr>
+            <tr>
+                <td><code>source: SAPRetail, target: AFS, object: article</code></td>
+                <td>Structured extraction &rarr; all three fields populated</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Required vs Optional Fields</h3>
+
+    <table class="confluenceTable table-medium">
+        <thead>
+            <tr>
+                <th>Required (5)</th>
+                <th>Optional (10)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>source_system</td><td>cdm</td></tr>
+            <tr><td>target_system</td><td>interface_id</td></tr>
+            <tr><td>business_object</td><td>scenario_id</td></tr>
+            <tr><td>interface_type</td><td>bitbucket_project</td></tr>
+            <tr><td>template_type</td><td>env, bw_profile, email, k8s_domain, need_secret, country_code</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Slash Commands</h3>
+    <table class="confluenceTable table-medium">
+        <thead>
+            <tr>
+                <th>Command</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><code>/templates</code></td><td>List all available templates</td></tr>
+            <tr><td><code>/analyze</code></td><td>Analyse current configuration state</td></tr>
+            <tr><td><code>/suggest</code></td><td>Get template recommendation based on extracted data</td></tr>
+            <tr><td><code>/generate</code></td><td>Trigger repository generation</td></tr>
+        </tbody>
+    </table>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="deployment-options">Deployment Options</h2>
+
+    <h3>Option 1 &mdash; Local CLI (no Docker needed)</h3>
+    <div class="code-block">python -m venv .venv
+.venv\Scripts\activate          # Windows
+pip install -r requirements.txt
+python -m src.chatbot           # CLI chatbot
+uvicorn src.api:app --reload --port 8080   # Web UI + API</div>
+
+    <h3>Option 2 &mdash; Docker Compose</h3>
+    <div class="panel panel-info">
+        <span class="panel-icon">ℹ️</span>
+        <div class="panel-content">
+            <p>Includes three services: <strong>bwce-ai</strong> (app, port 8080), <strong>ollama</strong> (LLM server, port 11434), and <strong>swagger-ui</strong> (API docs, port 8081).</p>
+        </div>
+    </div>
+    <div class="code-block">docker compose up -d --build
+docker exec ollama ollama pull llama3      # First time only (~4 GB)
+# Open http://localhost:8080</div>
+
+    <h3>Option 3 &mdash; Kubernetes</h3>
+    <div class="code-block">docker build -t bwce-ai-generator:latest .
+docker tag bwce-ai-generator:latest &lt;registry&gt;/bwce-ai-generator:latest
+docker push &lt;registry&gt;/bwce-ai-generator:latest
+kubectl apply -f k8s/deployment.yaml
+kubectl port-forward svc/bwce-ai-generator 8080:80</div>
+
+    <div class="panel panel-note">
+        <span class="panel-icon">📝</span>
+        <div class="panel-content">
+            <p>The K8s manifest includes a <strong>Deployment</strong> (1 replica, 256Mi–512Mi RAM, 250m–1 CPU), <strong>Service</strong> (ClusterIP 80→8080), <strong>ConfigMap</strong> with LLM settings, and liveness/readiness probes on <code>/health</code>.</p>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="potential-impact">Potential Impact</h2>
+
+    <div class="panel panel-success">
+        <span class="panel-icon">🚀</span>
+        <div class="panel-content">
+            <p><strong>Accelerated delivery</strong> &mdash; What previously took hours of manual scaffolding, copy-pasting, and configuration is now accomplished in seconds through a natural-language conversation.</p>
+        </div>
+    </div>
+
+    <ul>
+        <li><strong>Eliminates manual boilerplate</strong> &mdash; No more copying template directories, manually replacing placeholders, or forgetting configuration steps.</li>
+        <li><strong>Standardises integration repositories</strong> &mdash; Every generated repo follows the same structure, naming conventions, CI/CD pipeline, and Kubernetes manifest format.</li>
+        <li><strong>Reduces onboarding time</strong> &mdash; New integration engineers can produce correctly-structured repositories on day one without deep knowledge of BWCE conventions.</li>
+        <li><strong>Built-in governance</strong> &mdash; Duplicate detection via SQLite registry prevents accidental re-generation. Go-Live tracker provides a full audit trail.</li>
+        <li><strong>Operations visibility</strong> &mdash; Integrated Kubernetes operations (pod listing, log fetching, scaling) provide immediate post-deployment observability.</li>
+        <li><strong>Supports "Always Live" goal</strong> &mdash; Faster repository creation means quicker integration delivery, improving application availability and resiliency.</li>
+    </ul>
+
+    <h3>Key Metrics</h3>
+    <table class="confluenceTable table-narrow">
+        <tbody>
+            <tr>
+                <td class="highlight-grey">Repositories Generated</td>
+                <td><strong>34</strong> (as of Apr 2026)</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Templates Available</td>
+                <td><strong>33+</strong> (REST, SOAP, JMS, Kafka, HTTP, EMS)</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Bitbucket Projects Mapped</td>
+                <td><strong>33</strong> (core_integration + product_area families)</td>
+            </tr>
+            <tr>
+                <td class="highlight-grey">Avg. Generation Time</td>
+                <td>&lt; 30 seconds (end-to-end)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <h2 id="finance">Finance</h2>
+
+    <!-- ── Man-Day Breakdown per Interface ── -->
+    <h3>Man-Day Effort per Interface</h3>
+    <table class="confluenceTable table-medium">
+        <colgroup>
+            <col style="width:40%">
+            <col style="width:30%">
+            <col style="width:30%">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>Activity</th>
+                <th>Manual (Man-Days)</th>
+                <th>With AI Generator (Man-Days)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Code Scaffolding &amp; Repository Setup</td>
+                <td>0.5</td>
+                <td>&lt; 0.05 (automated)</td>
+            </tr>
+            <tr>
+                <td>Configuration (properties, env files)</td>
+                <td>0.5</td>
+                <td>&lt; 0.05 (automated)</td>
+            </tr>
+            <tr>
+                <td>CI/CD Pipeline &amp; Jenkins Jobs</td>
+                <td>0.5</td>
+                <td>&lt; 0.05 (automated)</td>
+            </tr>
+            <tr>
+                <td>Naming, IKD &amp; Registry Updates</td>
+                <td>0.25</td>
+                <td>&lt; 0.05 (automated)</td>
+            </tr>
+            <tr>
+                <td>Review, Fine-Tuning &amp; Testing</td>
+                <td>0.25</td>
+                <td>0.25</td>
+            </tr>
+            <tr class="highlight-blue" style="background: var(--ds-background-accent-blue);">
+                <td><strong>Total per Interface</strong></td>
+                <td><strong>~2.0 man-days</strong></td>
+                <td><strong>~0.4 man-days</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ── Annual Volume & Cost Projection ── -->
+    <h3>Annual Cost Projection (600–800 Interfaces/Year)</h3>
+    <table class="confluenceTable table-medium">
+        <colgroup>
+            <col style="width:50%">
+            <col style="width:25%">
+            <col style="width:25%">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>Cost Category</th>
+                <th>Low Estimate (600 apps)</th>
+                <th>High Estimate (800 apps)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="3" class="highlight-grey"><strong>Without Automation (Manual)</strong></td>
+            </tr>
+            <tr>
+                <td>Developer Man-Days (@ 2.0 days/interface)</td>
+                <td>1,200 man-days</td>
+                <td>1,600 man-days</td>
+            </tr>
+            <tr>
+                <td>Estimated Cost (@ &euro;250/man-day)</td>
+                <td>&euro; 300,000</td>
+                <td>&euro; 400,000</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="highlight-grey"><strong>With AI Generator</strong></td>
+            </tr>
+            <tr>
+                <td>Developer Man-Days (@ 0.4 days/interface)</td>
+                <td>240 man-days</td>
+                <td>320 man-days</td>
+            </tr>
+            <tr>
+                <td>Estimated Cost (@ &euro;250/man-day)</td>
+                <td>&euro; 60,000</td>
+                <td>&euro; 80,000</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="highlight-grey"><strong>LLM / AI Operating Costs</strong></td>
+            </tr>
+            <tr>
+                <td>LLM API Cost (Azure OpenAI GPT-4o) &mdash; ~3–5 calls/interface, ~15–25K tokens each</td>
+                <td>~&euro; 400</td>
+                <td>~&euro; 600</td>
+            </tr>
+            <tr>
+                <td>Chat &amp; Interactive Sessions (developer queries, retries)</td>
+                <td>~&euro; 300</td>
+                <td>~&euro; 500</td>
+            </tr>
+            <tr>
+                <td>Infrastructure (runs on existing K8s cluster; no dedicated GPU required)</td>
+                <td>~&euro; 0 (shared infra)</td>
+                <td>~&euro; 0 (shared infra)</td>
+            </tr>
+            <tr style="background: var(--ds-background-accent-blue);">
+                <td><strong>Total LLM Cost per Year</strong></td>
+                <td><strong>~&euro; 700</strong></td>
+                <td><strong>~&euro; 1,100</strong></td>
+            </tr>
+            <tr>
+                <td colspan="3" class="highlight-grey"><strong>Summary</strong></td>
+            </tr>
+            <tr style="background: var(--ds-background-accent-green);">
+                <td><strong>Annual Savings (Man-Days)</strong></td>
+                <td><strong>~960 man-days</strong></td>
+                <td><strong>~1,280 man-days</strong></td>
+            </tr>
+            <tr style="background: var(--ds-background-accent-green);">
+                <td><strong>Annual Savings (&euro;)</strong></td>
+                <td><strong>~&euro; 239,300</strong></td>
+                <td><strong>~&euro; 318,900</strong></td>
+            </tr>
+            <tr style="background: var(--ds-background-accent-green);">
+                <td><strong>Cost Reduction</strong></td>
+                <td colspan="2" style="text-align:center;"><strong>~80% reduction</strong> in scaffolding &amp; setup effort; reclaimed engineering capacity redirected to business logic and testing</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="info-panel" style="background: var(--ds-background-accent-yellow); border-left: 3px solid var(--status-yellow); padding: 12px 16px; border-radius: 3px; margin-top: 12px;">
+        <strong>ℹ️ Notes:</strong>
+        <ul style="margin: 8px 0 0 16px;">
+            <li>Man-day rate of &euro;250 is the assumed blended rate &mdash; adjust to your organisation's actual rate.</li>
+            <li>LLM costs assume Azure OpenAI GPT-4o pricing (~$2.50/1M input tokens, ~$10/1M output tokens). Using a local/self-hosted LLM reduces API cost to near zero but may require GPU infrastructure.</li>
+            <li>Remaining 0.4 man-days per interface covers human review, business-logic customisation, and testing &mdash; tasks that still benefit from developer judgement.</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <!-- ──── Expandable: Project Structure ──── -->
+    <details>
+        <summary>📁 Full Project Structure</summary>
+        <div class="expand-content">
+<div class="code-block">bwce-ai-generator/
+├── src/
+│   ├── __init__.py
+│   ├── api.py                        # FastAPI REST server
+│   ├── chatbot.py                    # Core NLU engine & LLM backend
+│   ├── interactive_chatbot.py        # Multi-turn chat engine
+│   └── accelerator/
+│       ├── __init__.py
+│       ├── service.py                # Orchestrator
+│       ├── config.py                 # Configuration (env vars)
+│       ├── template_engine.py        # Template materialisation
+│       ├── models.py                 # Data models
+│       ├── naming.py                 # Repository naming
+│       ├── registry.py              # SQLite registry + CSV tracker
+│       ├── validators.py            # Input validation
+│       ├── gitops.py                # Git + Bitbucket automation
+│       ├── cicd.py                  # CI/CD scaffolding
+│       ├── notify.py                # Webhook + email notifications
+│       ├── k8s_operations.py        # kubectl wrapper
+│       └── k8s_cli.py              # K8s CLI interface
+├── config/
+│   ├── global_properties/build.properties
+│   ├── ikd/IKD_InterfaceIDs.txt, IKD_ScenarioIDs.txt
+│   └── mapping_properties/bitbucketProjectChoice/ (33 files)
+├── templates/chat.html               # Web Chat UI
+├── scripts/
+│   ├── GenerateCodeFromTemplate.sh   # Shell-based generation
+│   ├── ExportConfigurations.sh       # Config exporter
+│   └── CreateApplicationJobs.sh      # CI job creator
+├── Data/
+│   ├── GeneratedCode/ci/             # Output repos
+│   └── registry/accelerator_registry.db
+├── BuildHistory/                     # Historical build artifacts
+├── GoLiveTracker/CodeGenerateTracker.csv
+├── bwce-output/                     # Generated OpenAPI specs
+├── k8s/deployment.yaml              # Kubernetes manifests
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+└── tests/</div>
+        </div>
+    </details>
+
+    <!-- ──── Expandable: Test Coverage ──── -->
+    <details>
+        <summary>🧪 Test Coverage</summary>
+        <div class="expand-content">
+            <table class="confluenceTable">
+                <thead>
+                    <tr><th>Test File</th><th>What It Tests</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>tests/test_chatbot.py</code></td>
+                        <td>NLU extraction — parametrised tests for parsing natural language into IntegrationSpec, interface type detection, CDM flag, spec completeness, repo name generation</td>
+                    </tr>
+                    <tr>
+                        <td><code>tests/test_accelerator.py</code></td>
+                        <td>Accelerator naming — NamingEngine for pub/service/sub types, scenario ID suffixes, CDM suffixes</td>
+                    </tr>
+                    <tr>
+                        <td><code>test_auto_detect.py</code></td>
+                        <td>Template auto-detection — pattern detection (REST→Kafka, S4HANA→AFS, etc.), keyword extraction, scoring accuracy</td>
+                    </tr>
+                    <tr>
+                        <td><code>test_chat_api.py</code></td>
+                        <td>End-to-end API — full chat flow: health check → init → send message → follow-up → field extraction (requires running server)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </details>
+
+    <!-- ──── Expandable: Environment Variables ──── -->
+    <details>
+        <summary>⚙️ Environment Variables</summary>
+        <div class="expand-content">
+            <table class="confluenceTable">
+                <thead>
+                    <tr><th>Variable</th><th>Default</th><th>Purpose</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>LLM_BACKEND</code></td><td><code>ollama</code></td><td>LLM provider (ollama / openai / anthropic)</td></tr>
+                    <tr><td><code>LLM_BASE_URL</code></td><td><code>http://localhost:11434</code></td><td>LLM API endpoint</td></tr>
+                    <tr><td><code>LLM_MODEL</code></td><td><code>qwen2.5:7b</code></td><td>Model name</td></tr>
+                    <tr><td><code>LLM_API_KEY</code></td><td>(empty)</td><td>API key for OpenAI / Anthropic</td></tr>
+                    <tr><td><code>BWCE_CONFIG_DIR</code></td><td><code>./config</code></td><td>Configuration directory path</td></tr>
+                    <tr><td><code>BWCE_GENERATED_CODE_DIR</code></td><td><code>./Data/GeneratedCode</code></td><td>Output directory for generated repos</td></tr>
+                    <tr><td><code>BWCE_TEMPLATES_DIR</code></td><td><code>./Templates/Code</code></td><td>Template source directory</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </details>
+
+    <hr>
+
+    <p style="color: var(--ds-text-subtle); font-size: 12px; margin-top: 32px;">
+        <em>This page was generated for the BWCE AI Integration Template Generator project.
+        For questions or contributions, contact the Core Integration team.</em>
+    </p>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+rules:
+  # ── Interface Type Normalization ─────────────────────────────────────────────
+  - id: normalize_interface_pub
+    description: Normalize publish/producer/outbound aliases to canonical 'pub'
+    tags: [normalization, interface_type]
+    condition: |
+      interface_type in ["publish", "publisher", "produce", "producer",
+                         "send", "sending", "outbound", "emit", "fire",
+                         "PUBLISH", "PRODUCER", "OUTBOUND"]
+    action: set interface_type = "pub"
+    severity: info
+
+  - id: normalize_interface_sub
+    description: Normalize subscribe/consumer/inbound aliases to canonical 'sub'
+    tags: [normalization, interface_type]
+    condition: |
+      interface_type in ["subscribe", "subscriber", "consume", "consumer",
+                         "receive", "listen", "listener", "inbound", "poll",
+                         "polling", "SUBSCRIBE", "CONSUMER", "INBOUND"]
+    action: set interface_type = "sub"
+    severity: info
+
+  - id: normalize_interface_service
+    description: Normalize api/svc/request-reply aliases to canonical 'service'
+    tags: [normalization, interface_type]
+    condition: |
+      interface_type in ["svc", "api", "request-reply", "request reply",
+                         "sync", "synchronous", "endpoint", "expose",
+                         "exposed", "API", "SVC", "REST", "HTTP"]
+    action: set interface_type = "service"
+    severity: info
+
+  # ── Source/Target System Normalization ───────────────────────────────────────
+  - id: normalize_source_s4hana
+    description: Normalize SAP aliases to canonical 's4hana'
+    tags: [normalization, source_system]
+    condition: |
+      source_system in ["sap", "sapretail", "sapr3", "s4", "s/4hana",
+                        "sap s4", "s4hanacloud", "SAP", "SAPRETAIL"]
+    action: set source_system = "s4hana"
+    severity: info
+
+  - id: normalize_target_s4hana
+    description: Normalize SAP aliases to canonical 's4hana' in target
+    tags: [normalization, target_system]
+    condition: |
+      target_system in ["sap", "sapretail", "sapr3", "s4", "s/4hana",
+                        "sap s4", "s4hanacloud", "SAP", "SAPRETAIL"]
+    action: set target_system = "s4hana"
+    severity: info
+
+  - id: normalize_salesforce
+    description: Normalize Salesforce aliases (sf/sfdc) to canonical 'salesforce'
+    tags: [normalization, system]
+    condition: source_system in ["sf", "sfdc", "salesforce crm"] OR target_system in ["sf", "sfdc", "salesforce crm"]
+    action: normalize to "salesforce"
+    severity: info
+
+  - id: normalize_demandware
+    description: Normalize Demandware/SFCC aliases to canonical 'demandware'
+    tags: [normalization, system]
+    condition: source_system in ["dw", "sfcc", "commerce cloud"] OR target_system in ["dw", "sfcc", "commerce cloud"]
+    action: normalize to "demandware"
+    severity: info
+
+  - id: normalize_ems
+    description: Normalize JMS/EMS aliases to canonical 'ems'
+    tags: [normalization, system]
+    condition: source_system in ["jms", "tibco jms", "tibco ems"] OR target_system in ["jms", "tibco jms", "tibco ems"]
+    action: normalize to "ems"
+    severity: info
+
+  # ── Null Value Normalization ─────────────────────────────────────────────────
+  - id: normalize_null_interface_id
+    description: Normalize null-equivalent values for interface_id to 'NA'
+    tags: [normalization, null]
+    condition: interface_id in ["N/A", "NONE", "none", "1NONE", "null", "undefined", "-", ""]
+    action: set interface_id = "NA"
+    severity: info
+
+  - id: normalize_null_scenario_id
+    description: Normalize null-equivalent values for scenario_id to '1234'
+    tags: [normalization, null]
+    condition: scenario_id in ["N/A", "NONE", "none", "1NONE", "null", "undefined", "-", ""]
+    action: set scenario_id = "1234"
+    severity: info
+
+  - id: normalize_null_country_code
+    description: Normalize null-equivalent country codes to 'NA'
+    tags: [normalization, null]
+    condition: country_code in ["N/A", "NONE", "none", "1NONE", "null", "undefined", "-", ""]
+    action: set country_code = "NA"
+    severity: info
+
+  - id: normalize_null_unique_id
+    description: Normalize null-equivalent unique IDs to 'NA'
+    tags: [normalization, null]
+    condition: unique_id in ["N/A", "NONE", "none", "1NONE", "null", "undefined", "-", ""]
+    action: set unique_id = "NA"
+    severity: info
+
+  # ── CDM Detection ────────────────────────────────────────────────────────────
+  - id: detect_cdm_flag
+    description: Set CDM flag when CDM keywords are detected in any field
+    tags: [normalization, cdm]
+    condition: any field contains ["cdm", "common data model", "canonical", "canonical model"]
+    action: set cdm = true
+    severity: info

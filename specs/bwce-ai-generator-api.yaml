@@ -1,0 +1,369 @@
+openapi: "3.0.0"
+info:
+  title: BWCE AI Integration Generator
+  description: AI-powered accelerator that generates TIBCO BWCE integration repositories through natural language conversation
+  version: "1.0.0"
+  contact:
+    name: Core Integration Team
+    email: core-integration@adidas.com
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health and readiness check
+      tags: [System]
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/templates:
+    get:
+      operationId: listTemplates
+      summary: List all available BWCE templates
+      tags: [Templates]
+      responses:
+        "200":
+          description: List of available templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateListResponse'
+
+  /api/chat/init:
+    post:
+      operationId: chatInit
+      summary: Initialize a new chat session
+      tags: [Chat]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatInitRequest'
+      responses:
+        "200":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatInitResponse'
+
+  /api/chat/message:
+    post:
+      operationId: chatMessage
+      summary: Send a message and get bot response with updated spec state
+      tags: [Chat]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessageRequest'
+      responses:
+        "200":
+          description: Bot response with current spec state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessageResponse'
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/chat/reset:
+    post:
+      operationId: chatReset
+      summary: Reset session to blank state
+      tags: [Chat]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatResetRequest'
+      responses:
+        "200":
+          description: Session reset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResetResponse'
+
+  /extract:
+    post:
+      operationId: extractSpec
+      summary: One-shot NLU extraction from free-text message
+      tags: [Extraction]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtractRequest'
+      responses:
+        "200":
+          description: Extracted integration spec fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractResponse'
+
+  /generate:
+    post:
+      operationId: generateRepository
+      summary: Generate BWCE repository from a complete integration spec
+      tags: [Generation]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRequest'
+      responses:
+        "200":
+          description: Generation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateResponse'
+        "400":
+          description: Validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Repository already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateResponse'
+
+components:
+  schemas:
+    IntegrationSpec:
+      type: object
+      properties:
+        source_system:
+          type: string
+          example: s4hana
+        target_system:
+          type: string
+          example: kafka
+        business_object:
+          type: string
+          example: article
+        interface_type:
+          type: string
+          enum: [pub, sub, service]
+        template_type:
+          type: string
+          example: REST_SERVICE_To_KAFKATopic
+        cdm:
+          type: boolean
+          default: false
+        interface_id:
+          type: string
+          default: NA
+        scenario_id:
+          type: string
+          default: "1234"
+        bitbucket_project:
+          type: string
+        env:
+          type: string
+          default: DEV
+        bw_profile:
+          type: string
+          default: default
+        email:
+          type: string
+          format: email
+        k8s_domain:
+          type: string
+          default: cite
+        need_secret:
+          type: boolean
+          default: false
+        country_code:
+          type: string
+          default: NA
+        unique_id:
+          type: string
+          default: NA
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        version:
+          type: string
+          example: "1.0.0"
+        timestamp:
+          type: string
+          format: date-time
+
+    TemplateListResponse:
+      type: object
+      properties:
+        templates:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              interface_types:
+                type: array
+                items:
+                  type: string
+              cdm:
+                type: boolean
+
+    ChatInitRequest:
+      type: object
+      properties:
+        session_id:
+          type: string
+          description: Optional — provide to resume an existing session
+
+    ChatInitResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        message:
+          type: string
+          example: "Hello! I can help you generate a BWCE integration repository. Describe your integration requirement in plain English."
+        spec:
+          $ref: '#/components/schemas/IntegrationSpec'
+
+    ChatMessageRequest:
+      type: object
+      required: [session_id, message]
+      properties:
+        session_id:
+          type: string
+        message:
+          type: string
+          example: "create a repo from s4hana to poc for article data using rest to kafka"
+
+    ChatMessageResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        message:
+          type: string
+          description: Bot response or follow-up question
+        spec:
+          $ref: '#/components/schemas/IntegrationSpec'
+        missing_fields:
+          type: array
+          items:
+            type: string
+        ready_to_generate:
+          type: boolean
+        shell_command:
+          type: string
+          description: Pre-filled GenerateCodeFromTemplate.sh command (when all fields complete)
+
+    ChatResetRequest:
+      type: object
+      required: [session_id]
+      properties:
+        session_id:
+          type: string
+
+    ChatResetResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+        message:
+          type: string
+
+    ExtractRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: "from wms to Demandware for salesorder sub"
+        current_spec:
+          $ref: '#/components/schemas/IntegrationSpec'
+
+    ExtractResponse:
+      type: object
+      properties:
+        extracted_fields:
+          $ref: '#/components/schemas/IntegrationSpec'
+        missing_fields:
+          type: array
+          items:
+            type: string
+        confidence:
+          type: number
+          format: float
+
+    GenerateRequest:
+      type: object
+      required: [spec]
+      properties:
+        spec:
+          $ref: '#/components/schemas/IntegrationSpec'
+        config_only:
+          type: boolean
+          default: false
+          description: When true, regenerates config files only without touching repository code
+
+    GenerateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        duplicate:
+          type: boolean
+        repo_name:
+          type: string
+          example: s4hana-article-kafka-pub
+        repo_url:
+          type: string
+        shell_command:
+          type: string
+        workspace_path:
+          type: string
+        generation_id:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: array
+          items:
+            type: string

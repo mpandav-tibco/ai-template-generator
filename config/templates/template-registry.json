@@ -1,0 +1,254 @@
+{
+  "templates": [
+    {
+      "id": "REST_SERVICE_To_KAFKATopic",
+      "name": "REST Service to Kafka Topic",
+      "description": "Exposes a REST API service endpoint that receives requests and publishes messages to a Kafka topic. Suitable for ingesting data from REST clients into Kafka event streams.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["KAFKA"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["rest", "http", "kafka", "service", "api", "publish", "event", "ingest"]
+    },
+    {
+      "id": "REST_PUB_To_KAFKATopic",
+      "name": "REST Publisher to Kafka Topic",
+      "description": "Publishes data received from a REST trigger to a Kafka topic. Used for pub pattern where data is produced to Kafka from a REST source.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["KAFKA"],
+      "interface_types": ["pub"],
+      "cdm": false,
+      "keywords": ["rest", "kafka", "pub", "publish", "producer", "event stream"]
+    },
+    {
+      "id": "KAFKATopic_SUB_To_REST",
+      "name": "Kafka Topic Subscriber to REST",
+      "description": "Consumes messages from a Kafka topic and calls a downstream REST endpoint. Used for sub pattern where Kafka events trigger REST calls.",
+      "source_protocols": ["KAFKA"],
+      "target_protocols": ["REST", "HTTP"],
+      "interface_types": ["sub"],
+      "cdm": false,
+      "keywords": ["kafka", "rest", "sub", "subscribe", "consumer", "consume"]
+    },
+    {
+      "id": "REST_SERVICE_To_REST",
+      "name": "REST Service to REST Backend",
+      "description": "Exposes a REST API and proxies or transforms the request to a downstream REST backend. Suitable for API gateway or mediation patterns.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["REST", "HTTP"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["rest", "http", "service", "api", "proxy", "mediation", "pass-through"]
+    },
+    {
+      "id": "REST_PUB_To_REST",
+      "name": "REST Publisher to REST",
+      "description": "Publishes data from a REST trigger to a downstream REST service. Used for pub pattern between REST systems.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["REST", "HTTP"],
+      "interface_types": ["pub"],
+      "cdm": false,
+      "keywords": ["rest", "http", "pub", "publish", "fire-and-forget"]
+    },
+    {
+      "id": "REST_SUB_From_REST",
+      "name": "REST Subscriber from REST",
+      "description": "Subscribes to a REST source and processes incoming data. Used for sub pattern consuming from REST endpoints.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["REST", "HTTP"],
+      "interface_types": ["sub"],
+      "cdm": false,
+      "keywords": ["rest", "http", "sub", "subscribe", "consumer", "polling"]
+    },
+    {
+      "id": "REST_SERVICE_To_EMS",
+      "name": "REST Service to TIBCO EMS",
+      "description": "Exposes a REST API and publishes messages to TIBCO EMS (JMS) topics or queues. Used when REST services need to bridge to EMS messaging.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["EMS", "JMS"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["rest", "ems", "jms", "service", "tibco", "messaging", "queue", "topic"]
+    },
+    {
+      "id": "EMS_SUB_To_REST",
+      "name": "EMS Subscriber to REST",
+      "description": "Subscribes to TIBCO EMS topics or queues and calls a downstream REST endpoint for each message.",
+      "source_protocols": ["EMS", "JMS"],
+      "target_protocols": ["REST", "HTTP"],
+      "interface_types": ["sub"],
+      "cdm": false,
+      "keywords": ["ems", "jms", "rest", "sub", "subscribe", "tibco", "consumer"]
+    },
+    {
+      "id": "EMS_PUB_To_KAFKATopic",
+      "name": "EMS Publisher to Kafka Topic",
+      "description": "Bridges TIBCO EMS messages to Kafka topics. Used when EMS events need to be forwarded to Kafka.",
+      "source_protocols": ["EMS", "JMS"],
+      "target_protocols": ["KAFKA"],
+      "interface_types": ["pub"],
+      "cdm": false,
+      "keywords": ["ems", "jms", "kafka", "pub", "bridge", "tibco"]
+    },
+    {
+      "id": "SOAP_SERVICE_To_KAFKATopic",
+      "name": "SOAP Service to Kafka Topic",
+      "description": "Exposes a SOAP web service endpoint and publishes received messages to a Kafka topic. For legacy SOAP to modern Kafka modernization.",
+      "source_protocols": ["SOAP", "WSDL"],
+      "target_protocols": ["KAFKA"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["soap", "wsdl", "kafka", "service", "legacy", "modernization", "xml"]
+    },
+    {
+      "id": "SOAP_SERVICE_To_REST",
+      "name": "SOAP Service to REST Backend",
+      "description": "Exposes a SOAP service and calls a downstream REST backend. Used for SOAP to REST mediation.",
+      "source_protocols": ["SOAP", "WSDL"],
+      "target_protocols": ["REST", "HTTP"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["soap", "rest", "service", "mediation", "transformation", "xml", "json"]
+    },
+    {
+      "id": "REST_SERVICE_To_S4HANA",
+      "name": "REST Service to SAP S4HANA",
+      "description": "Exposes a REST API that integrates with SAP S4HANA via OData or RFC. Used for S4HANA integration services.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["S4HANA", "SAP", "ODATA", "RFC"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["rest", "s4hana", "sap", "odata", "rfc", "service", "erp"]
+    },
+    {
+      "id": "REST_SERVICE_To_S4HANA_CDM",
+      "name": "REST Service to SAP S4HANA with CDM",
+      "description": "Exposes a REST API that integrates with SAP S4HANA using Common Data Model (CDM) transformation. Required when CDM canonical format is needed.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["S4HANA", "SAP", "ODATA"],
+      "interface_types": ["service"],
+      "cdm": true,
+      "keywords": ["rest", "s4hana", "sap", "cdm", "common data model", "canonical", "service", "erp"]
+    },
+    {
+      "id": "S4HANA_PUB_To_KAFKATopic_CDM",
+      "name": "S4HANA Publisher to Kafka with CDM",
+      "description": "Receives events from SAP S4HANA and publishes them to Kafka with CDM transformation. Used for S4HANA event streaming with canonical data model.",
+      "source_protocols": ["S4HANA", "SAP", "IDOC", "RFC"],
+      "target_protocols": ["KAFKA"],
+      "interface_types": ["pub"],
+      "cdm": true,
+      "keywords": ["s4hana", "sap", "kafka", "pub", "cdm", "canonical", "idoc", "event"]
+    },
+    {
+      "id": "S4HANA_PUB_To_KAFKATopic",
+      "name": "S4HANA Publisher to Kafka",
+      "description": "Receives events from SAP S4HANA and publishes them to Kafka without CDM transformation.",
+      "source_protocols": ["S4HANA", "SAP", "IDOC", "RFC"],
+      "target_protocols": ["KAFKA"],
+      "interface_types": ["pub"],
+      "cdm": false,
+      "keywords": ["s4hana", "sap", "kafka", "pub", "idoc", "event", "streaming"]
+    },
+    {
+      "id": "REST_PUB_To_AFS",
+      "name": "REST Publisher to AFS",
+      "description": "Publishes data from a REST trigger to AFS (Adidas Fulfillment System). Used for pub pattern into the fulfillment system.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["AFS"],
+      "interface_types": ["pub"],
+      "cdm": false,
+      "keywords": ["rest", "afs", "fulfillment", "pub", "publish", "adidas"]
+    },
+    {
+      "id": "KAFKATopic_SUB_To_AFS",
+      "name": "Kafka Topic Subscriber to AFS",
+      "description": "Consumes messages from Kafka and sends them to AFS (Adidas Fulfillment System). Used for Kafka to AFS integration.",
+      "source_protocols": ["KAFKA"],
+      "target_protocols": ["AFS"],
+      "interface_types": ["sub"],
+      "cdm": false,
+      "keywords": ["kafka", "afs", "fulfillment", "sub", "consume", "adidas"]
+    },
+    {
+      "id": "REST_SERVICE_To_AFS",
+      "name": "REST Service to AFS",
+      "description": "REST service that integrates with AFS (Adidas Fulfillment System). Used for synchronous request-reply to fulfillment.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["AFS"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["rest", "afs", "fulfillment", "service", "request", "reply", "adidas"]
+    },
+    {
+      "id": "REST_SERVICE_To_Salesforce",
+      "name": "REST Service to Salesforce",
+      "description": "REST API service that integrates with Salesforce CRM via REST API. Supports create, update, query operations.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["SALESFORCE", "CRM"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["rest", "salesforce", "crm", "service", "api", "sfdc"]
+    },
+    {
+      "id": "Salesforce_PUB_To_KAFKATopic",
+      "name": "Salesforce Publisher to Kafka",
+      "description": "Listens for Salesforce events (Platform Events or CDC) and publishes them to Kafka. Used for Salesforce event streaming.",
+      "source_protocols": ["SALESFORCE"],
+      "target_protocols": ["KAFKA"],
+      "interface_types": ["pub"],
+      "cdm": false,
+      "keywords": ["salesforce", "kafka", "pub", "event", "platform events", "cdc", "crm"]
+    },
+    {
+      "id": "REST_SERVICE_To_SFTP",
+      "name": "REST Service to SFTP",
+      "description": "REST service that receives data and writes files to an SFTP server. Used for file-based integrations.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["SFTP", "FTP", "FILE"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["rest", "sftp", "ftp", "file", "service", "transfer"]
+    },
+    {
+      "id": "SFTP_SUB_To_REST",
+      "name": "SFTP File Poller to REST",
+      "description": "Polls an SFTP server for new files and sends their contents to a REST endpoint. Used for file pickup and forwarding.",
+      "source_protocols": ["SFTP", "FTP", "FILE"],
+      "target_protocols": ["REST", "HTTP"],
+      "interface_types": ["sub"],
+      "cdm": false,
+      "keywords": ["sftp", "ftp", "file", "rest", "sub", "polling", "pickup"]
+    },
+    {
+      "id": "REST_SERVICE_To_WMS",
+      "name": "REST Service to WMS",
+      "description": "REST service integrating with Warehouse Management System (WMS). Supports warehouse operations like inventory queries.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["WMS"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["rest", "wms", "warehouse", "service", "inventory", "logistics"]
+    },
+    {
+      "id": "WMS_PUB_To_KAFKATopic",
+      "name": "WMS Publisher to Kafka",
+      "description": "Receives events from WMS (Warehouse Management System) and publishes them to Kafka. Used for warehouse event streaming.",
+      "source_protocols": ["WMS"],
+      "target_protocols": ["KAFKA"],
+      "interface_types": ["pub"],
+      "cdm": false,
+      "keywords": ["wms", "kafka", "pub", "warehouse", "inventory", "shipment", "event"]
+    },
+    {
+      "id": "REST_SERVICE_To_Demandware",
+      "name": "REST Service to Demandware",
+      "description": "REST API service integrating with Demandware/Salesforce Commerce Cloud. Used for e-commerce data synchronization.",
+      "source_protocols": ["REST", "HTTP"],
+      "target_protocols": ["DEMANDWARE", "SFCC", "COMMERCE"],
+      "interface_types": ["service"],
+      "cdm": false,
+      "keywords": ["rest", "demandware", "salesforce commerce", "sfcc", "ecommerce", "service"]
+    }
+  ]
+}

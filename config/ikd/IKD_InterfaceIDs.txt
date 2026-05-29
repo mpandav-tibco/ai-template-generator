@@ -1,0 +1,23 @@
+# IKD Interface IDs Registry
+# Format: INTERFACE_ID|DESCRIPTION|SOURCE|TARGET|TYPE
+IKD-001|S4HANA to AFS Article Publication|s4hana|afs|pub
+IKD-002|S4HANA to AFS Invoice Publication|s4hana|afs|pub
+IKD-003|S4HANA to AFS Price Publication|s4hana|afs|pub
+IKD-004|S4HANA to AFS Stock Publication|s4hana|afs|pub
+IKD-005|WMS to Demandware SalesOrder Subscription|wms|demandware|sub
+IKD-006|WMS to AFS Inventory Subscription|wms|afs|sub
+IKD-007|Salesforce to AFS Customer Service|salesforce|afs|service
+IKD-008|S4HANA to Kafka Article Event|s4hana|kafka|pub
+IKD-009|S4HANA to Kafka Invoice Event|s4hana|kafka|pub
+IKD-010|AFS to S4HANA Shipment Confirmation|afs|s4hana|sub
+IKD-011|Demandware to S4HANA Order Service|demandware|s4hana|service
+IKD-012|S4HANA to AFS Product CDM Publication|s4hana|afs|pub
+IKD-013|WMS to Kafka Shipment Event|wms|kafka|pub
+IKD-014|Salesforce to Kafka Lead Event|salesforce|kafka|pub
+IKD-015|S4HANA to EMS Article Message|s4hana|ems|pub
+IKD-016|EMS to AFS Stock Update|ems|afs|sub
+IKD-017|REST to Kafka Integration Service|rest|kafka|service
+IKD-018|S4HANA RFC to AFS Article|s4hana|afs|sub
+IKD-019|Kafka to AFS Consumer|kafka|afs|sub
+IKD-020|Salesforce to S4HANA Account Sync|salesforce|s4hana|service
+NA|Not Applicable / No Interface ID assigned|any|any|any

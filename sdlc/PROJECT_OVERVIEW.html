@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BWCE AI Generator – Project Overview</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --tibco-blue:    #003da5;
+      --tibco-accent:  #0072ce;
+      --tibco-light:   #e8f1fb;
+      --green:         #16a34a;
+      --green-light:   #dcfce7;
+      --orange:        #ea580c;
+      --orange-light:  #ffedd5;
+      --purple:        #7c3aed;
+      --purple-light:  #ede9fe;
+      --gray-50:       #f9fafb;
+      --gray-100:      #f3f4f6;
+      --gray-200:      #e5e7eb;
+      --gray-700:      #374151;
+      --gray-900:      #111827;
+      --text:          #1e293b;
+      --card-shadow:   0 2px 12px rgba(0,0,0,.08);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--gray-50);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--tibco-blue) 0%, #1a56db 60%, #0ea5e9 100%);
+      color: #fff;
+      padding: 64px 24px 72px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: 0; right: 0;
+      height: 80px;
+      background: var(--gray-50);
+      clip-path: ellipse(55% 100% at 50% 100%);
+    }
+    .hero .badge {
+      display: inline-block;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 20px;
+      padding: 5px 16px;
+      font-size: .8rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+      margin-bottom: 18px;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      opacity: .9;
+      max-width: 680px;
+      margin: 0 auto 32px;
+    }
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .pill {
+      background: rgba(255,255,255,.2);
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: 30px;
+      padding: 6px 18px;
+      font-size: .85rem;
+      font-weight: 500;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    section {
+      padding: 64px 0;
+    }
+    section + section {
+      border-top: 1px solid var(--gray-200);
+    }
+    .section-label {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--tibco-accent);
+      margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--gray-900);
+      margin-bottom: 14px;
+      letter-spacing: -.02em;
+    }
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+    }
+    .lead {
+      font-size: 1.05rem;
+      color: var(--gray-700);
+      max-width: 720px;
+      margin-bottom: 40px;
+    }
+
+    /* ── Cards ────────────────────────────────────────────────────── */
+    .card-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    }
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--gray-200);
+    }
+    .card-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+    }
+    .icon-blue   { background: var(--tibco-light);  }
+    .icon-green  { background: var(--green-light);  }
+    .icon-orange { background: var(--orange-light); }
+    .icon-purple { background: var(--purple-light); }
+
+    /* ── Audience Tabs ────────────────────────────────────────────── */
+    .audience-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 640px) { .audience-grid { grid-template-columns: 1fr; } }
+    .audience-card {
+      border-radius: 14px;
+      padding: 28px;
+      border: 1px solid transparent;
+    }
+    .audience-dev {
+      background: var(--tibco-light);
+      border-color: #bfdbfe;
+    }
+    .audience-ops {
+      background: var(--green-light);
+      border-color: #bbf7d0;
+    }
+    .audience-card h3 { margin-bottom: 14px; }
+    .audience-card ul { padding-left: 20px; }
+    .audience-card li { margin-bottom: 8px; font-size: .95rem; }
+
+    /* ── Agent Flow ───────────────────────────────────────────────── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .flow-step {
+      display: flex;
+      gap: 20px;
+      position: relative;
+    }
+    .flow-step:not(:last-child) .step-line {
+      position: absolute;
+      left: 22px;
+      top: 48px;
+      bottom: 0;
+      width: 2px;
+      background: var(--gray-200);
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--tibco-blue);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: .95rem;
+      z-index: 1;
+    }
+    .step-body {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 18px 22px;
+      flex: 1;
+      margin-bottom: 16px;
+    }
+    .step-body h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--tibco-blue);
+    }
+    .step-body p { font-size: .93rem; color: var(--gray-700); margin: 0; }
+    .step-body .code-tag {
+      display: inline-block;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: .78rem;
+      padding: 2px 8px;
+      margin: 6px 4px 0 0;
+      color: var(--tibco-blue);
+    }
+
+    /* ── API Endpoint Table ───────────────────────────────────────── */
+    .endpoint-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .9rem;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+    .endpoint-table th {
+      background: var(--tibco-blue);
+      color: #fff;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .endpoint-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      vertical-align: top;
+    }
+    .endpoint-table tr:last-child td { border-bottom: none; }
+    .method {
+      display: inline-block;
+      border-radius: 5px;
+      padding: 2px 8px;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .get  { background: #dcfce7; color: #15803d; }
+    .post { background: #dbeafe; color: #1d4ed8; }
+    .route { font-family: monospace; font-size: .88rem; }
+
+    /* ── Validation Table ─────────────────────────────────────────── */
+    .val-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+    .val-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      border-left: 4px solid var(--tibco-accent);
+      box-shadow: var(--card-shadow);
+    }
+    .val-card.warn { border-left-color: var(--orange); }
+    .val-card.ok   { border-left-color: var(--green);  }
+    .val-card.info { border-left-color: var(--purple); }
+    .val-card h4 { font-size: .95rem; margin-bottom: 6px; }
+    .val-card p  { font-size: .88rem; color: var(--gray-700); }
+
+    /* ── Architecture Box ─────────────────────────────────────────── */
+    .arch-box {
+      background: var(--gray-900);
+      color: #e2e8f0;
+      border-radius: 14px;
+      padding: 32px;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: .82rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .arch-box .c-blue   { color: #93c5fd; }
+    .arch-box .c-green  { color: #86efac; }
+    .arch-box .c-yellow { color: #fde68a; }
+    .arch-box .c-orange { color: #fdba74; }
+    .arch-box .c-purple { color: #c4b5fd; }
+
+    /* ── Quote ────────────────────────────────────────────────────── */
+    .callout {
+      border-left: 4px solid var(--tibco-accent);
+      background: var(--tibco-light);
+      border-radius: 0 10px 10px 0;
+      padding: 16px 22px;
+      margin: 24px 0;
+      font-size: .97rem;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    footer {
+      background: var(--gray-900);
+      color: #9ca3af;
+      text-align: center;
+      padding: 32px 24px;
+      font-size: .85rem;
+    }
+    footer strong { color: #e5e7eb; }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .card-grid { grid-template-columns: 1fr; }
+      .endpoint-table { font-size: .8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="badge">TIBCO BWCE Platform</div>
+  <h1>BWCE AI Integration Generator</h1>
+  <p>
+    An AI-powered accelerator that turns plain English into fully structured
+    TIBCO BusinessWorks Container Edition integration repositories — with
+    built-in TIBCO-specific validations, naming rules, and operational guardrails.
+  </p>
+  <div class="hero-pills">
+    <span class="pill">🤖 AI-Assisted</span>
+    <span class="pill">⚡ BWCE Native</span>
+    <span class="pill">🛡️ Validated</span>
+    <span class="pill">🔄 Multi-turn Chat</span>
+    <span class="pill">👩‍💻 Developer + Ops</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     WHY WE BUILT IT
+═══════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Motivation</div>
+    <h2>Why This Project Exists</h2>
+    <p class="lead">
+      TIBCO BWCE integration projects follow precise, opinionated conventions —
+      repository naming, template selection, environment variables, CDM flags,
+      and Bitbucket project alignment. Getting all of those right by hand is
+      repetitive, error-prone, and takes specialist knowledge that not every
+      developer has on day one.
+    </p>
+
+    <div class="callout">
+      <strong>The goal is not to replace existing tools</strong> — it is to wrap
+      them with an intelligent layer that guides developers through the right
+      choices, enforces TIBCO conventions automatically, and gives operations
+      teams a single reliable source of truth for every generated artifact.
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon icon-blue">🗣️</div>
+        <h3>Natural Language Input</h3>
+        <p>
+          Developers describe what they need in plain English.
+          The AI extracts source system, target system, business object,
+          interface type, and more — no YAML or JSON required to get started.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon icon-orange">🧭</div>
+        <h3>TIBCO Template Intelligence</h3>
+        <p>
+          The generator understands BWCE template types
+          (<code>pub</code>, <code>sub</code>, <code>service</code>),
+          CDM patterns, S/4HANA source adapters, AFS targets, and how they
+          map to the correct shell script flags and directory layout.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon icon-green">✅</div>
+        <h3>Built-In Guardrails</h3>
+        <p>
+          Field validation, email domain checks, URL format enforcement,
+          duplicate-repository detection, and repository name length limits
+          are all enforced before a single file is written.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon icon-purple">📦</div>
+        <h3>Idempotent Code Generation</h3>
+        <p>
+          If a repository was already generated the service returns the
+          existing metadata immediately, preventing duplicate scaffolds and
+          saving CI/CD pipeline time.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon icon-blue">🗂️</div>
+        <h3>Centralised Registry</h3>
+        <p>
+          Every generation is logged in an SQLite database and a CSV tracker.
+          Operations can audit every artifact — who requested it, when, and
+          which template was used.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon icon-green">🚀</div>
+        <h3>Kubernetes-Ready Output</h3>
+        <p>
+          Generated repositories include CI/CD scaffolding and Kubernetes
+          manifests aligned with the BWCE deployment model, ready for the
+          operations team to promote through environments.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     FOR DEVELOPER & OPS
+═══════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Who Benefits</div>
+    <h2>Built for Developers &amp; Operations</h2>
+    <p class="lead">
+      The tool is designed with two personas in mind — those who create
+      integrations and those who run them in production.
+    </p>
+
+    <div class="audience-grid">
+      <div class="audience-card audience-dev">
+        <h3>👩‍💻 Integration Developer</h3>
+        <ul>
+          <li>Describe the integration in plain English; the AI handles the rest.</li>
+          <li>Never guess template types — the system maps interface descriptions to correct BWCE template names automatically.</li>
+          <li>Get a ready-to-run <code>GenerateCodeFromTemplate.sh</code> command with all variables pre-filled.</li>
+          <li>Immediate validation feedback — know about missing fields or incorrect values <em>before</em> running the script.</li>
+          <li>Re-open any session and update a single field without restarting the entire conversation.</li>
+          <li>Supports S/4HANA, AFS, custom adapters and CDM patterns out of the box.</li>
+        </ul>
+      </div>
+      <div class="audience-card audience-ops">
+        <h3>🔧 Operations / Platform Engineer</h3>
+        <ul>
+          <li>Every generated artifact is tracked in the registry — no shadow repositories.</li>
+          <li>Kubernetes manifests and CI/CD scaffolding are generated alongside the code.</li>
+          <li>Email domain restrictions and URL format checks prevent misconfigured pipelines from reaching production.</li>
+          <li>Health endpoint (<code>/health</code>) and OpenAPI docs included for platform observability.</li>
+          <li>Docker-compose and Kubernetes deployment descriptors provided for the tool itself.</li>
+          <li>CSV tracker gives an audit trail compatible with existing operational reporting.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TIBCO-SPECIFIC VALIDATIONS
+═══════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">TIBCO-Specific Intelligence</div>
+    <h2>Validations &amp; Development Guardrails</h2>
+    <p class="lead">
+      Unlike generic scaffold tools, every rule below is derived directly from
+      BWCE platform conventions and field experience.
+    </p>
+
+    <div class="val-grid">
+      <div class="val-card ok">
+        <h4>Repository Naming Rules</h4>
+        <p>
+          Names are built as <code>{source}-{object}-{target}-{type}</code>,
+          sanitised to lowercase kebab-case, and enforced against a configurable
+          maximum length. Unsafe characters are automatically removed.
+        </p>
+      </div>
+      <div class="val-card warn">
+        <h4>Interface Type Enforcement</h4>
+        <p>
+          Only <code>pub</code>, <code>sub</code>, and <code>service</code>
+          are accepted. Natural-language aliases (e.g. "publish", "consumer",
+          "API") are resolved to the correct canonical value.
+        </p>
+      </div>
+      <div class="val-card ok">
+        <h4>Template Auto-Detection</h4>
+        <p>
+          The engine scans the <code>templates/</code> directory and scores
+          candidate templates against source, target and interface type,
+          returning the closest match with a confidence log.
+        </p>
+      </div>
+      <div class="val-card info">
+        <h4>CDM Flag Awareness</h4>
+        <p>
+          Common Data Model integrations require specific template variants.
+          The chatbot asks about CDM when the interface context implies it
+          and adjusts the template selection accordingly.
+        </p>
+      </div>
+      <div class="val-card warn">
+        <h4>Duplicate Detection</h4>
+        <p>
+          Before scaffolding, the registry is queried by repository name.
+          Existing entries are returned immediately with a
+          <em>duplicate</em> flag — no files are written twice.
+        </p>
+      </div>
+      <div class="val-card ok">
+        <h4>Email &amp; URL Validation</h4>
+        <p>
+          Email addresses are checked for format and against an
+          allowlisted domain set. Bitbucket URLs are validated with a strict
+          regex before any Git operation is attempted.
+        </p>
+      </div>
+      <div class="val-card info">
+        <h4>Scenario &amp; Interface ID Cross-Check</h4>
+        <p>
+          Known IKD scenario IDs and interface IDs are loaded from
+          configuration files and used to validate or suggest corrections,
+          reducing runtime failures in downstream pipelines.
+        </p>
+      </div>
+      <div class="val-card warn">
+        <h4>Country Code &amp; Unique ID Normalisation</h4>
+        <p>
+          Null-equivalent values (<code>NA</code>, <code>NONE</code>,
+          <code>1NONE</code>) are normalised uniformly so the repository
+          name is never polluted with placeholder tokens.
+        </p>
+      </div>
+      <div class="val-card ok">
+        <h4>Environment &amp; BW Profile Defaults</h4>
+        <p>
+          Environment (<code>DEV</code>/<code>TEST</code>/<code>PROD</code>)
+          and BW profile default safely to <code>DEV</code> /
+          <code>default</code> when not supplied, matching the BWCE
+          deployment model expectations.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     HOW THE AGENTS ARE CALLED
+═══════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Agent Architecture</div>
+    <h2>How the Agents Are Called</h2>
+    <p class="lead">
+      The system uses a layered, pipeline-style agent model — each layer adds
+      intelligence without depending on the next. If an LLM is unavailable,
+      the system falls back gracefully.
+    </p>
+
+    <div class="flow">
+
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>User Interface — Entry Point</h4>
+          <p>
+            A request originates from one of three surfaces: the
+            <strong>Web Chat UI</strong> (<code>/</code>), the
+            <strong>REST API</strong> (<code>POST /api/chat/message</code>),
+            or the <strong>interactive CLI</strong>.
+            All three funnel into the same processing pipeline.
+          </p>
+          <span class="code-tag">templates/chat.html</span>
+          <span class="code-tag">src/api.py</span>
+          <span class="code-tag">src/interactive_chatbot.py</span>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Session Manager Agent</h4>
+          <p>
+            <code>FastAPI</code> maintains a per-session
+            <code>InteractiveBWCEChat</code> instance, keyed by
+            <code>session_id</code>. This preserves conversation history,
+            the partially-filled <code>IntegrationSpec</code> object, and
+            which fields have already been asked about — enabling true
+            multi-turn dialogue with no server-side state loss.
+          </p>
+          <span class="code-tag">chat_sessions dict</span>
+          <span class="code-tag">POST /api/chat/init</span>
+          <span class="code-tag">POST /api/chat/reset</span>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>NLU / Regex Extraction Agent (always runs, no LLM required)</h4>
+          <p>
+            The first intelligence layer runs entirely in-process using compiled
+            regular expressions. It identifies source and target systems, business
+            objects, interface types (pub/sub/service), scenario IDs, CDM mentions,
+            and country codes from the raw user message — with zero latency.
+          </p>
+          <span class="code-tag">src/chatbot.py → parse_nlu()</span>
+          <span class="code-tag">pattern matching</span>
+          <span class="code-tag">alias resolution</span>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>LLM Semantic Extraction Agent (optional, pluggable)</h4>
+          <p>
+            When an LLM backend is configured (Ollama, OpenAI-compatible, or
+            LM Studio), the message plus current spec context is sent as a
+            structured prompt. The LLM returns JSON with any additional fields
+            it inferred from context. Results are <strong>merged</strong> with the
+            regex output — the regex takes precedence for deterministic values,
+            the LLM fills in semantic gaps.
+          </p>
+          <span class="code-tag">src/chatbot.py → LLMBackend.chat()</span>
+          <span class="code-tag">llm_extract()</span>
+          <span class="code-tag">merge_llm_into_spec()</span>
+          <span class="code-tag">Ollama / OpenAI</span>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Field Completeness &amp; Question Generator Agent</h4>
+          <p>
+            After each extraction pass, <code>IntegrationSpec.missing_required()</code>
+            checks which of the five required fields are still absent
+            (<code>source_system</code>, <code>target_system</code>,
+            <code>business_object</code>, <code>interface_type</code>,
+            <code>template_type</code>). The next unanswered question is
+            generated contextually — the agent never asks for the same field twice.
+          </p>
+          <span class="code-tag">IntegrationSpec.missing_required()</span>
+          <span class="code-tag">asked_fields tracking</span>
+          <span class="code-tag">pending_field state</span>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h4>Template Selector Agent</h4>
+          <p>
+            Once the spec is complete, the <code>TemplateEngine</code> scans the
+            <code>templates/</code> directory and scores each candidate against the
+            source/target/interface tuple. The highest-scoring template is selected
+            and materialised into the workspace path with all variables substituted.
+          </p>
+          <span class="code-tag">src/accelerator/template_engine.py</span>
+          <span class="code-tag">TemplateEngine.materialize()</span>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <h4>Validation Agent</h4>
+          <p>
+            Before any file is written, <code>InputValidator</code> enforces all
+            TIBCO-specific rules: required fields, email domain allowlist, Bitbucket
+            URL format, interface type membership, and repository name length.
+            Any violation raises a <code>ValidationError</code> that is returned
+            as a structured API error — not a silent failure.
+          </p>
+          <span class="code-tag">src/accelerator/validators.py</span>
+          <span class="code-tag">InputValidator.validate()</span>
+          <span class="code-tag">ValidationError</span>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <h4>Naming Engine Agent</h4>
+          <p>
+            <code>NamingEngine</code> constructs the canonical repository name
+            following the <code>{source}-{object}-{target}-{type}</code> convention,
+            appends country code and unique ID only when non-null, sanitises the
+            result to kebab-case, and enforces the maximum length constraint.
+          </p>
+          <span class="code-tag">src/accelerator/naming.py</span>
+          <span class="code-tag">NamingEngine.build_repository_name()</span>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-num">9</div>
+        <div class="step-body">
+          <h4>Accelerator Service — Orchestrator</h4>
+          <p>
+            <code>AcceleratorService.generate()</code> orchestrates all downstream
+            agents in sequence: normalise → validate → name → registry check →
+            template materialise → write runtime config → create remote repository →
+            scaffold CI/CD → initialise Git → register result → notify.
+            A single method call triggers the full pipeline.
+          </p>
+          <span class="code-tag">src/accelerator/service.py</span>
+          <span class="code-tag">AcceleratorService.generate()</span>
+          <span class="code-tag">POST /generate</span>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-num">10</div>
+        <div class="step-body">
+          <h4>Registry &amp; Notification Agents</h4>
+          <p>
+            <code>GenerationRegistry</code> writes the result atomically to
+            SQLite and the CSV tracker. <code>NotificationSender</code> dispatches
+            a completion notification (e.g. email or Teams webhook) if configured.
+            The API response includes the repository name, URL, workspace path, and
+            full metadata.
+          </p>
+          <span class="code-tag">src/accelerator/registry.py</span>
+          <span class="code-tag">src/accelerator/notify.py</span>
+          <span class="code-tag">GenerationResult</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     API ENDPOINTS
+═══════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">REST API</div>
+    <h2>API Endpoint Reference</h2>
+    <p class="lead">
+      Every capability is available via REST, making the generator composable
+      into any CI/CD pipeline or developer portal.
+    </p>
+
+    <table class="endpoint-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Path</th>
+          <th>Purpose</th>
+          <th>Key Agent Invoked</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td class="route">/</td>
+          <td>Serve the Web Chat UI</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td class="route">/health</td>
+          <td>Health / readiness check</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td class="route">/api/chat/init</td>
+          <td>Create a new chat session</td>
+          <td>Session Manager</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td class="route">/api/chat/message</td>
+          <td>Send a user message; returns bot response + current spec state</td>
+          <td>NLU Agent → LLM Agent → Question Generator</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td class="route">/api/chat/reset</td>
+          <td>Reset session to blank state</td>
+          <td>Session Manager</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td class="route">/extract</td>
+          <td>One-shot NLU extraction from free-text message</td>
+          <td>NLU Agent + LLM Agent</td>
+        </tr>
+        <tr>
+          <td><span class="method post">POST</span></td>
+          <td class="route">/generate</td>
+          <td>Generate repository from a complete structured spec</td>
+          <td>Validation → Naming → Template → Registry → Git → Notify</td>
+        </tr>
+        <tr>
+          <td><span class="method get">GET</span></td>
+          <td class="route">/docs</td>
+          <td>Interactive OpenAPI (Swagger) documentation</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     ARCHITECTURE SUMMARY
+═══════════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-label">Architecture</div>
+    <h2>System at a Glance</h2>
+    <p class="lead">High-level component map showing how each layer connects.</p>
+
+    <div class="arch-box"><span class="c-blue">┌──────────────────────────── USER INTERFACES ────────────────────────────────┐</span>
+│  <span class="c-green">Web Chat UI</span>  (/templates/chat.html)   │   <span class="c-green">CLI</span> (python -m src.chatbot)         │
+│  <span class="c-green">REST API Client</span>  (curl / Postman / pipeline)                              │
+<span class="c-blue">└──────────────────────────────────┬──────────────────────────────────────────┘</span>
+                                   │  HTTP (FastAPI — src/api.py)
+<span class="c-yellow">┌──────────────────────────────────▼──────────────────────────────────────────┐</span>
+│                         <span class="c-yellow">SESSION MANAGER</span>                                     │
+│  chat_sessions: { session_id → InteractiveBWCEChat }                       │
+<span class="c-yellow">└──────────────────────────────────┬──────────────────────────────────────────┘</span>
+                                   │
+           <span class="c-green">┌──────────────────────▼──────────────────────┐</span>
+           │         <span class="c-green">PROCESSING PIPELINE</span>                  │
+           │                                             │
+           │  [1]  <span class="c-orange">NLU / Regex Agent</span>   (always runs)    │
+           │  [2]  <span class="c-orange">LLM Semantic Agent</span>  (if configured)   │
+           │  [3]  <span class="c-orange">Merge + Alias Resolution</span>              │
+           │  [4]  <span class="c-orange">Field Completeness Check</span>              │
+           │  [5]  <span class="c-orange">Question Generator</span>                    │
+           <span class="c-green">└──────────────────────┬──────────────────────┘</span>
+                                  │ spec complete
+<span class="c-purple">┌─────────────────────────────────▼───────────────────────────────────────────┐</span>
+│                      <span class="c-purple">ACCELERATOR SERVICE</span>   (src/accelerator/)            │
+│                                                                             │
+│  InputValidator  ──▶  NamingEngine  ──▶  GenerationRegistry (dup check)   │
+│       │                                                                     │
+│       ▼                                                                     │
+│  TemplateEngine  ──▶  GitAutomation  ──▶  CICDScaffolder                   │
+│       │                                                                     │
+│       ▼                                                                     │
+│  GenerationRegistry (write)  ──▶  NotificationSender                       │
+<span class="c-purple">└─────────────────────────────────────────────────────────────────────────────┘</span>
+                      │
+           <span class="c-blue">┌──────────▼──────────────────┐</span>
+           │   <span class="c-blue">OUTPUT ARTIFACTS</span>           │
+           │  • Repository (code/)       │
+           │  • CI/CD pipeline files     │
+           │  • Kubernetes manifests     │
+           │  • Registry entry (SQLite)  │
+           │  • CSV tracker row          │
+           │  • Shell command string     │
+           <span class="c-blue">└─────────────────────────────┘</span></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════════ -->
+<footer>
+  <p>
+    <strong>BWCE AI Integration Generator</strong> &nbsp;|&nbsp;
+    TIBCO BusinessWorks Container Edition Accelerator &nbsp;|&nbsp;
+    Built for Developer &amp; Operations Productivity
+  </p>
+  <p style="margin-top:8px;">
+    API Docs: <code>http://localhost:8080/docs</code> &nbsp;·&nbsp;
+    Health: <code>http://localhost:8080/health</code> &nbsp;·&nbsp;
+    Chat UI: <code>http://localhost:8080/</code>
+  </p>
+</footer>
+
+</body>
+</html>
