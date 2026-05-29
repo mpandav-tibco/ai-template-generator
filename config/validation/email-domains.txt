@@ -1,0 +1,6 @@
+# Allowed email domains for BWCE integration requests
+# One domain per line, lines starting with # are comments
+adidas.com
+adidas-group.com
+tibco.com
+cloud.tibco.com

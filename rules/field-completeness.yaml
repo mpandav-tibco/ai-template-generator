@@ -1,0 +1,55 @@
+rules:
+  # ── Required Field Completeness ───────────────────────────────────────────────
+  - id: missing_source_system
+    description: source_system field is not yet provided
+    tags: [completeness, required]
+    condition: source_system is null OR source_system == ""
+    message: "What is the source system? (e.g., s4hana, wms, salesforce, demandware)"
+    severity: info
+    field: source_system
+
+  - id: missing_target_system
+    description: target_system field is not yet provided
+    tags: [completeness, required]
+    condition: target_system is null OR target_system == ""
+    message: "What is the target system? (e.g., kafka, afs, rest, ems)"
+    severity: info
+    field: target_system
+
+  - id: missing_business_object
+    description: business_object field is not yet provided
+    tags: [completeness, required]
+    condition: business_object is null OR business_object == ""
+    message: "What business object or data entity is involved? (e.g., article, invoice, order, stock)"
+    severity: info
+    field: business_object
+
+  - id: missing_interface_type
+    description: interface_type field is not yet provided
+    tags: [completeness, required]
+    condition: interface_type is null OR interface_type == ""
+    message: "What is the interface type? Options: pub (publish/produce), sub (subscribe/consume), service (request-reply API)"
+    severity: info
+    field: interface_type
+
+  - id: missing_template_type
+    description: template_type field is not yet provided
+    tags: [completeness, required]
+    condition: template_type is null OR template_type == ""
+    message: "Template type not yet determined. Use /suggest to get recommendations based on your source, target and interface type."
+    severity: info
+    field: template_type
+
+  # ── Completeness Summary ─────────────────────────────────────────────────────
+  - id: all_required_fields_complete
+    description: All 5 required fields are populated - ready for generation
+    tags: [completeness, ready]
+    condition: |
+      source_system is not null AND source_system != "" AND
+      target_system is not null AND target_system != "" AND
+      business_object is not null AND business_object != "" AND
+      interface_type is not null AND interface_type != "" AND
+      interface_type in ["pub", "sub", "service"] AND
+      template_type is not null AND template_type != ""
+    message: "All required fields are complete. Ready to generate repository!"
+    severity: info

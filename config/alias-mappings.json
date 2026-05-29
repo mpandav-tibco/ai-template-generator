@@ -1,0 +1,37 @@
+{
+  "source_target_aliases": {
+    "s4hana": ["sap", "s4", "sapr3", "sapretail", "sap4hana", "s/4hana", "s4 hana", "sap s4", "sap s/4", "sapretail", "s4hanacloud"],
+    "afs": ["adidas fulfillment", "fulfillment", "adidas-fulfillment", "fulfillment system"],
+    "wms": ["warehouse", "warehouse management", "warehouse management system"],
+    "demandware": ["dw", "sfcc", "salesforce commerce", "commerce cloud", "salesforce commerce cloud"],
+    "salesforce": ["sf", "sfdc", "salesforce crm", "crm"],
+    "kafka": ["kafkatopic", "kafka topic", "event stream", "event streaming"],
+    "ems": ["tibco ems", "jms", "tibco jms", "enterprise message service"],
+    "afs": ["adidas fulfillment", "fulfillment", "adidas-fulfillment"],
+    "rest": ["http", "rest api", "restful", "web service", "api"],
+    "soap": ["wsdl", "soap service", "soap web service"],
+    "poc": ["test", "sandbox", "dev", "development"],
+    "sftp": ["ftp", "file transfer", "secure ftp"],
+    "core": ["core integration", "core_integration"],
+    "ci": ["core integration"]
+  },
+  "interface_type_aliases": {
+    "pub": ["publish", "publisher", "produce", "producer", "send", "sending", "outbound", "emit", "fire"],
+    "sub": ["subscribe", "subscriber", "consume", "consumer", "receive", "listen", "listener", "inbound", "poll", "polling"],
+    "service": ["svc", "api", "request-reply", "request reply", "sync", "synchronous", "endpoint", "expose", "exposed"]
+  },
+  "null_equivalents": ["NA", "N/A", "NONE", "NONE", "1NONE", "null", "undefined", "-", ""],
+  "cdm_keywords": ["cdm", "common data model", "canonical", "canonical model", "canonical data"],
+  "system_aliases_normalized": {
+    "sap": "s4hana",
+    "sapretail": "s4hana",
+    "s4": "s4hana",
+    "dw": "demandware",
+    "sfcc": "demandware",
+    "sf": "salesforce",
+    "sfdc": "salesforce",
+    "jms": "ems",
+    "kafkatopic": "kafka",
+    "wsdl": "soap"
+  }
+}

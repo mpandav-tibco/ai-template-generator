@@ -1,0 +1,25 @@
+# Build outputs
+bin/
+*.exe
+*.dll
+
+# Flogo runtime JSON (generated from design file)
+flogo.json
+flogo.app.properties.json
+
+# Go build artifacts
+go.sum
+vendor/
+
+# IDE
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / env
+*.env
+.env*
+secrets/
