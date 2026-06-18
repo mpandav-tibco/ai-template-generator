@@ -2,7 +2,7 @@
 # BWCE AI Generator - API Test Suite
 # Run after starting the Flogo application on port 8080
 
-BASE_URL="http://localhost:8080"
+BASE_URL="http://localhost:9999"
 
 echo "=== BWCE AI Generator Test Suite ==="
 echo ""
