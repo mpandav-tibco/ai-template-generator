@@ -10,6 +10,16 @@ No fields collected yet.
 ## User Message
 {{ user_message }}
 
+{% if deterministic_signals %}
+## Deterministic Signals (high-confidence, pre-detected by rule engine)
+The following signals were detected deterministically by regex/keyword rules run
+over the raw message. Treat them as authoritative hints — when a signal indicates
+a field value, prefer it over your own inference, and always extract the exact
+token it refers to.
+
+{{ deterministic_signals }}
+{% endif %}
+
 ## Instructions
 Extract any of the following fields from the user message. Only return fields that are clearly mentioned — do NOT guess or assume. If a field is already set in the current spec and the user is not changing it, leave it as-is.
 

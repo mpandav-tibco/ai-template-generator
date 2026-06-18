@@ -1,6 +1,6 @@
 #!/bin/bash
 # BWCE AI Generator - API Test Suite
-# Run after starting the Flogo application on port 8080
+# Run after starting the Flogo application on port 9999
 
 BASE_URL="http://localhost:9999"
 

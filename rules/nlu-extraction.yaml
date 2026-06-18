@@ -1,0 +1,124 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Deterministic NLU / Regex Pre-Extraction Rules
+#
+# Runs against the RAW user message BEFORE the LLM extraction call. Each rule is
+# a high-confidence, deterministic regex/keyword detector. Matches are emitted as
+# `info` findings that are injected into the extraction prompt as "Deterministic
+# signals", anchoring the LLM so well-known tokens (IKD IDs, interface verbs,
+# canonical systems, environments) are extracted consistently and reproducibly.
+#
+# NOTE: The rule engine's `matches` operator is boolean (no capture groups), so
+# these rules SIGNAL which field a token belongs to; the LLM lifts the literal
+# value. Field canonicalisation still happens downstream in alias-normalization.yaml.
+# ─────────────────────────────────────────────────────────────────────────────
+rules:
+
+  # ── IKD Identifiers ─────────────────────────────────────────────────────────
+  - id: nlu_interface_id_pattern
+    description: Detect an IKD Interface ID token (IKD-NNN) in the message
+    tags: [nlu, regex, interface_id]
+    condition: message matches /(?i)\bIKD-[0-9]{1,4}\b/
+    message: "Deterministic signal: the message contains an IKD Interface ID token matching `IKD-NNN`. Extract that exact token into `interface_id`."
+    severity: info
+    field: interface_id
+
+  - id: nlu_scenario_id_pattern
+    description: Detect a 4-digit IKD Scenario ID near scenario wording
+    tags: [nlu, regex, scenario_id]
+    condition: message matches /(?i)scenario[^0-9]{0,15}[0-9]{4}/
+    message: "Deterministic signal: a 4-digit IKD Scenario ID appears near the word 'scenario'. Extract that number into `scenario_id`."
+    severity: info
+    field: scenario_id
+
+  # ── Interface Type (pattern verbs) ──────────────────────────────────────────
+  - id: nlu_interface_type_pub
+    description: Detect publish/producer/outbound intent
+    tags: [nlu, regex, interface_type]
+    condition: message matches /(?i)\b(publish|publisher|publishing|produce|producer|producing|outbound|emit|emitting)\b/
+    message: "Deterministic signal: publish/producer/outbound intent detected. Set `interface_type` = `pub`."
+    severity: info
+    field: interface_type
+
+  - id: nlu_interface_type_sub
+    description: Detect subscribe/consumer/inbound intent
+    tags: [nlu, regex, interface_type]
+    condition: message matches /(?i)\b(subscribe|subscriber|subscribing|consume|consumer|consuming|inbound|listen|listener|poll|polling)\b/
+    message: "Deterministic signal: subscribe/consumer/inbound intent detected. Set `interface_type` = `sub`."
+    severity: info
+    field: interface_type
+
+  - id: nlu_interface_type_service
+    description: Detect service/request-reply/API intent
+    tags: [nlu, regex, interface_type]
+    condition: message matches /(?i)\b(request[ -]?reply|request[ -]?response|synchronous|api endpoint|expose a service|rest service)\b/
+    message: "Deterministic signal: request-reply/service intent detected. Set `interface_type` = `service`."
+    severity: info
+    field: interface_type
+
+  # ── Canonical Data Model ────────────────────────────────────────────────────
+  - id: nlu_cdm_flag
+    description: Detect Common/Canonical Data Model mention
+    tags: [nlu, regex, cdm]
+    condition: message matches /(?i)\b(cdm|canonical data model|canonical model|common data model)\b/
+    message: "Deterministic signal: a canonical/common data model is mentioned. Set `cdm` = `true`."
+    severity: info
+    field: cdm
+
+  # ── Environments ────────────────────────────────────────────────────────────
+  - id: nlu_env_tokens
+    description: Detect deployment environment tokens
+    tags: [nlu, regex, env]
+    condition: message matches /(?i)\b(DEV|SIT|UAT|PROD)\b/
+    message: "Deterministic signal: one or more deployment environment tokens (DEV/SIT/UAT/PROD) are present. Extract them into `env` (comma-separated, uppercase)."
+    severity: info
+    field: env
+
+  # ── Source / Target Systems (canonical keyword detection) ───────────────────
+  - id: nlu_system_s4hana
+    description: Detect SAP S/4HANA family mention
+    tags: [nlu, regex, system]
+    condition: message matches /(?i)\b(s4hana|s\/4hana|s4 hana|sap r3|sapr3|sap retail|sapretail|\bsap\b)\b/
+    message: "Deterministic signal: an SAP S/4HANA system is mentioned (canonical `s4hana`). Assign it to `source_system` or `target_system` per the data-flow direction."
+    severity: info
+
+  - id: nlu_system_kafka
+    description: Detect Kafka mention
+    tags: [nlu, regex, system]
+    condition: message matches /(?i)\b(kafka|kafkatopic|kafka topic)\b/
+    message: "Deterministic signal: Kafka is mentioned (canonical `kafka`). Assign it to `source_system` or `target_system` per the data-flow direction."
+    severity: info
+
+  - id: nlu_system_salesforce
+    description: Detect Salesforce mention
+    tags: [nlu, regex, system]
+    condition: message matches /(?i)\b(salesforce|sfdc)\b/
+    message: "Deterministic signal: Salesforce is mentioned (canonical `salesforce`). Assign it to `source_system` or `target_system` per the data-flow direction."
+    severity: info
+
+  - id: nlu_system_demandware
+    description: Detect Demandware / Commerce Cloud mention
+    tags: [nlu, regex, system]
+    condition: message matches /(?i)\b(demandware|sfcc|commerce cloud)\b/
+    message: "Deterministic signal: Demandware/Commerce Cloud is mentioned (canonical `demandware`). Assign it to `source_system` or `target_system` per the data-flow direction."
+    severity: info
+
+  - id: nlu_system_ems
+    description: Detect TIBCO EMS / JMS mention
+    tags: [nlu, regex, system]
+    condition: message matches /(?i)\b(ems|jms|tibco ems)\b/
+    message: "Deterministic signal: TIBCO EMS/JMS is mentioned (canonical `ems`). Assign it to `source_system` or `target_system` per the data-flow direction."
+    severity: info
+
+  - id: nlu_system_afs
+    description: Detect AFS mention
+    tags: [nlu, regex, system]
+    condition: message matches /(?i)\bafs\b/
+    message: "Deterministic signal: AFS is mentioned (canonical `afs`). Assign it to `source_system` or `target_system` per the data-flow direction."
+    severity: info
+
+  - id: nlu_system_wms
+    description: Detect WMS mention
+    tags: [nlu, regex, system]
+    condition: message matches /(?i)\bwms\b/
+    message: "Deterministic signal: a WMS is mentioned (canonical `wms`). Assign it to `source_system` or `target_system` per the data-flow direction."
+    severity: info

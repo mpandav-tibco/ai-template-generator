@@ -1,0 +1,24 @@
+# MailDev — local SMTP server used as a mock mail relay for the
+# SendNotification (#sendmail) activity in the BWCE AI Generator app.
+#
+# Maps to app properties:
+#   SMTP_HOST = localhost
+#   SMTP_PORT = 1025   (SMTP inbound — what the Flogo sendmail activity connects to)
+#
+# Web inbox (to view the notification emails): http://localhost:1080
+#
+# Usage:
+#   docker compose -f docker-compose.maildev.yml up -d
+#   docker compose -f docker-compose.maildev.yml down
+services:
+  maildev:
+    image: maildev/maildev:2.1.0
+    container_name: bwce-generator-maildev
+    restart: unless-stopped
+    environment:
+      # Accept mail without authentication (matches sendmail Connection Security = NONE)
+      MAILDEV_INCOMING_USER: ""
+      MAILDEV_INCOMING_PASS: ""
+    ports:
+      - "1080:1080" # Web UI / inbox
+      - "1025:1025" # SMTP (inbound)
