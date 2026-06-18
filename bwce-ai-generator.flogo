@@ -6,29 +6,31 @@
     "github.com/tibco/flogo-general/src/app/General/activity/actreply",
     "github.com/tibco/flogo-general/src/app/General/activity/shareddata",
     "github.com/tibco/flogo-general/src/app/General/activity/mapper",
-    "github.com/mpandav-tibco/flogo-custom-extensions/activity/pongo2prompt",
-    "github.com/tibco/flogo-ai-agent/src/app/AgenticAI/activity/agentactivity",
-    "github.com/tibco/flogo-general/src/app/General/activity/parsejson",
     "github.com/mpandav-tibco/flogo-custom-extensions/activity/ruleengine",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb/activity/ragQuery",
+    "github.com/mpandav-tibco/flogo-custom-extensions/activity/pongo2prompt",
+    "github.com/tibco/wi-postgres/src/app/PostgreSQL/activity/query",
+    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/activity/ragQuery",
     "github.com/tibco/wi-postgres/src/app/PostgreSQL/activity/insert",
+    "github.com/tibco/flogo-files/src/app/File/activity/write",
+    "github.com/tibco/flogo-general/src/app/General/activity/sendmail",
     "github.com/tibco/flogo-files/src/app/File/activity/read",
+    "github.com/tibco/flogo-general/src/app/General/activity/parsejson",
     "github.com/project-flogo/flow/activity/subflow",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb/activity/listCollections",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb/activity/createCollection",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb/activity/ingestDocuments",
+    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/activity/listCollections",
+    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/activity/createCollection",
+    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/activity/ingestDocuments",
     "github.com/tibco/flogo-general/src/app/General/trigger/rest",
     "github.com/tibco/flogo-general/src/app/General/trigger/startuphook",
     "github.com/tibco/flogo-mcp/src/app/MCP/trigger/mcpserver",
+    "github.com/project-flogo/contrib/function/utils",
     "github.com/project-flogo/contrib/function/array",
     "github.com/project-flogo/contrib/function/string",
-    "github.com/project-flogo/contrib/function/utils",
-    "github.com/tibco/flogo-ai-agent/src/app/AgenticAI/connector/llmprovider",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb/connector",
-    "github.com/tibco/wi-postgres/src/app/PostgreSQL/connector/connection"
+    "github.com/tibco/wi-postgres/src/app/PostgreSQL/connector/connection",
+    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/connector",
+    "github.com/tibco/flogo-ai-agent/src/app/AgenticAI/connector/llmprovider"
   ],
   "name": "bwce-ai-generator",
-  "description": "Flogo Project created with Flogo Design",
+  "description": "AI-powered accelerator that generates TIBCO BusinessWorks Container Edition (BWCE) integration repositories from natural-language requirements. Exposes a REST API and an MCP server; uses an LLM to extract a structured integration spec through conversation, selects the best-matching template via Weaviate vector search, and records each generation in PostgreSQL.",
   "version": "1.0.0",
   "type": "flogo:app",
   "appModel": "1.1.1",
@@ -54,7 +56,7 @@
       "id": "BWCEAIIntegrationGenerator",
       "handlers": [
         {
-          "description": "Flow for health GET",
+          "description": "Health-check endpoint (GET /health). Returns service status so load balancers and monitoring probes can verify the generator is running.",
           "settings": {
             "APISpecPath": "/health",
             "Method": "GET",
@@ -111,7 +113,7 @@
           "name": "health_GET"
         },
         {
-          "description": "Flow for api/templates GET",
+          "description": "Lists available BWCE integration templates (GET /api/templates) from the cached template registry.",
           "settings": {
             "APISpecPath": "/api/templates",
             "Method": "GET",
@@ -167,7 +169,7 @@
           "name": "api_templates_GET"
         },
         {
-          "description": "Flow for api/chat/init POST",
+          "description": "Starts a new conversational session (POST /api/chat/init). Creates an empty spec, allocates a session id, and stores the session in shared memory.",
           "settings": {
             "APISpecPath": "/api/chat/init",
             "Method": "POST",
@@ -210,8 +212,8 @@
               },
               "body": {
                 "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{\"session_id\":{\"type\":\"string\",\"description\":\"Optional \u00e2\u0080\u0094 provide to resume an existing session\"}}}",
-                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"session_id\":{\"type\":\"string\",\"description\":\"Optional \u00e2\u0080\u0094 provide to resume an existing session\"}}}"
+                "value": "{\"type\":\"object\",\"properties\":{\"session_id\":{\"type\":\"string\",\"description\":\"Optional â provide to resume an existing session\"}}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"session_id\":{\"type\":\"string\",\"description\":\"Optional â provide to resume an existing session\"}}}"
               },
               "multipartFormData": {
                 "type": "json",
@@ -228,7 +230,7 @@
           "name": "api_chat/init_POST"
         },
         {
-          "description": "Flow for api/chat/message POST",
+          "description": "Handles one turn of the conversational spec-building flow (POST /api/chat/message). Uses an LLM to extract integration fields from the user's message, checks spec completeness, and asks the next clarifying question.",
           "settings": {
             "APISpecPath": "/api/chat/message",
             "Method": "POST",
@@ -289,7 +291,7 @@
           "name": "api_chat/message_POST"
         },
         {
-          "description": "Flow for api/chat/reset POST",
+          "description": "Resets a conversation (POST /api/chat/reset) by deleting the stored session so the user can start over.",
           "settings": {
             "APISpecPath": "/api/chat/reset",
             "Method": "POST",
@@ -350,7 +352,7 @@
           "name": "api_chat/reset_POST"
         },
         {
-          "description": "Flow for extract POST",
+          "description": "Extracts a structured BWCE integration spec from a free-text description (POST /extract). Runs the LLM, normalizes provider/protocol aliases, and reports any missing required fields.",
           "settings": {
             "APISpecPath": "/extract",
             "Method": "POST",
@@ -411,7 +413,7 @@
           "name": "extract_POST"
         },
         {
-          "description": "Flow for generate POST",
+          "description": "Generates a BWCE integration repository from a validated spec (POST /generate). Validates the spec, selects the best-matching template via Weaviate vector search, records the generation in PostgreSQL, and returns the result.",
           "settings": {
             "APISpecPath": "/generate",
             "Method": "POST",
@@ -476,12 +478,12 @@
     {
       "ref": "#startuphook",
       "name": "tibco-appstartup",
-      "description": "Trigger created with Flogo Design",
+      "description": "Runs once when the application starts. Loads the template registry and provider/protocol alias mappings into shared memory and ensures the PostgreSQL generation_log table exists.",
       "settings": {},
       "id": "AppStartup",
       "handlers": [
         {
-          "description": "Flogo Flow created with Flogo Design",
+          "description": "Application bootstrap flow. Loads the template registry and alias mappings from disk into shared memory and initializes the PostgreSQL schema.",
           "action": {
             "ref": "github.com/project-flogo/flow",
             "settings": {
@@ -495,12 +497,12 @@
     {
       "ref": "#mcpserver",
       "name": "flogo-mcp-mcpsever",
-      "description": "Trigger created with Flogo Design",
+      "description": "Model Context Protocol (MCP) server. Exposes the generator's capabilities as MCP tools (extract_spec, generate_code, list_templates) so AI assistants and agents can drive integration generation.",
       "settings": {
         "serverName": "bwce-ai-generator",
         "serverVersion": "1.0.0",
         "serverType": "HTTP",
-        "serverPort": "8082",
+        "serverPort": "=$property[\"MCP_PORT\"]",
         "statelessServer": false,
         "serverEndpointPath": "/mcp",
         "enableTLS": false,
@@ -512,7 +514,7 @@
       "id": "MCPServer",
       "handlers": [
         {
-          "description": "Flogo Flow created with Flogo Design",
+          "description": "MCP tool 'extract_spec'. Wraps the extract flow so AI agents can turn a natural-language description into a structured BWCE spec.",
           "settings": {
             "handlerType": "Tool",
             "resourceUri": "",
@@ -554,7 +556,7 @@
           "name": "MCPExtractSpecTool"
         },
         {
-          "description": "Flogo Flow created with Flogo Design",
+          "description": "MCP tool 'generate_code'. Validates the spec, derives the repository name, and records the generation, returning the result to the calling AI agent.",
           "settings": {
             "handlerType": "Tool",
             "resourceUri": "",
@@ -596,7 +598,7 @@
           "name": "MCPGenerateTool"
         },
         {
-          "description": "Flogo Flow created with Flogo Design",
+          "description": "MCP tool 'list_templates'. Returns all available BWCE integration templates from shared memory.",
           "settings": {
             "handlerType": "Tool",
             "resourceUri": "",
@@ -645,7 +647,7 @@
       "id": "flow:health_GET",
       "data": {
         "name": "health_GET",
-        "description": "Flow for health GET",
+        "description": "Health-check endpoint (GET /health). Returns service status so load balancers and monitoring probes can verify the generator is running.",
         "links": [
           {
             "id": 1,
@@ -666,7 +668,7 @@
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -674,7 +676,7 @@
           {
             "id": "Log_API",
             "name": "Log_API",
-            "description": "General tibco-wi-log Activity",
+            "description": "Logs that a health check was requested.",
             "activity": {
               "ref": "#log",
               "input": {
@@ -688,16 +690,18 @@
           {
             "id": "Reply_to_API",
             "name": "Reply_to_API",
-            "description": "General flogo-actreply Activity",
+            "description": "Returns HTTP 200 with service status confirming the generator is healthy.",
             "activity": {
               "ref": "#actreply",
               "input": {
                 "reply": {
-                  "data": {
-                    "status": "healthy",
-                    "version": "1.0.0",
-                    "service": "bwce-ai-generator",
-                    "engine": "TIBCO Flogo"
+                  "mapping": {
+                    "data": {
+                      "status": "healthy",
+                      "version": "1.0.0",
+                      "service": "bwce-ai-generator",
+                      "engine": "TIBCO Flogo"
+                    }
                   }
                 }
               },
@@ -756,7 +760,7 @@
       "id": "flow:api_templates_GET",
       "data": {
         "name": "api_templates_GET",
-        "description": "Flow for api/templates GET",
+        "description": "Lists available BWCE integration templates (GET /api/templates) from the cached template registry.",
         "links": [
           {
             "id": 1,
@@ -784,7 +788,7 @@
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -792,7 +796,7 @@
           {
             "id": "Log_API",
             "name": "Log_API",
-            "description": "General tibco-wi-log Activity",
+            "description": "Logs the templates-listing request.",
             "activity": {
               "ref": "#log",
               "input": {
@@ -806,7 +810,7 @@
           {
             "id": "GetTemplateList",
             "name": "GetTemplateList",
-            "description": "Enable sharing of data within or across flows in the application",
+            "description": "Reads the cached template registry (APP_CONFIG) from shared memory.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
@@ -836,7 +840,7 @@
           {
             "id": "Reply_to_API",
             "name": "Reply_to_API",
-            "description": "General flogo-actreply Activity",
+            "description": "Returns the list of available templates to the caller.",
             "activity": {
               "ref": "#actreply",
               "input": {
@@ -869,7 +873,7 @@
       "id": "flow:api_chat/init_POST",
       "data": {
         "name": "api_chat/init_POST",
-        "description": "Flow for api/chat/init POST",
+        "description": "Starts a new conversational session (POST /api/chat/init). Creates an empty spec, allocates a session id, and stores the session in shared memory.",
         "links": [
           {
             "id": 1,
@@ -904,7 +908,7 @@
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -912,7 +916,7 @@
           {
             "id": "Log_API",
             "name": "Log_API",
-            "description": "General tibco-wi-log Activity",
+            "description": "Logs that a new chat session is being initialized.",
             "activity": {
               "ref": "#log",
               "input": {
@@ -926,7 +930,7 @@
           {
             "id": "CreateSession",
             "name": "CreateSession",
-            "description": "General tibco-wi-mapper Activity",
+            "description": "Builds a new, empty session object with a fresh session id and blank spec.",
             "activity": {
               "ref": "#mapper",
               "input": {
@@ -954,7 +958,7 @@
           {
             "id": "StoreSession",
             "name": "StoreSession",
-            "description": "Enable sharing of data within or across flows in the application",
+            "description": "Persists the new session in shared memory keyed by session id.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
@@ -963,12 +967,12 @@
                 "type": "object"
               },
               "input": {
+                "key": "=$activity[CreateSession].output.session_id",
                 "input": {
                   "mapping": {
                     "data": "=$activity[CreateSession].output"
                   }
-                },
-                "key": "=$activity[CreateSession].output.session_id"
+                }
               },
               "schemas": {
                 "input": {
@@ -981,7 +985,7 @@
           {
             "id": "Reply_to_API",
             "name": "Reply_to_API",
-            "description": "General flogo-actreply Activity",
+            "description": "Returns the new session id and initial greeting to the client.",
             "activity": {
               "ref": "#actreply",
               "input": {
@@ -1014,7 +1018,7 @@
       "id": "flow:api_chat/message_POST",
       "data": {
         "name": "api_chat/message_POST",
-        "description": "Flow for api/chat/message POST",
+        "description": "Handles one turn of the conversational spec-building flow (POST /api/chat/message). Uses an LLM to extract integration fields from the user's message, checks spec completeness, and asks the next clarifying question.",
         "links": [
           {
             "id": 1,
@@ -1033,79 +1037,23 @@
           {
             "id": 3,
             "from": "GetSession",
-            "to": "RenderExtractionPrompt",
+            "to": "RegexPreExtract",
             "type": "label",
             "label": "GetSession to RenderExtractionPrompt"
           },
           {
             "id": 4,
-            "from": "RenderExtractionPrompt",
-            "to": "LLMExtractFields",
+            "from": "RegexPreExtract",
+            "to": "RenderExtractionPrompt",
             "type": "label",
-            "label": "RenderExtractionPrompt to LLMExtractFields"
-          },
-          {
-            "id": 5,
-            "from": "LLMExtractFields",
-            "to": "ParseExtractedFields",
-            "type": "label",
-            "label": "LLMExtractFields to ParseExtractedFields"
-          },
-          {
-            "id": 6,
-            "from": "ParseExtractedFields",
-            "to": "CheckSpecCompleteness",
-            "type": "label",
-            "label": "ParseExtractedFields to CheckSpecCompleteness"
-          },
-          {
-            "id": 7,
-            "from": "CheckSpecCompleteness",
-            "to": "RenderQuestionPrompt",
-            "type": "label",
-            "label": "CheckSpecCompleteness to RenderQuestionPrompt"
-          },
-          {
-            "id": 8,
-            "from": "RenderQuestionPrompt",
-            "to": "GenerateQuestion",
-            "type": "label",
-            "label": "RenderQuestionPrompt to GenerateQuestion"
-          },
-          {
-            "id": 9,
-            "from": "GenerateQuestion",
-            "to": "BuildUpdatedSession",
-            "type": "label",
-            "label": "GenerateQuestion to BuildUpdatedSession"
-          },
-          {
-            "id": 10,
-            "from": "UpdateSession",
-            "to": "BuildChatResponse",
-            "type": "label",
-            "label": "UpdateSession to BuildChatResponse"
-          },
-          {
-            "id": 11,
-            "from": "BuildChatResponse",
-            "to": "Reply_to_API",
-            "type": "label",
-            "label": "BuildChatResponse to Reply_to_API"
-          },
-          {
-            "id": 12,
-            "from": "BuildUpdatedSession",
-            "to": "UpdateSession",
-            "type": "label",
-            "label": "BuildUpdatedSession to UpdateSession"
+            "label": "RegexPreExtract to RenderExtractionPrompt"
           }
         ],
         "tasks": [
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -1113,7 +1061,7 @@
           {
             "id": "Log_API",
             "name": "Log_API",
-            "description": "General tibco-wi-log Activity",
+            "description": "Logs the incoming chat message.",
             "activity": {
               "ref": "#log",
               "input": {
@@ -1127,7 +1075,7 @@
           {
             "id": "GetSession",
             "name": "GetSession",
-            "description": "Enable sharing of data within or across flows in the application",
+            "description": "Loads the current conversation session from shared memory by session id.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
@@ -1144,93 +1092,14 @@
             }
           },
           {
-            "id": "RenderExtractionPrompt",
-            "name": "RenderExtractionPrompt",
-            "description": "Render Pongo2/Django-style templates for AI prompt engineering. Supports {{ variable }}, {% if %}, {% for %} syntax with auto-detection of template variables.",
-            "activity": {
-              "ref": "#pongo2prompt",
-              "settings": {
-                "template": "\"You are an expert TIBCO BWCE integration analyst. Extract structured integration specification fields from the user's message.\\n\\n## Current Integration Spec State\\n{% if current_spec %}\\n{{ current_spec }}\\n{% else %}\\nNo fields collected yet.\\n{% endif %}\\n\\n## User Message\\n{{ user_message }}\\n\\n## Instructions\\nExtract any of the following fields from the user message. Only return fields that are clearly mentioned \\u2014 do NOT guess or assume. If a field is already set in the current spec and the user is not changing it, leave it as-is.\\n\\nFields to extract:\\n- source_system: The system data comes FROM (e.g., s4hana, wms, salesforce, demandware, afs, kafka, ems)\\n- target_system: The system data goes TO (e.g., kafka, afs, rest, ems, s4hana, demandware)\\n- business_object: The business entity or data object (e.g., article, invoice, order, stock, shipment, customer, price)\\n- interface_type: The integration pattern \\u2014 MUST be one of: pub, sub, service\\n- template_type: The BWCE template name (e.g., REST_SERVICE_To_KAFKATopic, REST_PUB_To_KAFKATopic)\\n- cdm: Boolean, true if Common Data Model transformation is needed\\n- scenario_id: IKD Scenario ID (numeric, e.g., 1234)\\n- interface_id: IKD Interface ID (e.g., IKD-001)\\n- country_code: Country code (2-letter ISO, or NA if not applicable)\\n- unique_id: Unique identifier suffix (or NA if not applicable)\\n- env: Deployment environment (DEV, SIT, UAT, PROD, or comma-separated)\\n- email: Contact email address\\n- k8s_domain: Kubernetes namespace domain (e.g., cite)\\n- bitbucket_project: Bitbucket project name\\n\\n## Interface Type Resolution\\n- pub/publish/producer/send/outbound \\u2192 \\\"pub\\\"\\n- sub/subscribe/consumer/receive/listen/inbound \\u2192 \\\"sub\\\"\\n- service/api/request-reply/sync/endpoint \\u2192 \\\"service\\\"\\n\\n## System Alias Resolution\\n- sap/s4/sapretail/sapr3 \\u2192 \\\"s4hana\\\"\\n- sf/sfdc \\u2192 \\\"salesforce\\\"\\n- dw/sfcc/commerce cloud \\u2192 \\\"demandware\\\"\\n- jms \\u2192 \\\"ems\\\"\\n- kafkatopic \\u2192 \\\"kafka\\\"\\n\\n## Response Format\\nRespond ONLY with valid JSON containing the extracted fields. Do not include fields you cannot determine. Do not include explanations.\\n\\nExample response:\\n{\\n  \\\"source_system\\\": \\\"s4hana\\\",\\n  \\\"target_system\\\": \\\"kafka\\\",\\n  \\\"business_object\\\": \\\"article\\\",\\n  \\\"interface_type\\\": \\\"pub\\\",\\n  \\\"cdm\\\": false\\n}\\n\""
-              },
-              "input": {
-                "templateVariables": {
-                  "mapping": {
-                    "user_message": "=$flow.content.message",
-                    "current_spec": "=$activity[GetSession].output.data.spec"
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "templateVariables": {
-                    "type": "json",
-                    "value": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"user_message\": {\n      \"type\": \"string\"\n    },\n    \"current_spec\": {\n      \"type\": \"object\"\n    }\n  }\n}",
-                    "fe_metadata": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"user_message\": {\n      \"type\": \"string\"\n    },\n    \"current_spec\": {\n      \"type\": \"object\"\n    }\n  }\n}"
-                  }
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "LLMExtractFields",
-            "name": "LLMExtractFields",
-            "description": "Configure AI Agent in the flow. This functionality is in preview stage and not recommended for production use.",
-            "activity": {
-              "ref": "#agentactivity",
-              "settings": {
-                "llmProviderConnection": "conn://3a36f9db-e22f-4599-b533-3bcaf19db634",
-                "model": "llama3.1:8b",
-                "reasoning": "",
-                "temperature": "0.1",
-                "enableGuardrails": false,
-                "rateLimit": 25,
-                "tokenLimit": 2048,
-                "redactSensitiveData": false,
-                "responseType": "Text",
-                "agentHandoffs": "",
-                "mcpServers": [],
-                "conversationStoreType": "None",
-                "memoryMaxSize": 10,
-                "systemPrompt": "\"You are a TIBCO BWCE integration analyst. Extract integration spec fields from the user message. Return valid JSON only. Do not include any explanation or markdown formatting.\""
-              },
-              "input": {
-                "userPrompt": "=$activity[RenderExtractionPrompt].renderedPrompt",
-                "conversationId": "=$flow.content.session_id"
-              },
-              "schemas": {
-                "input": {
-                  "filteredToolNames": {
-                    "type": "json",
-                    "value": "{\r\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\r\n  \"type\": \"array\",\r\n  \"items\": {\r\n    \"type\": \"string\"\r\n  }\r\n}\r\n",
-                    "fe_metadata": "{\r\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\r\n  \"type\": \"array\",\r\n  \"items\": {\r\n    \"type\": \"string\"\r\n  }\r\n}\r\n"
-                  }
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "ParseExtractedFields",
-            "name": "ParseExtractedFields",
-            "description": "Parses JSON string into JSON object",
-            "activity": {
-              "ref": "#parsejson",
-              "input": {
-                "validate": false,
-                "jsonString": "=$activity[LLMExtractFields].response"
-              }
-            }
-          },
-          {
-            "id": "CheckSpecCompleteness",
-            "name": "CheckSpecCompleteness",
-            "description": "Generic YAML-driven document analysis engine. Evaluates externalized rules against any structured document (JSON, XML, YAML, key-value, text lines) and returns structured findings.",
+            "id": "RegexPreExtract",
+            "name": "RegexPreExtract",
+            "description": "Deterministic regex/NLU pre-extraction: detects high-confidence tokens (IKD IDs, interface verbs, canonical systems, environments) in the raw user message and emits them as signals that anchor the downstream LLM extraction.",
             "activity": {
               "ref": "#ruleengine",
               "input": {
-                "content": "=$activity[LLMExtractFields].response",
-                "fileName": "\"rules/field-completeness.yaml\"",
+                "content": "=$flow.content",
+                "fileName": "\"rules/nlu-extraction.yaml\"",
                 "rulesPath": "=$property[\"RULES_PATH\"]",
                 "parserOverride": "",
                 "disabledRules": {
@@ -1243,19 +1112,17 @@
             }
           },
           {
-            "id": "RenderQuestionPrompt",
-            "name": "RenderQuestionPrompt",
-            "description": "Render Pongo2/Django-style templates for AI prompt engineering. Supports {{ variable }}, {% if %}, {% for %} syntax with auto-detection of template variables.",
+            "id": "RenderExtractionPrompt",
+            "name": "RenderExtractionPrompt",
+            "description": "Renders the LLM prompt that extracts BWCE integration fields from the user's message and the spec so far.",
             "activity": {
               "ref": "#pongo2prompt",
-              "settings": {
-                "template": "\"Based on the integration requirements discussed so far:\\nCurrent spec: {{ current_spec }}\\nMissing fields: {{ missing_fields }}\\nGenerate a short, friendly question to gather the missing information from the user.\""
-              },
               "input": {
                 "templateVariables": {
                   "mapping": {
-                    "current_spec": "=$activity[ParseExtractedFields].jsonObject",
-                    "missing_fields": "=$activity[CheckSpecCompleteness].findings"
+                    "user_message": "=$flow.content.message",
+                    "current_spec": "=$activity[GetSession].output.data.spec",
+                    "deterministic_signals": "=$activity[RegexPreExtract].markdown"
                   }
                 }
               },
@@ -1263,153 +1130,18 @@
                 "input": {
                   "templateVariables": {
                     "type": "json",
-                    "value": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"current_spec\": {\n      \"type\": \"object\"\n    },\n    \"missing_fields\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}",
-                    "fe_metadata": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"current_spec\": {\n      \"type\": \"object\"\n    },\n    \"missing_fields\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+                    "value": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"user_message\": {\n      \"type\": \"string\"\n    },\n    \"current_spec\": {\n      \"type\": \"object\"\n    }\n  }\n}",
+                    "fe_metadata": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"user_message\": {\n      \"type\": \"string\"\n    },\n    \"current_spec\": {\n      \"type\": \"object\"\n    }\n  }\n}"
                   }
                 }
               },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "GenerateQuestion",
-            "name": "GenerateQuestion",
-            "description": "Configure AI Agent in the flow. This functionality is in preview stage and not recommended for production use.",
-            "activity": {
-              "ref": "#agentactivity",
               "settings": {
-                "llmProviderConnection": "conn://3a36f9db-e22f-4599-b533-3bcaf19db634",
-                "model": "llama3.1:8b",
-                "reasoning": "",
-                "temperature": "0.3",
-                "enableGuardrails": false,
-                "rateLimit": 25,
-                "tokenLimit": 2048,
-                "redactSensitiveData": false,
-                "responseType": "Text",
-                "agentHandoffs": "",
-                "mcpServers": [],
-                "conversationStoreType": "None",
-                "memoryMaxSize": 10,
-                "systemPrompt": "\"You are a helpful TIBCO BWCE assistant. Ask ONE short clarifying question to help gather the missing integration details.\""
-              },
-              "input": {
-                "userPrompt": "=$activity[RenderQuestionPrompt].renderedPrompt",
-                "conversationId": "=$flow.content.session_id"
-              },
-              "schemas": {
-                "input": {
-                  "filteredToolNames": {
-                    "type": "json",
-                    "value": "{\r\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\r\n  \"type\": \"array\",\r\n  \"items\": {\r\n    \"type\": \"string\"\r\n  }\r\n}\r\n",
-                    "fe_metadata": "{\r\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\r\n  \"type\": \"array\",\r\n  \"items\": {\r\n    \"type\": \"string\"\r\n  }\r\n}\r\n"
-                  }
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "UpdateSession",
-            "name": "UpdateSession",
-            "description": "Enable sharing of data within or across flows in the application",
-            "activity": {
-              "ref": "#shareddata",
-              "settings": {
-                "scope": "Application",
-                "operation": "SET",
-                "type": "object"
-              },
-              "input": {
-                "input": {
-                  "mapping": {
-                    "data": "=$activity[BuildUpdatedSession].output"
-                  }
-                },
-                "key": "=$flow.content.session_id"
-              },
-              "schemas": {
-                "input": {
-                  "input": "schema://SessionState"
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "BuildChatResponse",
-            "name": "BuildChatResponse",
-            "description": "General tibco-wi-mapper Activity",
-            "activity": {
-              "ref": "#mapper",
-              "input": {
-                "input": {
-                  "mapping": {
-                    "session_id": "=$flow.content.session_id",
-                    "message": "=$activity[GenerateQuestion].response",
-                    "spec": "=$activity[ParseExtractedFields].jsonObject",
-                    "missing_fields": "=$activity[CheckSpecCompleteness].findings",
-                    "ready_to_generate": "=$activity[CheckSpecCompleteness].success"
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "input": "schema://ChatMessageResponse"
-                },
-                "output": {
-                  "output": "schema://ChatMessageResponse"
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "Reply_to_API",
-            "name": "Reply_to_API",
-            "description": "General flogo-actreply Activity",
-            "activity": {
-              "ref": "#actreply",
-              "input": {
-                "reply": {
-                  "mapping": {
-                    "data": "=$activity[BuildChatResponse].output"
-                  }
-                }
+                "template": "\"You are an expert TIBCO BWCE integration analyst. Extract structured integration specification fields from the user's message.\\n\\n## Current Integration Spec State\\n{% if current_spec %}\\n{{ current_spec }}\\n{% else %}\\nNo fields collected yet.\\n{% endif %}\\n\\n## User Message\\n{{ user_message }}\\n\\n## Instructions\\nExtract any of the following fields from the user message. Only return fields that are clearly mentioned \\u2014 do NOT guess or assume. If a field is already set in the current spec and the user is not changing it, leave it as-is.\\n\\nFields to extract:\\n- source_system: The system data comes FROM (e.g., s4hana, wms, salesforce, demandware, afs, kafka, ems)\\n- target_system: The system data goes TO (e.g., kafka, afs, rest, ems, s4hana, demandware)\\n- business_object: The business entity or data object (e.g., article, invoice, order, stock, shipment, customer, price)\\n- interface_type: The integration pattern \\u2014 MUST be one of: pub, sub, service\\n- template_type: The BWCE template name (e.g., REST_SERVICE_To_KAFKATopic, REST_PUB_To_KAFKATopic)\\n- cdm: Boolean, true if Common Data Model transformation is needed\\n- scenario_id: IKD Scenario ID (numeric, e.g., 1234)\\n- interface_id: IKD Interface ID (e.g., IKD-001)\\n- country_code: Country code (2-letter ISO, or NA if not applicable)\\n- unique_id: Unique identifier suffix (or NA if not applicable)\\n- env: Deployment environment (DEV, SIT, UAT, PROD, or comma-separated)\\n- email: Contact email address\\n- k8s_domain: Kubernetes namespace domain (e.g., cite)\\n- bitbucket_project: Bitbucket project name\\n\\n## Interface Type Resolution\\n- pub/publish/producer/send/outbound \\u2192 \\\"pub\\\"\\n- sub/subscribe/consumer/receive/listen/inbound \\u2192 \\\"sub\\\"\\n- service/api/request-reply/sync/endpoint \\u2192 \\\"service\\\"\\n\\n## System Alias Resolution\\n- sap/s4/sapretail/sapr3 \\u2192 \\\"s4hana\\\"\\n- sf/sfdc \\u2192 \\\"salesforce\\\"\\n- dw/sfcc/commerce cloud \\u2192 \\\"demandware\\\"\\n- jms \\u2192 \\\"ems\\\"\\n- kafkatopic \\u2192 \\\"kafka\\\"\\n\\n## Response Format\\nRespond ONLY with valid JSON containing the extracted fields. Do not include fields you cannot determine. Do not include explanations.\\n\\nExample response:\\n{\\n  \\\"source_system\\\": \\\"s4hana\\\",\\n  \\\"target_system\\\": \\\"kafka\\\",\\n  \\\"business_object\\\": \\\"article\\\",\\n  \\\"interface_type\\\": \\\"pub\\\",\\n  \\\"cdm\\\": false\\n}\\n\""
               }
-            }
-          },
-          {
-            "id": "BuildUpdatedSession",
-            "name": "BuildUpdatedSession",
-            "description": "Assemble updated session state as a single object",
-            "activity": {
-              "ref": "#mapper",
-              "input": {
-                "input": {
-                  "mapping": {
-                    "session_id": "=$flow.content.session_id",
-                    "spec": "=$activity[ParseExtractedFields].jsonObject",
-                    "missing_fields": "=$activity[CheckSpecCompleteness].findings",
-                    "status": "\"active\"",
-                    "ready_to_generate": "=$activity[CheckSpecCompleteness].success",
-                    "message": "=$activity[GenerateQuestion].response"
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "input": "schema://SessionState"
-                },
-                "output": {
-                  "output": "schema://SessionState"
-                }
-              },
-              "feSchemaMap": {}
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIkdldFNlc3Npb24iOnsieCI6NDUwLCJ5Ijo0NX0sIlJlbmRlckV4dHJhY3Rpb25Qcm9tcHQiOnsieCI6NjUwLCJ5Ijo0NX0sIkxMTUV4dHJhY3RGaWVsZHMiOnsieCI6MjUwLCJ5IjoxOTV9LCJQYXJzZUV4dHJhY3RlZEZpZWxkcyI6eyJ4Ijo0NTAsInkiOjE5NX0sIkNoZWNrU3BlY0NvbXBsZXRlbmVzcyI6eyJ4Ijo2NTAsInkiOjE5NX0sIlJlbmRlclF1ZXN0aW9uUHJvbXB0Ijp7IngiOjI1MCwieSI6MzQ1fSwiR2VuZXJhdGVRdWVzdGlvbiI6eyJ4Ijo0NTAsInkiOjM0NX0sIlVwZGF0ZVNlc3Npb24iOnsieCI6NjUwLCJ5IjozNDV9LCJCdWlsZENoYXRSZXNwb25zZSI6eyJ4IjoyNTAsInkiOjQ5NX0sIlJlcGx5X3RvX0FQSSI6eyJ4Ijo0NTAsInkiOjQ5NX19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5IjoxNTB9LCJHZXRTZXNzaW9uIjp7IngiOjQ1MCwieSI6MjUwfSwiUmVnZXhQcmVFeHRyYWN0Ijp7IngiOjY4OCwieSI6MTQzfSwiUmVuZGVyRXh0cmFjdGlvblByb21wdCI6eyJ4Ijo3NjgsInkiOjMyNX19",
         "metadata": {
           "input": [
             {
@@ -1429,7 +1161,7 @@
       "id": "flow:api_chat/reset_POST",
       "data": {
         "name": "api_chat/reset_POST",
-        "description": "Flow for api/chat/reset POST",
+        "description": "Resets a conversation (POST /api/chat/reset) by deleting the stored session so the user can start over.",
         "links": [
           {
             "id": 1,
@@ -1464,7 +1196,7 @@
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -1472,7 +1204,7 @@
           {
             "id": "Log_API",
             "name": "Log_API",
-            "description": "General tibco-wi-log Activity",
+            "description": "Logs the session-reset request.",
             "activity": {
               "ref": "#log",
               "input": {
@@ -1486,7 +1218,7 @@
           {
             "id": "ClearSession",
             "name": "ClearSession",
-            "description": "Enable sharing of data within or across flows in the application",
+            "description": "Deletes the stored session from shared memory.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
@@ -1515,7 +1247,7 @@
           {
             "id": "BuildResetResponse",
             "name": "BuildResetResponse",
-            "description": "General tibco-wi-mapper Activity",
+            "description": "Builds the confirmation response for the reset.",
             "activity": {
               "ref": "#mapper",
               "input": {
@@ -1548,7 +1280,7 @@
           {
             "id": "Reply_to_API",
             "name": "Reply_to_API",
-            "description": "General flogo-actreply Activity",
+            "description": "Returns the reset confirmation to the client.",
             "activity": {
               "ref": "#actreply",
               "input": {
@@ -1581,7 +1313,7 @@
       "id": "flow:extract_POST",
       "data": {
         "name": "extract_POST",
-        "description": "Flow for extract POST",
+        "description": "Extracts a structured BWCE integration spec from a free-text description (POST /extract). Runs the LLM, normalizes provider/protocol aliases, and reports any missing required fields.",
         "links": [
           {
             "id": 1,
@@ -1600,58 +1332,23 @@
           {
             "id": 3,
             "from": "GetAppConfig",
-            "to": "RenderExtractionPrompt",
+            "to": "RegexPreExtract",
             "type": "label",
             "label": "GetAppConfig to RenderExtractionPrompt"
           },
           {
             "id": 4,
-            "from": "RenderExtractionPrompt",
-            "to": "LLMExtract",
+            "from": "RegexPreExtract",
+            "to": "RenderExtractionPrompt",
             "type": "label",
-            "label": "RenderExtractionPrompt to LLMExtract"
-          },
-          {
-            "id": 5,
-            "from": "LLMExtract",
-            "to": "ParseLLMResponse",
-            "type": "label",
-            "label": "LLMExtract to ParseLLMResponse"
-          },
-          {
-            "id": 6,
-            "from": "ParseLLMResponse",
-            "to": "NormalizeAliases",
-            "type": "label",
-            "label": "ParseLLMResponse to NormalizeAliases"
-          },
-          {
-            "id": 7,
-            "from": "NormalizeAliases",
-            "to": "CheckCompleteness",
-            "type": "label",
-            "label": "NormalizeAliases to CheckCompleteness"
-          },
-          {
-            "id": 8,
-            "from": "CheckCompleteness",
-            "to": "BuildExtractResponse",
-            "type": "label",
-            "label": "CheckCompleteness to BuildExtractResponse"
-          },
-          {
-            "id": 9,
-            "from": "BuildExtractResponse",
-            "to": "Reply_to_API",
-            "type": "label",
-            "label": "BuildExtractResponse to Reply_to_API"
+            "label": "RegexPreExtract to RenderExtractionPrompt"
           }
         ],
         "tasks": [
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -1659,7 +1356,7 @@
           {
             "id": "Log_API",
             "name": "Log_API",
-            "description": "General tibco-wi-log Activity",
+            "description": "Logs the extraction request.",
             "activity": {
               "ref": "#log",
               "input": {
@@ -1673,7 +1370,7 @@
           {
             "id": "GetAppConfig",
             "name": "GetAppConfig",
-            "description": "Enable sharing of data within or across flows in the application",
+            "description": "Loads the provider/protocol alias mappings (APP_ALIASES) from shared memory.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
@@ -1690,19 +1387,37 @@
             }
           },
           {
+            "id": "RegexPreExtract",
+            "name": "RegexPreExtract",
+            "description": "Deterministic regex/NLU pre-extraction: detects high-confidence tokens (IKD IDs, interface verbs, canonical systems, environments) in the raw user message and emits them as signals that anchor the downstream LLM extraction.",
+            "activity": {
+              "ref": "#ruleengine",
+              "input": {
+                "content": "=$flow.content",
+                "fileName": "\"rules/nlu-extraction.yaml\"",
+                "rulesPath": "=$property[\"RULES_PATH\"]",
+                "parserOverride": "",
+                "disabledRules": {
+                  "mapping": []
+                },
+                "tags": {
+                  "mapping": []
+                }
+              }
+            }
+          },
+          {
             "id": "RenderExtractionPrompt",
             "name": "RenderExtractionPrompt",
-            "description": "Render Pongo2/Django-style templates for AI prompt engineering. Supports {{ variable }}, {% if %}, {% for %} syntax with auto-detection of template variables.",
+            "description": "Renders the LLM extraction prompt from the user message and current spec.",
             "activity": {
               "ref": "#pongo2prompt",
-              "settings": {
-                "template": "\"{{ user_message }}\\n{{ current_spec }}\""
-              },
               "input": {
                 "templateVariables": {
                   "mapping": {
                     "user_message": "=$flow.content.message",
-                    "current_spec": "=$flow.content.current_spec"
+                    "current_spec": "=$flow.content.current_spec",
+                    "deterministic_signals": "=$activity[RegexPreExtract].markdown"
                   }
                 }
               },
@@ -1715,142 +1430,13 @@
                   }
                 }
               },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "LLMExtract",
-            "name": "LLMExtract",
-            "description": "Configure AI Agent in the flow. This functionality is in preview stage and not recommended for production use.",
-            "activity": {
-              "ref": "#agentactivity",
               "settings": {
-                "llmProviderConnection": "conn://3a36f9db-e22f-4599-b533-3bcaf19db634",
-                "model": "llama3.1:8b",
-                "reasoning": "",
-                "temperature": "0.1",
-                "enableGuardrails": false,
-                "rateLimit": 25,
-                "tokenLimit": 2048,
-                "redactSensitiveData": false,
-                "responseType": "Text",
-                "agentHandoffs": "",
-                "mcpServers": [],
-                "conversationStoreType": "None",
-                "memoryMaxSize": 10,
-                "systemPrompt": "\"You are a TIBCO BWCE integration analyst. Extract structured integration specification from the user description. Return valid JSON only.\""
-              },
-              "input": {
-                "userPrompt": "=$activity[RenderExtractionPrompt].renderedPrompt",
-                "conversationId": ""
-              },
-              "schemas": {
-                "input": {
-                  "filteredToolNames": {
-                    "type": "json",
-                    "value": "{\r\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\r\n  \"type\": \"array\",\r\n  \"items\": {\r\n    \"type\": \"string\"\r\n  }\r\n}\r\n",
-                    "fe_metadata": "{\r\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\r\n  \"type\": \"array\",\r\n  \"items\": {\r\n    \"type\": \"string\"\r\n  }\r\n}\r\n"
-                  }
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "ParseLLMResponse",
-            "name": "ParseLLMResponse",
-            "description": "Parses JSON string into JSON object",
-            "activity": {
-              "ref": "#parsejson",
-              "input": {
-                "validate": false,
-                "jsonString": "=$activity[LLMExtract].response"
-              }
-            }
-          },
-          {
-            "id": "NormalizeAliases",
-            "name": "NormalizeAliases",
-            "description": "Generic YAML-driven document analysis engine. Evaluates externalized rules against any structured document (JSON, XML, YAML, key-value, text lines) and returns structured findings.",
-            "activity": {
-              "ref": "#ruleengine",
-              "input": {
-                "content": "=$activity[LLMExtract].response",
-                "fileName": "\"rules/alias-normalization.yaml\"",
-                "rulesPath": "=$property[\"RULES_PATH\"]",
-                "parserOverride": "",
-                "disabledRules": {
-                  "mapping": []
-                },
-                "tags": {
-                  "mapping": []
-                }
-              }
-            }
-          },
-          {
-            "id": "CheckCompleteness",
-            "name": "CheckCompleteness",
-            "description": "Generic YAML-driven document analysis engine. Evaluates externalized rules against any structured document (JSON, XML, YAML, key-value, text lines) and returns structured findings.",
-            "activity": {
-              "ref": "#ruleengine",
-              "input": {
-                "content": "=$activity[LLMExtract].response",
-                "fileName": "\"rules/field-completeness.yaml\"",
-                "rulesPath": "=$property[\"RULES_PATH\"]",
-                "parserOverride": "",
-                "disabledRules": {
-                  "mapping": []
-                },
-                "tags": {
-                  "mapping": []
-                }
-              }
-            }
-          },
-          {
-            "id": "BuildExtractResponse",
-            "name": "BuildExtractResponse",
-            "description": "General tibco-wi-mapper Activity",
-            "activity": {
-              "ref": "#mapper",
-              "input": {
-                "input": {
-                  "mapping": {
-                    "extracted_fields": "=$activity[ParseLLMResponse].jsonObject",
-                    "missing_fields": "=$activity[CheckCompleteness].findings",
-                    "confidence": 0.8
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "input": "schema://ExtractResponse"
-                },
-                "output": {
-                  "output": "schema://ExtractResponse"
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "Reply_to_API",
-            "name": "Reply_to_API",
-            "description": "General flogo-actreply Activity",
-            "activity": {
-              "ref": "#actreply",
-              "input": {
-                "reply": {
-                  "mapping": {
-                    "data": "=$activity[BuildExtractResponse].output"
-                  }
-                }
+                "template": "\"{{ user_message }}\\n{{ current_spec }}\""
               }
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIkdldEFwcENvbmZpZyI6eyJ4Ijo0NTAsInkiOjQ1fSwiUmVuZGVyRXh0cmFjdGlvblByb21wdCI6eyJ4Ijo2NTAsInkiOjQ1fSwiTExNRXh0cmFjdCI6eyJ4IjoyNTAsInkiOjE5NX0sIlBhcnNlTExNUmVzcG9uc2UiOnsieCI6NDUwLCJ5IjoxOTV9LCJOb3JtYWxpemVBbGlhc2VzIjp7IngiOjY1MCwieSI6MTk1fSwiQ2hlY2tDb21wbGV0ZW5lc3MiOnsieCI6MjUwLCJ5IjozNDV9LCJCdWlsZEV4dHJhY3RSZXNwb25zZSI6eyJ4Ijo0NTAsInkiOjM0NX0sIlJlcGx5X3RvX0FQSSI6eyJ4Ijo2NTAsInkiOjM0NX19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIkdldEFwcENvbmZpZyI6eyJ4Ijo0NTAsInkiOjQ1fSwiUmVnZXhQcmVFeHRyYWN0Ijp7IngiOjU1MCwieSI6NDV9LCJSZW5kZXJFeHRyYWN0aW9uUHJvbXB0Ijp7IngiOjY1MCwieSI6NDV9fQ==",
         "metadata": {
           "input": [
             {
@@ -1870,7 +1456,7 @@
       "id": "flow:generate_POST",
       "data": {
         "name": "generate_POST",
-        "description": "Flow for generate POST",
+        "description": "Generates a BWCE integration repository from a validated spec (POST /generate). Validates the spec, selects the best-matching template via Weaviate vector search, records the generation in PostgreSQL, and returns the result.",
         "links": [
           {
             "id": 1,
@@ -1889,44 +1475,118 @@
           {
             "id": 3,
             "from": "ValidateSpec",
-            "to": "BuildRepoName",
+            "to": "GetIKDInterfaces",
             "type": "label",
-            "label": "ValidateSpec to BuildRepoName"
+            "label": "ValidateSpec to GetIKDInterfaces"
           },
           {
             "id": 4,
-            "from": "BuildRepoName",
-            "to": "SelectTemplate",
+            "from": "GetIKDInterfaces",
+            "to": "GetIKDScenarios",
             "type": "label",
-            "label": "BuildRepoName to SelectTemplate"
+            "label": "GetIKDInterfaces to GetIKDScenarios"
           },
           {
             "id": 5,
+            "from": "GetIKDScenarios",
+            "to": "CrossCheckIKD",
+            "type": "label",
+            "label": "GetIKDScenarios to CrossCheckIKD"
+          },
+          {
+            "id": 6,
+            "from": "CrossCheckIKD",
+            "to": "BuildRepoName",
+            "type": "expression",
+            "label": "IKD valid",
+            "value": "$activity[CrossCheckIKD].output.ikd_valid == true"
+          },
+          {
+            "id": 7,
+            "from": "BuildRepoName",
+            "to": "CheckDuplicate",
+            "type": "label",
+            "label": "BuildRepoName to CheckDuplicate"
+          },
+          {
+            "id": 8,
+            "from": "CheckDuplicate",
+            "to": "SelectTemplate",
+            "type": "expression",
+            "label": "No duplicate",
+            "value": "array.count($activity[CheckDuplicate].Output.records) == 0"
+          },
+          {
+            "id": 9,
             "from": "SelectTemplate",
             "to": "RegisterGeneration",
             "type": "label",
             "label": "SelectTemplate to RegisterGeneration"
           },
           {
-            "id": 6,
+            "id": 10,
             "from": "RegisterGeneration",
-            "to": "BuildGenerateResponse",
+            "to": "ScaffoldRepo",
             "type": "label",
-            "label": "RegisterGeneration to BuildGenerateResponse"
+            "label": "RegisterGeneration to ScaffoldRepo"
           },
           {
-            "id": 7,
+            "id": 11,
+            "from": "ScaffoldRepo",
+            "to": "SendNotification",
+            "type": "label",
+            "label": "ScaffoldRepo to SendNotification"
+          },
+          {
+            "id": 12,
+            "from": "SendNotification",
+            "to": "BuildGenerateResponse",
+            "type": "label",
+            "label": "SendNotification to BuildGenerateResponse"
+          },
+          {
+            "id": 13,
             "from": "BuildGenerateResponse",
             "to": "Reply_to_API",
             "type": "label",
             "label": "BuildGenerateResponse to Reply_to_API"
+          },
+          {
+            "id": 14,
+            "from": "CheckDuplicate",
+            "to": "BuildDuplicateResponse",
+            "type": "expression",
+            "label": "Duplicate found",
+            "value": "array.count($activity[CheckDuplicate].Output.records) > 0"
+          },
+          {
+            "id": 15,
+            "from": "BuildDuplicateResponse",
+            "to": "ReplyDuplicate",
+            "type": "label",
+            "label": "BuildDuplicateResponse to ReplyDuplicate"
+          },
+          {
+            "id": 16,
+            "from": "CrossCheckIKD",
+            "to": "BuildIKDErrorResponse",
+            "type": "expression",
+            "label": "IKD invalid",
+            "value": "$activity[CrossCheckIKD].output.ikd_valid == false"
+          },
+          {
+            "id": 17,
+            "from": "BuildIKDErrorResponse",
+            "to": "ReplyIKDError",
+            "type": "label",
+            "label": "BuildIKDErrorResponse to ReplyIKDError"
           }
         ],
         "tasks": [
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -1934,7 +1594,7 @@
           {
             "id": "Log_API",
             "name": "Log_API",
-            "description": "General tibco-wi-log Activity",
+            "description": "Logs the generation request.",
             "activity": {
               "ref": "#log",
               "input": {
@@ -1948,7 +1608,7 @@
           {
             "id": "ValidateSpec",
             "name": "ValidateSpec",
-            "description": "Generic YAML-driven document analysis engine. Evaluates externalized rules against any structured document (JSON, XML, YAML, key-value, text lines) and returns structured findings.",
+            "description": "Validates the incoming spec against required-field rules before generation.",
             "activity": {
               "ref": "#ruleengine",
               "input": {
@@ -1966,9 +1626,73 @@
             }
           },
           {
+            "id": "GetIKDInterfaces",
+            "name": "GetIKDInterfaces",
+            "description": "Loads the valid IKD interface IDs from shared data for cross-checking the requested spec.",
+            "activity": {
+              "ref": "#shareddata",
+              "settings": {
+                "scope": "Application",
+                "operation": "GET",
+                "type": "array"
+              },
+              "input": {
+                "key": "\"APP_IKD_INTERFACES\"",
+                "input": {
+                  "mapping": {}
+                }
+              }
+            }
+          },
+          {
+            "id": "GetIKDScenarios",
+            "name": "GetIKDScenarios",
+            "description": "Loads the valid IKD scenario IDs from shared data for cross-checking the requested spec.",
+            "activity": {
+              "ref": "#shareddata",
+              "settings": {
+                "scope": "Application",
+                "operation": "GET",
+                "type": "array"
+              },
+              "input": {
+                "key": "\"APP_IKD_SCENARIOS\"",
+                "input": {
+                  "mapping": {}
+                }
+              }
+            }
+          },
+          {
+            "id": "CrossCheckIKD",
+            "name": "CrossCheckIKD",
+            "description": "Cross-checks the requested interface_id and scenario_id against the IKD registries (loaded into shared data at startup). Empty/absent IDs are treated as valid; otherwise the ID must exist in the registry.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "interface_id_valid": "(!isDefined($flow.content.spec.interface_id) || $flow.content.spec.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $flow.content.spec.interface_id))",
+                    "scenario_id_valid": "(!isDefined($flow.content.spec.scenario_id) || $flow.content.spec.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $flow.content.spec.scenario_id))",
+                    "ikd_valid": "(!isDefined($flow.content.spec.interface_id) || $flow.content.spec.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $flow.content.spec.interface_id)) && (!isDefined($flow.content.spec.scenario_id) || $flow.content.spec.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $flow.content.spec.scenario_id))"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": "schema://IKDCheck"
+                },
+                "output": {
+                  "output": "schema://IKDCheck"
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "BuildRepoName",
             "name": "BuildRepoName",
-            "description": "General tibco-wi-mapper Activity",
+            "description": "Derives the target repository name from the spec.",
             "activity": {
               "ref": "#mapper",
               "input": {
@@ -1995,15 +1719,74 @@
             }
           },
           {
+            "id": "CheckDuplicate",
+            "name": "CheckDuplicate",
+            "description": "Looks up the generation registry for an existing repository with the same derived name to enforce idempotency and prevent duplicate generation.",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#query",
+              "input": {
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "manualmode": false,
+                "fetchMetadata": "false",
+                "Fields": [
+                  {
+                    "FieldName": "repo_name",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false
+                  }
+                ],
+                "RuntimeQuery": "",
+                "State": "03c8a0f8-f0e9-4a16-b6cf-88f6bc5c448eSELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "input": {
+                  "mapping": {
+                    "parameters": {
+                      "repo_name": "=$activity[BuildRepoName].output.repo_name"
+                    }
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"}}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "SelectTemplate",
             "name": "SelectTemplate",
-            "description": "Semantic vector similarity (ANN) search in a VectorDB collection using a pre-computed query vector.",
+            "description": "Runs a semantic (RAG) vector search over the Weaviate template collection to pick the best-matching BWCE template for the spec.",
             "activity": {
               "ref": "#ragQuery",
               "settings": {
-                "connection": "conn://12bfb27a-284e-4021-8f10-2cd119546b2e",
+                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
+                "embeddingAPIKey": "SECRET:wbRqdxfhOvbvLaB5jCby25oumh77bg==",
+                "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
                 "defaultTopK": 5,
@@ -2019,9 +1802,7 @@
                 "llmModel": "llama3.1:8b",
                 "systemPrompt": "You are a helpful assistant. Answer the question using only the provided context. If the context does not contain enough information, say so.",
                 "maxTokens": 1024,
-                "temperature": 0.1,
-                "embeddingBaseURL": "http://localhost:11434/v1",
-                "embeddingAPIKey": "ollama"
+                "temperature": 0.1
               },
               "input": {
                 "queryText": "=string.concat($flow.content.spec.source_system, \" to \", $flow.content.spec.target_system, \" \", $flow.content.spec.business_object, \" \", $flow.content.spec.interface_type, \" \", $flow.content.spec.template_type)",
@@ -2033,7 +1814,7 @@
           {
             "id": "RegisterGeneration",
             "name": "RegisterGeneration",
-            "description": "MySQL mysql-insert Activity",
+            "description": "Records the generation request in the PostgreSQL generation_log table.",
             "settings": {
               "retryOnError": {
                 "count": 0,
@@ -2041,19 +1822,258 @@
               }
             },
             "activity": {
-              "ref": "#log",
+              "ref": "#insert",
               "input": {
-                "Log Level": "INFO",
-                "flowInfo": false,
-                "message": "=string.concat(\"[GENERATE] Registered generation for repo: \", $activity[BuildRepoName].output.repo_name)",
-                "logLevel": ""
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "INSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
+                "manualmode": false,
+                "Fields": [
+                  {
+                    "FieldName": "repo_name",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "source_system",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "target_system",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "business_object",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "interface_type",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "template_type",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "cdm",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "interface_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "scenario_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "bitbucket_project",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "env",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "email",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "k8s_domain",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "status",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  }
+                ],
+                "RuntimeQuery": "",
+                "State": "05fe7cb1-33bc-4ec1-baa5-137311ca5de8INSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
+                "input": {
+                  "mapping": {
+                    "values": [
+                      {
+                        "repo_name": "=$activity[BuildRepoName].output.repo_name",
+                        "source_system": "=$flow.content.spec.source_system",
+                        "target_system": "=$flow.content.spec.target_system",
+                        "business_object": "=$flow.content.spec.business_object",
+                        "interface_type": "=$flow.content.spec.interface_type",
+                        "template_type": "=$flow.content.spec.template_type",
+                        "cdm": "=$flow.content.spec.cdm",
+                        "interface_id": "=$flow.content.spec.interface_id",
+                        "scenario_id": "=$flow.content.spec.scenario_id",
+                        "bitbucket_project": "=$flow.content.spec.bitbucket_project",
+                        "env": "=$flow.content.spec.env",
+                        "email": "=$flow.content.spec.email",
+                        "k8s_domain": "=$flow.content.spec.k8s_domain",
+                        "status": "GENERATED"
+                      }
+                    ]
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"values\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"string\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}}},\"parameters\":{\"type\":\"object\",\"properties\":{}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"values\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"string\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}}},\"parameters\":{\"type\":\"object\",\"properties\":{}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ScaffoldRepo",
+            "name": "ScaffoldRepo",
+            "description": "Mocks Bitbucket repository creation by writing a scaffold manifest (repo name, Bitbucket URL, selected template, and spec details) to the local SCAFFOLD_OUTPUT_DIR folder.",
+            "activity": {
+              "ref": "#write",
+              "input": {
+                "writeAs": "Text",
+                "createNonExistingDir": true,
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "=string.concat($property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/manifest.json\")",
+                    "overwrite": true,
+                    "textContent": "=string.concat(\"{\\n  \\\"repo_name\\\": \\\"\", $activity[BuildRepoName].output.repo_name, \"\\\",\\n  \\\"bitbucket_url\\\": \\\"\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\\",\\n  \\\"template\\\": \\\"\", $activity[SelectTemplate].sourceDocuments[0].name, \"\\\",\\n  \\\"source_system\\\": \\\"\", $flow.content.spec.source_system, \"\\\",\\n  \\\"target_system\\\": \\\"\", $flow.content.spec.target_system, \"\\\",\\n  \\\"business_object\\\": \\\"\", $flow.content.spec.business_object, \"\\\",\\n  \\\"interface_type\\\": \\\"\", $flow.content.spec.interface_type, \"\\\",\\n  \\\"env\\\": \\\"\", $flow.content.spec.env, \"\\\",\\n  \\\"scaffold_command\\\": \\\"./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name, \"\\\"\\n}\")"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "SendNotification",
+            "name": "SendNotification",
+            "description": "Sends an email notification (via the configured SMTP server / maildev mock) to the core integration team announcing the newly scaffolded repository.",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
               }
+            },
+            "activity": {
+              "ref": "#sendmail",
+              "input": {
+                "Server": "=$property[\"SMTP_HOST\"]",
+                "Port": "=$property[\"SMTP_PORT\"]",
+                "authorizationType": "Basic",
+                "Username": "",
+                "Password": "",
+                "authorizationConn": "",
+                "Connection Security": "NONE",
+                "message_content_type": "text/plain",
+                "sender": "=$property[\"NOTIFY_SENDER\"]",
+                "recipients": "=$property[\"NOTIFY_RECIPIENTS\"]",
+                "cc_recipients": "",
+                "bcc_recipients": "",
+                "reply_to": "",
+                "subject": "=string.concat(\"[BWCE AI Generator] New repository scaffolded: \", $activity[BuildRepoName].output.repo_name)",
+                "message": "=string.concat(\"A new BWCE integration repository has been generated and scaffolded.\\n\\nRepository: \", $activity[BuildRepoName].output.repo_name, \"\\nBitbucket: \", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\nSource System: \", $flow.content.spec.source_system, \"\\nTarget System: \", $flow.content.spec.target_system, \"\\nInterface Type: \", $flow.content.spec.interface_type, \"\\n\\nScaffold command:\\n./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name)"
+              },
+              "schemas": {
+                "input": {
+                  "attachments": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"items\":{\"properties\":{\"file\":{\"type\":\"string\"},\"filename\":{\"type\":\"string\"},\"base64EncodedContents\":{\"type\":\"boolean\"}},\"required\":[\"file\"],\"type\":\"object\"},\"type\":\"array\"}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"items\":{\"properties\":{\"file\":{\"type\":\"string\"},\"filename\":{\"type\":\"string\"},\"base64EncodedContents\":{\"type\":\"boolean\"}},\"required\":[\"file\"],\"type\":\"object\"},\"type\":\"array\"}"
+                  },
+                  "headers": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
             }
           },
           {
             "id": "BuildGenerateResponse",
             "name": "BuildGenerateResponse",
-            "description": "General tibco-wi-mapper Activity",
+            "description": "Assembles the generation response (selected template, repository name, and status).",
             "activity": {
               "ref": "#mapper",
               "input": {
@@ -2081,7 +2101,7 @@
           {
             "id": "Reply_to_API",
             "name": "Reply_to_API",
-            "description": "General flogo-actreply Activity",
+            "description": "Returns the generation result to the caller.",
             "activity": {
               "ref": "#actreply",
               "input": {
@@ -2102,9 +2122,118 @@
               },
               "feSchemaMap": {}
             }
+          },
+          {
+            "id": "BuildDuplicateResponse",
+            "name": "BuildDuplicateResponse",
+            "description": "Builds an idempotent response indicating the repository already exists, echoing the existing registration id and status from the registry.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "success": true,
+                    "duplicate": true,
+                    "repo_name": "=$activity[BuildRepoName].output.repo_name",
+                    "message": "Repository already exists in the generation registry; returning the existing registration (idempotent, no new repository was scaffolded).",
+                    "existing_status": "=$activity[CheckDuplicate].Output.records[0].status",
+                    "existing_generation_id": "=$activity[CheckDuplicate].Output.records[0].generation_id"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": "schema://DuplicateResponse"
+                },
+                "output": {
+                  "output": "schema://DuplicateResponse"
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReplyDuplicate",
+            "name": "ReplyDuplicate",
+            "description": "Returns the idempotent duplicate-detection result to the caller without creating a new repository.",
+            "activity": {
+              "ref": "#actreply",
+              "input": {
+                "reply": {
+                  "mapping": {
+                    "data": "=$activity[BuildDuplicateResponse].output"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "reply": {
+                    "type": "json",
+                    "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                    "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "BuildIKDErrorResponse",
+            "name": "BuildIKDErrorResponse",
+            "description": "Builds a validation-error response when the interface_id and/or scenario_id are not registered in the IKD registry.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "success": false,
+                    "error": "IKD_VALIDATION_FAILED",
+                    "message": "=string.concat(\"IKD validation failed. interface_id='\", $flow.content.spec.interface_id, \"', scenario_id='\", $flow.content.spec.scenario_id, \"'. One or both are not present in the IKD registry.\")",
+                    "interface_id_valid": "=$activity[CrossCheckIKD].output.interface_id_valid",
+                    "scenario_id_valid": "=$activity[CrossCheckIKD].output.scenario_id_valid",
+                    "interface_id": "=$flow.content.spec.interface_id",
+                    "scenario_id": "=$flow.content.spec.scenario_id"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": "schema://IKDErrorResponse"
+                },
+                "output": {
+                  "output": "schema://IKDErrorResponse"
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReplyIKDError",
+            "name": "ReplyIKDError",
+            "description": "Returns the IKD validation error to the caller without registering or scaffolding a repository.",
+            "activity": {
+              "ref": "#actreply",
+              "input": {
+                "reply": {
+                  "mapping": {
+                    "data": "=$activity[BuildIKDErrorResponse].output"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "reply": {
+                    "type": "json",
+                    "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                    "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjQ1fSwiQnVpbGRSZXBvTmFtZSI6eyJ4Ijo2NTAsInkiOjQ1fSwiU2VsZWN0VGVtcGxhdGUiOnsieCI6MjUwLCJ5IjoxOTV9LCJSZWdpc3RlckdlbmVyYXRpb24iOnsieCI6NDUwLCJ5IjoxOTV9LCJCdWlsZEdlbmVyYXRlUmVzcG9uc2UiOnsieCI6NjUwLCJ5IjoxOTV9LCJSZXBseV90b19BUEkiOnsieCI6MjUwLCJ5IjozNDV9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjQ1fSwiR2V0SUtESW50ZXJmYWNlcyI6eyJ4Ijo2NTAsInkiOjQ1fSwiR2V0SUtEU2NlbmFyaW9zIjp7IngiOjg1MCwieSI6NDV9LCJDcm9zc0NoZWNrSUtEIjp7IngiOjEwNTAsInkiOjQ1fSwiQnVpbGRSZXBvTmFtZSI6eyJ4Ijo2NTAsInkiOjE5NX0sIkNoZWNrRHVwbGljYXRlIjp7IngiOjY1MCwieSI6MzQ1fSwiU2VsZWN0VGVtcGxhdGUiOnsieCI6ODUwLCJ5IjozNDV9LCJSZWdpc3RlckdlbmVyYXRpb24iOnsieCI6MTA1MCwieSI6MzQ1fSwiU2NhZmZvbGRSZXBvIjp7IngiOjEyNTAsInkiOjM0NX0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6MTQ1MCwieSI6MzQ1fSwiQnVpbGRHZW5lcmF0ZVJlc3BvbnNlIjp7IngiOjE0NTAsInkiOjQ5NX0sIlJlcGx5X3RvX0FQSSI6eyJ4IjoxNjUwLCJ5Ijo0OTV9LCJCdWlsZER1cGxpY2F0ZVJlc3BvbnNlIjp7IngiOjQ1MCwieSI6MzQ1fSwiUmVwbHlEdXBsaWNhdGUiOnsieCI6MjUwLCJ5IjozNDV9LCJCdWlsZElLREVycm9yUmVzcG9uc2UiOnsieCI6MTA1MCwieSI6MTk1fSwiUmVwbHlJS0RFcnJvciI6eyJ4IjoxMjUwLCJ5IjoxOTV9fQ==",
         "metadata": {
           "input": [
             {
@@ -2146,7 +2275,7 @@
       "id": "flow:StartupFlow",
       "data": {
         "name": "StartupFlow",
-        "description": "Flogo Flow created with Flogo Design",
+        "description": "Application bootstrap flow. Loads the template registry and alias mappings from disk into shared memory and initializes the PostgreSQL schema.",
         "links": [
           {
             "id": 1,
@@ -2192,31 +2321,66 @@
           },
           {
             "id": 7,
+            "from": "StoreAliasesToSharedData",
+            "to": "SetupDatabase",
+            "type": "label",
+            "label": "StoreAliasesToSharedData to SetupDatabase"
+          },
+          {
+            "id": 8,
             "from": "SetupDatabase",
             "to": "IngestTemplatesToVectorDB",
             "type": "label",
             "label": "SetupDatabase to IngestTemplatesToVectorDB"
           },
           {
-            "id": 8,
+            "id": 9,
             "from": "IngestTemplatesToVectorDB",
-            "to": "LogStartupComplete",
+            "to": "ReadIKDInterfaces",
             "type": "label",
-            "label": "IngestTemplatesToVectorDB to LogStartupComplete"
+            "label": "IngestTemplatesToVectorDB to ReadIKDInterfaces"
           },
           {
-            "id": 9,
-            "from": "StoreAliasesToSharedData",
-            "to": "SetupDatabase",
+            "id": 10,
+            "from": "ReadIKDInterfaces",
+            "to": "ParseIKDInterfaces",
             "type": "label",
-            "label": "StoreAliasesToSharedData to SetupDatabase"
+            "label": "ReadIKDInterfaces to ParseIKDInterfaces"
+          },
+          {
+            "id": 11,
+            "from": "ParseIKDInterfaces",
+            "to": "StoreIKDInterfaces",
+            "type": "label",
+            "label": "ParseIKDInterfaces to StoreIKDInterfaces"
+          },
+          {
+            "id": 12,
+            "from": "StoreIKDInterfaces",
+            "to": "ReadIKDScenarios",
+            "type": "label",
+            "label": "StoreIKDInterfaces to ReadIKDScenarios"
+          },
+          {
+            "id": 13,
+            "from": "ReadIKDScenarios",
+            "to": "ParseIKDScenarios",
+            "type": "label",
+            "label": "ReadIKDScenarios to ParseIKDScenarios"
+          },
+          {
+            "id": 14,
+            "from": "ParseIKDScenarios",
+            "to": "StoreIKDScenarios",
+            "type": "label",
+            "label": "ParseIKDScenarios to StoreIKDScenarios"
           }
         ],
         "tasks": [
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -2224,7 +2388,7 @@
           {
             "id": "ReadTemplateRegistry",
             "name": "ReadTemplateRegistry",
-            "description": "Read, write, append, delete, or list files on the local filesystem. Supports JSON parsing on read. Used for agent config registry and feedback logs.",
+            "description": "Reads the template registry JSON file from disk.",
             "activity": {
               "ref": "#read",
               "input": {
@@ -2258,7 +2422,7 @@
           {
             "id": "ParseTemplateRegistry",
             "name": "ParseTemplateRegistry",
-            "description": "Parses JSON string into JSON object",
+            "description": "Parses the template registry JSON into an object.",
             "activity": {
               "ref": "#parsejson",
               "input": {
@@ -2270,7 +2434,7 @@
           {
             "id": "ReadAliasMappings",
             "name": "ReadAliasMappings",
-            "description": "Read, write, append, delete, or list files on the local filesystem. Supports JSON parsing on read. Used for agent config registry and feedback logs.",
+            "description": "Reads the provider/protocol alias-mappings JSON file from disk.",
             "activity": {
               "ref": "#read",
               "input": {
@@ -2304,7 +2468,7 @@
           {
             "id": "ParseAliasMappings",
             "name": "ParseAliasMappings",
-            "description": "Parses JSON string into JSON object",
+            "description": "Parses the alias mappings JSON into an object.",
             "activity": {
               "ref": "#parsejson",
               "input": {
@@ -2316,7 +2480,7 @@
           {
             "id": "StoreConfigToSharedData",
             "name": "StoreConfigToSharedData",
-            "description": "Enable sharing of data within or across flows in the application",
+            "description": "Caches the template registry in shared memory under APP_CONFIG.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
@@ -2341,9 +2505,30 @@
             }
           },
           {
+            "id": "StoreAliasesToSharedData",
+            "name": "StoreAliasesToSharedData",
+            "description": "Caches the alias mappings in shared memory under APP_ALIASES.",
+            "activity": {
+              "ref": "#shareddata",
+              "settings": {
+                "scope": "Application",
+                "operation": "SET",
+                "type": "object"
+              },
+              "input": {
+                "key": "\"APP_ALIASES\"",
+                "input": {
+                  "mapping": {
+                    "data": "=$activity[ParseAliasMappings].jsonObject"
+                  }
+                }
+              }
+            }
+          },
+          {
             "id": "SetupDatabase",
             "name": "SetupDatabase",
-            "description": "Simple SubFlow Activity",
+            "description": "Invokes the SetupDatabaseFlow subflow to initialize the PostgreSQL schema.",
             "settings": {
               "retryOnError": {
                 "count": 0,
@@ -2362,7 +2547,7 @@
           {
             "id": "IngestTemplatesToVectorDB",
             "name": "IngestTemplatesToVectorDB",
-            "description": "Simple SubFlow Activity",
+            "description": "Invokes the TemplateIngestionFlow subflow to load BWCE templates into the Weaviate vector database so semantic template selection has data to search.",
             "settings": {
               "retryOnError": {
                 "count": 0,
@@ -2375,50 +2560,145 @@
                 "flowURI": "res://flow:TemplateIngestionFlow",
                 "detached": false,
                 "execTimeout": 0
-              },
-              "input": {
-                "input": {
-                  "mapping": {}
-                }
               }
             }
           },
           {
-            "id": "LogStartupComplete",
-            "name": "LogStartupComplete",
-            "description": "General tibco-wi-log Activity",
+            "id": "ReadIKDInterfaces",
+            "name": "ReadIKDInterfaces",
+            "description": "Reads the IKD interface-ID registry (JSON array of valid IKD interface identifiers) from disk during startup.",
             "activity": {
-              "ref": "#log",
+              "ref": "#read",
               "input": {
-                "Log Level": "INFO",
-                "flowInfo": false,
-                "message": "\"[BWCE-AI] Application startup complete. Templates loaded and VectorDB initialized.\"",
-                "logLevel": ""
+                "readAs": "Text",
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "=$property[\"IKD_INTERFACES_FILE\"]"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ParseIKDInterfaces",
+            "name": "ParseIKDInterfaces",
+            "description": "Parses the IKD interface-ID registry text into a JSON array.",
+            "activity": {
+              "ref": "#parsejson",
+              "input": {
+                "validate": false,
+                "jsonString": "=$activity[ReadIKDInterfaces].output.fileContent.textContent"
               }
             }
           },
           {
-            "id": "StoreAliasesToSharedData",
+            "id": "StoreIKDInterfaces",
+            "name": "StoreIKDInterfaces",
+            "description": "Caches the valid IKD interface IDs in application shared data (APP_IKD_INTERFACES) for fast cross-checking during generation.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
                 "scope": "Application",
                 "operation": "SET",
-                "type": "object"
+                "type": "array"
               },
               "input": {
-                "key": "\"APP_ALIASES\"",
+                "key": "\"APP_IKD_INTERFACES\"",
                 "input": {
                   "mapping": {
-                    "data": "=$activity[ParseAliasMappings].jsonObject"
+                    "data": "=$activity[ParseIKDInterfaces].jsonObject"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ReadIKDScenarios",
+            "name": "ReadIKDScenarios",
+            "description": "Reads the IKD scenario-ID registry (JSON array of valid IKD scenario identifiers) from disk during startup.",
+            "activity": {
+              "ref": "#read",
+              "input": {
+                "readAs": "Text",
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "=$property[\"IKD_SCENARIOS_FILE\"]"
                   }
                 }
               },
-              "output": {}
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ParseIKDScenarios",
+            "name": "ParseIKDScenarios",
+            "description": "Parses the IKD scenario-ID registry text into a JSON array.",
+            "activity": {
+              "ref": "#parsejson",
+              "input": {
+                "validate": false,
+                "jsonString": "=$activity[ReadIKDScenarios].output.fileContent.textContent"
+              }
+            }
+          },
+          {
+            "id": "StoreIKDScenarios",
+            "name": "StoreIKDScenarios",
+            "description": "Caches the valid IKD scenario IDs in application shared data (APP_IKD_SCENARIOS) for fast cross-checking during generation.",
+            "activity": {
+              "ref": "#shareddata",
+              "settings": {
+                "scope": "Application",
+                "operation": "SET",
+                "type": "array"
+              },
+              "input": {
+                "key": "\"APP_IKD_SCENARIOS\"",
+                "input": {
+                  "mapping": {
+                    "data": "=$activity[ParseIKDScenarios].jsonObject"
+                  }
+                }
+              }
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlYWRUZW1wbGF0ZVJlZ2lzdHJ5Ijp7IngiOjI1MCwieSI6NDV9LCJQYXJzZVRlbXBsYXRlUmVnaXN0cnkiOnsieCI6NDUwLCJ5Ijo0NX0sIlJlYWRBbGlhc01hcHBpbmdzIjp7IngiOjY1MCwieSI6NDV9LCJQYXJzZUFsaWFzTWFwcGluZ3MiOnsieCI6MjUwLCJ5IjoxOTV9LCJTdG9yZUNvbmZpZ1RvU2hhcmVkRGF0YSI6eyJ4Ijo0NTAsInkiOjE5NX0sIlNldHVwRGF0YWJhc2UiOnsieCI6NjUwLCJ5IjoxOTV9LCJJbmdlc3RUZW1wbGF0ZXNUb1ZlY3RvckRCIjp7IngiOjI1MCwieSI6MzQ1fSwiTG9nU3RhcnR1cENvbXBsZXRlIjp7IngiOjQ1MCwieSI6MzQ1fX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIlJlYWRUZW1wbGF0ZVJlZ2lzdHJ5Ijp7IngiOjI1MCwieSI6MTUwfSwiUGFyc2VUZW1wbGF0ZVJlZ2lzdHJ5Ijp7IngiOjQ1MCwieSI6MjUwfSwiUmVhZEFsaWFzTWFwcGluZ3MiOnsieCI6NjUwLCJ5IjozNTB9LCJQYXJzZUFsaWFzTWFwcGluZ3MiOnsieCI6ODUwLCJ5Ijo0NTB9LCJTdG9yZUNvbmZpZ1RvU2hhcmVkRGF0YSI6eyJ4IjoxMDUwLCJ5Ijo1NTB9LCJTdG9yZUFsaWFzZXNUb1NoYXJlZERhdGEiOnsieCI6MTI1MCwieSI6NjUwfSwiU2V0dXBEYXRhYmFzZSI6eyJ4IjoxNDUwLCJ5Ijo3NTB9LCJJbmdlc3RUZW1wbGF0ZXNUb1ZlY3RvckRCIjp7IngiOjE2NTAsInkiOjg1MH0sIlJlYWRJS0RJbnRlcmZhY2VzIjp7IngiOjE4NTAsInkiOjg1MH0sIlBhcnNlSUtESW50ZXJmYWNlcyI6eyJ4IjoyMDUwLCJ5Ijo4NTB9LCJTdG9yZUlLREludGVyZmFjZXMiOnsieCI6MjI1MCwieSI6ODUwfSwiUmVhZElLRFNjZW5hcmlvcyI6eyJ4IjoyNDUwLCJ5Ijo4NTB9LCJQYXJzZUlLRFNjZW5hcmlvcyI6eyJ4IjoyNjUwLCJ5Ijo4NTB9LCJTdG9yZUlLRFNjZW5hcmlvcyI6eyJ4IjoyODUwLCJ5Ijo4NTB9fQ==",
         "metadata": {
           "input": [],
           "output": [],
@@ -2430,7 +2710,7 @@
       "id": "flow:MCPExtractSpecTool",
       "data": {
         "name": "MCPExtractSpecTool",
-        "description": "Flogo Flow created with Flogo Design",
+        "description": "MCP tool 'extract_spec'. Wraps the extract flow so AI agents can turn a natural-language description into a structured BWCE spec.",
         "links": [
           {
             "id": 1,
@@ -2451,7 +2731,7 @@
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -2459,7 +2739,7 @@
           {
             "id": "ExtractSpecSubflow",
             "name": "ExtractSpecSubflow",
-            "description": "Simple SubFlow Activity",
+            "description": "Runs the extract flow to convert the description into a structured spec.",
             "settings": {
               "retryOnError": {
                 "count": 0,
@@ -2496,7 +2776,7 @@
           {
             "id": "ReturnResult",
             "name": "ReturnResult",
-            "description": "Converts any value (object, array, string) to an MCP ToolResult map {data: string, error: string}. Use in MCP server flows before the Return activity to properly wrap API responses.",
+            "description": "Wraps the extracted spec as an MCP ToolResult and returns it to the agent.",
             "activity": {
               "ref": "#actreply",
               "schemas": {
@@ -2541,7 +2821,7 @@
       "id": "flow:MCPGenerateTool",
       "data": {
         "name": "MCPGenerateTool",
-        "description": "Flogo Flow created with Flogo Design",
+        "description": "MCP tool 'generate_code'. Validates the spec, derives the repository name, and records the generation, returning the result to the calling AI agent.",
         "links": [
           {
             "id": 1,
@@ -2567,16 +2847,32 @@
           {
             "id": 4,
             "from": "BuildRepoName",
-            "to": "ReturnResult",
+            "to": "CheckDuplicate",
             "type": "label",
-            "label": "BuildRepoName to ReturnResult"
+            "label": "BuildRepoName to CheckDuplicate"
+          },
+          {
+            "id": 5,
+            "from": "CheckDuplicate",
+            "to": "RegisterGeneration",
+            "type": "expression",
+            "label": "No duplicate",
+            "value": "array.count($activity[CheckDuplicate].Output.records) == 0"
+          },
+          {
+            "id": 6,
+            "from": "CheckDuplicate",
+            "to": "ReturnResult",
+            "type": "expression",
+            "label": "Duplicate found",
+            "value": "array.count($activity[CheckDuplicate].Output.records) > 0"
           }
         ],
         "tasks": [
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -2584,7 +2880,7 @@
           {
             "id": "GetAppConfig",
             "name": "GetAppConfig",
-            "description": "Enable sharing of data within or across flows in the application",
+            "description": "Loads alias mappings (APP_ALIASES) from shared memory.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
@@ -2603,7 +2899,7 @@
           {
             "id": "ValidateSpec",
             "name": "ValidateSpec",
-            "description": "Generic YAML-driven document analysis engine. Evaluates externalized rules against any structured document (JSON, XML, YAML, key-value, text lines) and returns structured findings.",
+            "description": "Validates the spec against required-field rules.",
             "activity": {
               "ref": "#ruleengine",
               "input": {
@@ -2623,7 +2919,7 @@
           {
             "id": "BuildRepoName",
             "name": "BuildRepoName",
-            "description": "General tibco-wi-mapper Activity",
+            "description": "Derives the target repository name from the spec.",
             "activity": {
               "ref": "#mapper",
               "input": {
@@ -2649,9 +2945,242 @@
             }
           },
           {
+            "id": "CheckDuplicate",
+            "name": "CheckDuplicate",
+            "description": "Looks up the generation registry for an existing repository with the same derived name to enforce idempotency and skip duplicate registration.",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#query",
+              "input": {
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "manualmode": false,
+                "fetchMetadata": "false",
+                "Fields": [
+                  {
+                    "FieldName": "repo_name",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false
+                  }
+                ],
+                "RuntimeQuery": "",
+                "State": "3ee9fd6c-b5fd-45aa-b5bb-985ed5490718SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "input": {
+                  "mapping": {
+                    "parameters": {
+                      "repo_name": "=$activity[BuildRepoName].output.repo_name"
+                    }
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"}}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "RegisterGeneration",
+            "name": "RegisterGeneration",
+            "description": "Records the MCP-triggered generation in the PostgreSQL generation_log table.",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#insert",
+              "input": {
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "INSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
+                "manualmode": false,
+                "Fields": [
+                  {
+                    "FieldName": "repo_name",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "source_system",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "target_system",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "business_object",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "interface_type",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "template_type",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "cdm",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "interface_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "scenario_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "bitbucket_project",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "env",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "email",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "k8s_domain",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "status",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  }
+                ],
+                "RuntimeQuery": "",
+                "State": "e62ebd2f-3541-4960-8bfa-caf135a5fbcdINSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
+                "input": {
+                  "mapping": {
+                    "values": [
+                      {
+                        "repo_name": "=$activity[BuildRepoName].output.repo_name",
+                        "source_system": "=$flow.arguments.spec.source_system",
+                        "target_system": "=$flow.arguments.spec.target_system",
+                        "business_object": "=$flow.arguments.spec.business_object",
+                        "interface_type": "=$flow.arguments.spec.interface_type",
+                        "template_type": "=$flow.arguments.spec.template_type",
+                        "cdm": "=$flow.arguments.spec.cdm",
+                        "interface_id": "=$flow.arguments.spec.interface_id",
+                        "scenario_id": "=$flow.arguments.spec.scenario_id",
+                        "bitbucket_project": "=$flow.arguments.spec.bitbucket_project",
+                        "env": "=$flow.arguments.spec.env",
+                        "email": "=$flow.arguments.spec.email",
+                        "k8s_domain": "=$flow.arguments.spec.k8s_domain",
+                        "status": "GENERATED"
+                      }
+                    ]
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"values\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"string\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}}},\"parameters\":{\"type\":\"object\",\"properties\":{}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"values\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"string\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}}},\"parameters\":{\"type\":\"object\",\"properties\":{}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnResult",
             "name": "ReturnResult",
-            "description": "Converts any value (object, array, string) to an MCP ToolResult map {data: string, error: string}. Use in MCP server flows before the Return activity to properly wrap API responses.",
+            "description": "Wraps the generation result as an MCP ToolResult and returns it to the agent.",
             "activity": {
               "ref": "#actreply",
               "schemas": {
@@ -2667,7 +3196,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkdldEFwcENvbmZpZyI6eyJ4IjoyNTAsInkiOjQ1fSwiVmFsaWRhdGVTcGVjIjp7IngiOjQ1MCwieSI6NDV9LCJCdWlsZFJlcG9OYW1lIjp7IngiOjY1MCwieSI6NDV9LCJSZXR1cm5SZXN1bHQiOnsieCI6MjUwLCJ5IjoxOTV9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkdldEFwcENvbmZpZyI6eyJ4IjoyNTAsInkiOjE1MH0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjI1MH0sIkJ1aWxkUmVwb05hbWUiOnsieCI6NjUwLCJ5IjozNTB9LCJDaGVja0R1cGxpY2F0ZSI6eyJ4Ijo3NTAsInkiOjM1MH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4Ijo4NTAsInkiOjQ1MH0sIlJldHVyblJlc3VsdCI6eyJ4IjoxMDUwLCJ5Ijo1NTB9fQ==",
         "metadata": {
           "input": [
             {
@@ -2696,7 +3225,7 @@
       "id": "flow:MCPListTemplates",
       "data": {
         "name": "MCPListTemplates",
-        "description": "Flogo Flow created with Flogo Design",
+        "description": "MCP tool 'list_templates'. Returns all available BWCE integration templates from shared memory.",
         "links": [
           {
             "id": 1,
@@ -2717,7 +3246,7 @@
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -2725,7 +3254,7 @@
           {
             "id": "GetTemplates",
             "name": "GetTemplates",
-            "description": "Enable sharing of data within or across flows in the application",
+            "description": "Reads the cached template registry (APP_CONFIG) from shared memory.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
@@ -2744,7 +3273,7 @@
           {
             "id": "ReturnTemplates",
             "name": "ReturnTemplates",
-            "description": "Converts any value (object, array, string) to an MCP ToolResult map {data: string, error: string}. Use in MCP server flows before the Return activity to properly wrap API responses.",
+            "description": "Wraps the template list as an MCP ToolResult and returns it to the agent.",
             "activity": {
               "ref": "#actreply",
               "schemas": {
@@ -2789,7 +3318,7 @@
       "id": "flow:SetupDatabaseFlow",
       "data": {
         "name": "SetupDatabaseFlow",
-        "description": "Flogo Flow created with Flogo Design",
+        "description": "Database initialization subflow. Reads the schema DDL and creates the PostgreSQL generation_log table if it does not already exist (idempotent).",
         "links": [
           {
             "id": 1,
@@ -2801,16 +3330,23 @@
           {
             "id": 2,
             "from": "ReadSchemaFile",
+            "to": "CreateSchema",
+            "type": "label",
+            "label": "ReadSchemaFile to CreateSchema"
+          },
+          {
+            "id": 3,
+            "from": "CreateSchema",
             "to": "LogDbSetup",
             "type": "label",
-            "label": "ReadSchemaFile to LogDbSetup"
+            "label": "CreateSchema to LogDbSetup"
           }
         ],
         "tasks": [
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -2818,7 +3354,7 @@
           {
             "id": "ReadSchemaFile",
             "name": "ReadSchemaFile",
-            "description": "Read, write, append, delete, or list files on the local filesystem. Supports JSON parsing on read. Used for agent config registry and feedback logs.",
+            "description": "Reads the SQL DDL file that defines the generation_log table.",
             "activity": {
               "ref": "#read",
               "input": {
@@ -2850,9 +3386,50 @@
             }
           },
           {
+            "id": "CreateSchema",
+            "name": "CreateSchema",
+            "description": "Executes the DDL to create the generation_log table if it does not exist (idempotent).",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#query",
+              "input": {
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "CREATE TABLE IF NOT EXISTS generation_log (id SERIAL PRIMARY KEY, generation_id VARCHAR(36) NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, repo_name VARCHAR(100) NOT NULL, source_system VARCHAR(50) NOT NULL, target_system VARCHAR(50) NOT NULL, business_object VARCHAR(100) NOT NULL, interface_type VARCHAR(10) NOT NULL CHECK (interface_type IN ('pub','sub','service')), template_type VARCHAR(200), cdm BOOLEAN DEFAULT FALSE, interface_id VARCHAR(50) DEFAULT 'NA', scenario_id VARCHAR(20) DEFAULT '1234', bitbucket_project VARCHAR(50), env VARCHAR(50) DEFAULT 'DEV', email VARCHAR(200), k8s_domain VARCHAR(50) DEFAULT 'cite', status VARCHAR(20) DEFAULT 'GENERATED' CHECK (status IN ('GENERATED','FAILED','DUPLICATE')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());",
+                "manualmode": false,
+                "Fields": [],
+                "RuntimeQuery": "",
+                "State": "f2f2feb3-5860-4aa5-82bf-20da77c9595aCREATE TABLE IF NOT EXISTS generation_log (id SERIAL PRIMARY KEY, generation_id VARCHAR(36) NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, repo_name VARCHAR(100) NOT NULL, source_system VARCHAR(50) NOT NULL, target_system VARCHAR(50) NOT NULL, business_object VARCHAR(100) NOT NULL, interface_type VARCHAR(10) NOT NULL CHECK (interface_type IN ('pub','sub','service')), template_type VARCHAR(200), cdm BOOLEAN DEFAULT FALSE, interface_id VARCHAR(50) DEFAULT 'NA', scenario_id VARCHAR(20) DEFAULT '1234', bitbucket_project VARCHAR(50), env VARCHAR(50) DEFAULT 'DEV', email VARCHAR(200), k8s_domain VARCHAR(50) DEFAULT 'cite', status VARCHAR(20) DEFAULT 'GENERATED' CHECK (status IN ('GENERATED','FAILED','DUPLICATE')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "LogDbSetup",
             "name": "LogDbSetup",
-            "description": "General tibco-wi-log Activity",
+            "description": "Logs that the PostgreSQL generation_log table is initialized.",
             "activity": {
               "ref": "#log",
               "input": {
@@ -2864,7 +3441,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlYWRTY2hlbWFGaWxlIjp7IngiOjI1MCwieSI6NDV9LCJMb2dEYlNldHVwIjp7IngiOjQ1MCwieSI6NDV9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIlJlYWRTY2hlbWFGaWxlIjp7IngiOjI1MCwieSI6MTUwfSwiQ3JlYXRlU2NoZW1hIjp7IngiOjQ1MCwieSI6MjUwfSwiTG9nRGJTZXR1cCI6eyJ4Ijo2NTAsInkiOjM1MH19",
         "metadata": {
           "input": [],
           "output": [],
@@ -2876,7 +3453,7 @@
       "id": "flow:TemplateIngestionFlow",
       "data": {
         "name": "TemplateIngestionFlow",
-        "description": "Flogo Flow created with Flogo Design",
+        "description": "Loads BWCE templates into the Weaviate vector database. Ensures the target collection exists, then ingests template documents with embeddings to power semantic template selection.",
         "links": [
           {
             "id": 1,
@@ -2918,7 +3495,7 @@
           {
             "id": "StartActivity",
             "name": "StartActivity",
-            "description": "NoOp Activity",
+            "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
             }
@@ -2926,7 +3503,7 @@
           {
             "id": "GetTemplates",
             "name": "GetTemplates",
-            "description": "Enable sharing of data within or across flows in the application",
+            "description": "Reads the template registry (APP_CONFIG) from shared memory.",
             "activity": {
               "ref": "#shareddata",
               "settings": {
@@ -2945,22 +3522,22 @@
           {
             "id": "CheckCollection",
             "name": "CheckCollection",
-            "description": "List all collections / indexes available in the connected VectorDB.",
+            "description": "Lists existing Weaviate collections to check whether the template collection already exists.",
             "activity": {
               "ref": "#listCollections",
               "settings": {
-                "connection": "conn://12bfb27a-284e-4021-8f10-2cd119546b2e"
+                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924"
               }
             }
           },
           {
             "id": "CreateCollection",
             "name": "CreateCollection",
-            "description": "Create or ensure a Weaviate collection exists with the correct schema.",
+            "description": "Creates the Weaviate template collection with the correct vector schema if it is missing.",
             "activity": {
               "ref": "#createCollection",
               "settings": {
-                "connection": "conn://12bfb27a-284e-4021-8f10-2cd119546b2e"
+                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924"
               },
               "input": {
                 "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
@@ -2974,18 +3551,18 @@
           {
             "id": "IngestTemplates",
             "name": "IngestTemplates",
-            "description": "Ingest documents into a Weaviate collection with chunking and embedding.",
+            "description": "Ingests template documents into the Weaviate collection, generating embeddings for semantic search.",
             "activity": {
               "ref": "#ingestDocuments",
               "settings": {
-                "connection": "conn://12bfb27a-284e-4021-8f10-2cd119546b2e",
+                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "enableChunking": false,
                 "chunkStrategy": "heading",
                 "chunkSize": 1000,
                 "chunkOverlap": 200,
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "ollama",
+                "embeddingAPIKey": "SECRET:lzlHKWsXAmAABWcI+Ay/myzbC+y5+w==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
@@ -3003,7 +3580,7 @@
           {
             "id": "LogIngestionComplete",
             "name": "LogIngestionComplete",
-            "description": "General tibco-wi-log Activity",
+            "description": "Logs that templates have been ingested into the vector database.",
             "activity": {
               "ref": "#log",
               "input": {
@@ -3026,16 +3603,6 @@
   ],
   "properties": [
     {
-      "name": "AgenticAI.LLMProvider.LLM_Provider",
-      "type": "string",
-      "value": "Ollama"
-    },
-    {
-      "name": "AgenticAI.LLMProvider.LLM_Base_URL",
-      "type": "string",
-      "value": "http://localhost:11434"
-    },
-    {
       "name": "PostgreSQL.GenerationRegistry.Host",
       "type": "string",
       "value": "localhost"
@@ -3048,17 +3615,17 @@
     {
       "name": "PostgreSQL.GenerationRegistry.Database_Name",
       "type": "string",
-      "value": "agentforge"
+      "value": "flogo_agent_studio"
     },
     {
       "name": "PostgreSQL.GenerationRegistry.User",
       "type": "string",
-      "value": "postgres"
+      "value": "flogo"
     },
     {
       "name": "PostgreSQL.GenerationRegistry.Password",
       "type": "string",
-      "value": "changeme"
+      "value": "SECRET:JX+EQNMlLSxi8lP3ZPgEiF6aBG34wytH"
     },
     {
       "name": "PostgreSQL.GenerationRegistry.Maximum_Open_Connections",
@@ -3131,119 +3698,94 @@
       "value": "8081"
     },
     {
-      "name": "VectorDB.TemplateKnowledgeBase.Connection_Name",
+      "name": "DB_SCHEMA_FILE",
       "type": "string",
-      "value": "TemplateKnowledgeBase"
+      "value": "config/db/schema.sql"
     },
     {
-      "name": "VectorDB.TemplateKnowledgeBase.DB_Provider",
-      "type": "string",
-      "value": "weaviate"
-    },
-    {
-      "name": "VectorDB.TemplateKnowledgeBase.Host",
+      "name": "SMTP_HOST",
       "type": "string",
       "value": "localhost"
     },
     {
-      "name": "VectorDB.TemplateKnowledgeBase.Port",
-      "type": "float64",
-      "value": 8080
+      "name": "SMTP_PORT",
+      "type": "string",
+      "value": "1025"
     },
     {
-      "name": "VectorDB.TemplateKnowledgeBase.API_Key",
+      "name": "NOTIFY_SENDER",
+      "type": "string",
+      "value": "bwce-generator@adidas.com"
+    },
+    {
+      "name": "NOTIFY_RECIPIENTS",
+      "type": "string",
+      "value": "core-integration@adidas.com"
+    },
+    {
+      "name": "SCAFFOLD_OUTPUT_DIR",
+      "type": "string",
+      "value": "generated-repos"
+    },
+    {
+      "name": "BITBUCKET_BASE_URL",
+      "type": "string",
+      "value": "https://bitbucket.adidas.com/scm"
+    },
+    {
+      "name": "IKD_SCENARIOS_FILE",
+      "type": "string",
+      "value": "config/ikd/ikd-scenario-ids.json"
+    },
+    {
+      "name": "IKD_INTERFACES_FILE",
+      "type": "string",
+      "value": "config/ikd/ikd-interface-ids.json"
+    },
+    {
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Connection_Name",
+      "type": "string",
+      "value": "WeaviateTemplateKB"
+    },
+    {
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Host",
+      "type": "string",
+      "value": "localhost"
+    },
+    {
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Port",
+      "type": "float64",
+      "value": 18080
+    },
+    {
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].API_Key",
       "type": "string",
       "value": ""
     },
     {
-      "name": "VectorDB.TemplateKnowledgeBase.Secure_Connection",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Secure_Connection",
       "type": "boolean",
       "value": false
     },
     {
-      "name": "VectorDB.TemplateKnowledgeBase.Timeout_(seconds)",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Timeout_(seconds)",
       "type": "float64",
       "value": 30
     },
     {
-      "name": "VectorDB.TemplateKnowledgeBase.Max_Retries",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Max_Retries",
       "type": "float64",
       "value": 3
     },
     {
-      "name": "VectorDB.TemplateKnowledgeBase.Retry_Backoff_(ms)",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Retry_Backoff_(ms)",
       "type": "float64",
       "value": 500
     },
     {
-      "name": "VectorDB.TemplateKnowledgeBase.HTTP_Scheme",
-      "type": "string",
-      "value": "http"
-    },
-    {
-      "name": "VectorDB.TemplateKnowledgeBase.Configure_Embedding_Provider",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Configure_Embedding_Provider",
       "type": "boolean",
       "value": false
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].Connection_Name",
-      "type": "string",
-      "value": "TemplateKnowledgeBase"
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].DB_Provider",
-      "type": "string",
-      "value": "weaviate"
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].Host",
-      "type": "string",
-      "value": "localhost"
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].Port",
-      "type": "float64",
-      "value": 8080
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].API_Key",
-      "type": "string",
-      "value": "SECRET:CkLTBTeJgscOQba5RiZE1WVzPtk1p4xWvHuQrny/yDByn+y26ja7WwZQdFsP+SDNjSQEnTe/BzI6t0ODrNnaIN+2YjFk"
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].Secure_Connection",
-      "type": "boolean",
-      "value": false
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].Timeout_(seconds)",
-      "type": "float64",
-      "value": 30
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].Max_Retries",
-      "type": "float64",
-      "value": 3
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].Retry_Backoff_(ms)",
-      "type": "float64",
-      "value": 500
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].Configure_Embedding_Provider",
-      "type": "boolean",
-      "value": false
-    },
-    {
-      "name": "VectorDB.=$property[\"VectorDB_TemplateKnowledgeBase_Connection_Name\"].HTTP_Scheme",
-      "type": "string",
-      "value": "http"
-    },
-    {
-      "name": "DB_SCHEMA_FILE",
-      "type": "string",
-      "value": "config/db/schema.sql"
     }
   ],
   "schemas": {
@@ -3281,6 +3823,21 @@
       "type": "json",
       "value": "{\n  \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"source_system\": {\n      \"type\": \"string\"\n    },\n    \"target_system\": {\n      \"type\": \"string\"\n    },\n    \"business_object\": {\n      \"type\": \"string\"\n    },\n    \"interface_type\": {\n      \"type\": \"string\"\n    },\n    \"template_type\": {\n      \"type\": \"string\"\n    },\n    \"repo_name\": {\n      \"type\": \"string\"\n    }\n  }\n}",
       "fe_metadata": "{\n  \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"source_system\": {\n      \"type\": \"string\"\n    },\n    \"target_system\": {\n      \"type\": \"string\"\n    },\n    \"business_object\": {\n      \"type\": \"string\"\n    },\n    \"interface_type\": {\n      \"type\": \"string\"\n    },\n    \"template_type\": {\n      \"type\": \"string\"\n    },\n    \"repo_name\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+    },
+    "DuplicateResponse": {
+      "type": "json",
+      "value": "{\"type\": \"object\", \"$schema\": \"http://json-schema.org/draft-04/schema#\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"duplicate\": {\"type\": \"boolean\"}, \"repo_name\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"existing_status\": {\"type\": \"string\"}, \"existing_generation_id\": {\"type\": \"string\"}}}",
+      "fe_metadata": "{\"type\": \"object\", \"$schema\": \"http://json-schema.org/draft-04/schema#\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"duplicate\": {\"type\": \"boolean\"}, \"repo_name\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"existing_status\": {\"type\": \"string\"}, \"existing_generation_id\": {\"type\": \"string\"}}}"
+    },
+    "IKDCheck": {
+      "type": "json",
+      "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"interface_id_valid\": {\"type\": \"boolean\"}, \"scenario_id_valid\": {\"type\": \"boolean\"}, \"ikd_valid\": {\"type\": \"boolean\"}}}",
+      "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"interface_id_valid\": {\"type\": \"boolean\"}, \"scenario_id_valid\": {\"type\": \"boolean\"}, \"ikd_valid\": {\"type\": \"boolean\"}}}"
+    },
+    "IKDErrorResponse": {
+      "type": "json",
+      "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"interface_id_valid\": {\"type\": \"boolean\"}, \"scenario_id_valid\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}}}",
+      "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"interface_id_valid\": {\"type\": \"boolean\"}, \"scenario_id_valid\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}}}"
     }
   },
   "specs": {
@@ -3293,51 +3850,6 @@
     }
   },
   "connections": {
-    "3a36f9db-e22f-4599-b533-3bcaf19db634": {
-      "id": "3a36f9db-e22f-4599-b533-3bcaf19db634",
-      "name": "LLMProvider",
-      "ref": "#llmprovider",
-      "isGlobal": false,
-      "settings": {
-        "name": "LLMProvider",
-        "llmProvider": "=$property[\"AgenticAI.LLMProvider.LLM_Provider\"]",
-        "anthropicProvider": "Default",
-        "apiKey": "",
-        "llmProviderUrl": "=$property[\"AgenticAI.LLMProvider.LLM_Base_URL\"]"
-      }
-    },
-    "12bfb27a-284e-4021-8f10-2cd119546b2e": {
-      "id": "12bfb27a-284e-4021-8f10-2cd119546b2e",
-      "name": "TemplateKnowledgeBase",
-      "ref": "#connector",
-      "isGlobal": false,
-      "settings": {
-        "name": "=$property[\"VectorDB.TemplateKnowledgeBase.Connection_Name\"]",
-        "dbType": "=$property[\"VectorDB.TemplateKnowledgeBase.DB_Provider\"]",
-        "host": "=$property[\"VectorDB.TemplateKnowledgeBase.Host\"]",
-        "port": "=$property[\"VectorDB.TemplateKnowledgeBase.Port\"]",
-        "apiKey": "=$property[\"VectorDB.TemplateKnowledgeBase.API_Key\"]",
-        "useTLS": "=$property[\"VectorDB.TemplateKnowledgeBase.Secure_Connection\"]",
-        "tlsInsecureSkipVerify": false,
-        "tlsServerName": "",
-        "caCert": "",
-        "clientCert": "",
-        "clientKey": "",
-        "timeoutSeconds": "=$property[\"VectorDB.TemplateKnowledgeBase.Timeout_(seconds)\"]",
-        "maxRetries": "=$property[\"VectorDB.TemplateKnowledgeBase.Max_Retries\"]",
-        "retryBackoffMs": "=$property[\"VectorDB.TemplateKnowledgeBase.Retry_Backoff_(ms)\"]",
-        "grpcPort": 6334,
-        "scheme": "=$property[\"VectorDB.TemplateKnowledgeBase.HTTP_Scheme\"]",
-        "username": "",
-        "password": "",
-        "dbName": "default",
-        "defaultMetricType": "cosine",
-        "enableEmbedding": "=$property[\"VectorDB.TemplateKnowledgeBase.Configure_Embedding_Provider\"]",
-        "embeddingProvider": "OpenAI",
-        "embeddingAPIKey": "",
-        "embeddingBaseURL": ""
-      }
-    },
     "1291b51d-31ef-4b7c-80c2-59344a2fc4e3": {
       "id": "1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
       "name": "GenerationRegistry",
@@ -3365,9 +3877,42 @@
         "clientcert": "",
         "clientkey": ""
       }
+    },
+    "6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924": {
+      "id": "6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
+      "name": "WeaviateTemplateKB",
+      "ref": "#connector",
+      "isGlobal": false,
+      "settings": {
+        "name": "=$property[\"VectorDB.WeaviateTemplateKB.Connection_Name\"]",
+        "host": "=$property[\"VectorDB.WeaviateTemplateKB.Host\"]",
+        "port": "=$property[\"VectorDB.WeaviateTemplateKB.Port\"]",
+        "apiKey": "=$property[\"VectorDB.WeaviateTemplateKB.API_Key\"]",
+        "useTLS": "=$property[\"VectorDB.WeaviateTemplateKB.Secure_Connection\"]",
+        "tlsInsecureSkipVerify": false,
+        "timeoutSeconds": "=$property[\"VectorDB.WeaviateTemplateKB.Timeout_(seconds)\"]",
+        "maxRetries": "=$property[\"VectorDB.WeaviateTemplateKB.Max_Retries\"]",
+        "retryBackoffMs": "=$property[\"VectorDB.WeaviateTemplateKB.Retry_Backoff_(ms)\"]",
+        "scheme": "http",
+        "enableEmbedding": "=$property[\"VectorDB.WeaviateTemplateKB.Configure_Embedding_Provider\"]",
+        "embeddingProvider": "OpenAI"
+      }
+    },
+    "3a36f9db-e22f-4599-b533-3bcaf19db634": {
+      "id": "3a36f9db-e22f-4599-b533-3bcaf19db634",
+      "name": "LLMProvider",
+      "ref": "#llmprovider",
+      "isGlobal": false,
+      "settings": {
+        "name": "LLMProvider",
+        "llmProvider": "Ollama",
+        "anthropicProvider": "Default",
+        "apiKey": "",
+        "llmProviderUrl": "http://localhost:11434"
+      }
     }
   },
-  "contrib": "W3sicmVmIjoiZ2l0aHViLmNvbS90aWJjby9mbG9nby1nZW5lcmFsL3NyYy9hcHAvR2VuZXJhbCIsImlkIjoiR2VuZXJhbCIsInZlcnNpb24iOiIxLjYuMTQiLCJ0YWciOiIxLjYuMTQtYjA0IiwibmFtZSI6IkdlbmVyYWwiLCJzM2xvY2F0aW9uIjoiVGliY28vR2VuZXJhbCIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmNvbS90aWJjby9mbG9nby1haS1hZ2VudC9zcmMvYXBwL0FnZW50aWNBSSIsImlkIjoiQWdlbnRpY0FJIiwidmVyc2lvbiI6IjAuOS4yIiwidGFnIjoiMC45LjItYjAxIiwibmFtZSI6IkFnZW50aWMgQUkgKFRlY2ggUHJldmlldykiLCJzM2xvY2F0aW9uIjoiVGliY28vQWdlbnRpY0FJIiwiaXNVc2VyRXh0ZW5zaW9uIjpmYWxzZX0seyJyZWYiOiJnaXRodWIuYyIsImlkIjoiVmVjdG9yREIiLCJ2ZXJzaW9uIjoiMS4wLjAiLCJ0YWciOiIxLjAuMCIsIm5hbWUiOiJWZWN0b3JEQiBSQUcgQ29ubmVjdG9yIiwiczNsb2NhdGlvbiI6IntVU0VSSUR9L1ZlY3RvckRCIiwiaXNVc2VyRXh0ZW5zaW9uIjp0cnVlfSx7InJlZiI6ImdpdGh1Yi5jb20vdGliY28vd2ktcG9zdGdyZXMvc3JjL2FwcC9Qb3N0Z3JlU1FMIiwiaWQiOiJQb3N0Z3JlU1FMIiwidmVyc2lvbiI6IjIuNy4xIiwidGFnIjoiMi43LjEtYjAxIiwibmFtZSI6IlBvc3RncmVTUUwiLCJzM2xvY2F0aW9uIjoiVGliY28vUG9zdGdyZVNRTCIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmNvbS9tcGFuZGF2LXRpYmNvL2Zsb2dvLWN1c3RvbS1leHRlbnNpb25zL2FjdGl2aXR5L3J1bGVlbmdpbmUiLCJpZCI6IkRlZmF1bHQiLCJ2ZXJzaW9uIjoiMS4wLjAiLCJ0YWciOiIxLjAuMCIsIm5hbWUiOiJSdWxlIEVuZ2luZSIsInMzbG9jYXRpb24iOiJ7VVNFUklEfS9ydWxlZW5naW5lIiwiaXNVc2VyRXh0ZW5zaW9uIjp0cnVlfSx7InJlZiI6ImdpdGh1Yi5jb20vdGliY28vZmxvZ28tZmlsZXMvc3JjL2FwcC9GaWxlIiwiaWQiOiJGaWxlIiwidmVyc2lvbiI6IjEuMC4wIiwidGFnIjoiMS4wLjAtYjE0IiwibmFtZSI6IkZpbGUiLCJzM2xvY2F0aW9uIjoiVGliY28vRmlsZSIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmNvbS90aWJjby9mbG9nby1tY3Avc3JjL2FwcC9NQ1AiLCJpZCI6Ik1DUCIsInZlcnNpb24iOiIxLjAuMi1IRjEiLCJ0YWciOiIxLjAuMi1oZjEtYjAxIiwibmFtZSI6Ik1vZGVsIENvbnRleHQgUHJvdG9jb2wgKE1DUCkiLCJzM2xvY2F0aW9uIjoiVGliY28vTUNQIiwiaXNVc2VyRXh0ZW5zaW9uIjpmYWxzZX1d",
+  "contrib": "W3sicmVmIjoiZ2l0aHViLmNvbS90aWJjby9mbG9nby1nZW5lcmFsL3NyYy9hcHAvR2VuZXJhbCIsImlkIjoiR2VuZXJhbCIsInZlcnNpb24iOiIxLjYuMTQiLCJ0YWciOiIxLjYuMTQtYjA0IiwibmFtZSI6IkdlbmVyYWwiLCJzM2xvY2F0aW9uIjoiVGliY28vR2VuZXJhbCIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmNvbS90aWJjby93aS1wb3N0Z3Jlcy9zcmMvYXBwL1Bvc3RncmVTUUwiLCJpZCI6IlBvc3RncmVTUUwiLCJ2ZXJzaW9uIjoiMi43LjEiLCJ0YWciOiIyLjcuMS1iMDEiLCJuYW1lIjoiUG9zdGdyZVNRTCIsInMzbG9jYXRpb24iOiJUaWJjby9Qb3N0Z3JlU1FMIiwiaXNVc2VyRXh0ZW5zaW9uIjpmYWxzZX0seyJyZWYiOiJnaXRodWIuYyIsImlkIjoiVmVjdG9yREIiLCJ2ZXJzaW9uIjoiMS4wLjAiLCJ0YWciOiIxLjAuMCIsIm5hbWUiOiJWZWN0b3JEQiBSQUcgQ29ubmVjdG9yIiwiczNsb2NhdGlvbiI6IntVU0VSSUR9L1ZlY3RvckRCIiwiaXNVc2VyRXh0ZW5zaW9uIjp0cnVlfSx7InJlZiI6ImdpdGh1Yi5jb20vdGliY28vZmxvZ28tYWktYWdlbnQvc3JjL2FwcC9BZ2VudGljQUkiLCJpZCI6IkFnZW50aWNBSSIsInZlcnNpb24iOiIwLjkuMiIsInRhZyI6IjAuOS4yLWIwMSIsIm5hbWUiOiJBZ2VudGljIEFJIChUZWNoIFByZXZpZXcpIiwiczNsb2NhdGlvbiI6IlRpYmNvL0FnZW50aWNBSSIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmNvbS9tcGFuZGF2LXRpYmNvL2Zsb2dvLWN1c3RvbS1leHRlbnNpb25zL2FjdGl2aXR5L3J1bGVlbmdpbmUiLCJpZCI6IkRlZmF1bHQiLCJ2ZXJzaW9uIjoiMS4wLjAiLCJ0YWciOiIxLjAuMCIsIm5hbWUiOiJSdWxlIEVuZ2luZSIsInMzbG9jYXRpb24iOiJ7VVNFUklEfS9ydWxlZW5naW5lIiwiaXNVc2VyRXh0ZW5zaW9uIjp0cnVlfSx7InJlZiI6ImdpdGh1Yi5jb20vdGliY28vZmxvZ28tZmlsZXMvc3JjL2FwcC9GaWxlIiwiaWQiOiJGaWxlIiwidmVyc2lvbiI6IjEuMC4wIiwidGFnIjoiMS4wLjAtYjE0IiwibmFtZSI6IkZpbGUiLCJzM2xvY2F0aW9uIjoiVGliY28vRmlsZSIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmNvbS90aWJjby9mbG9nby1tY3Avc3JjL2FwcC9NQ1AiLCJpZCI6Ik1DUCIsInZlcnNpb24iOiIxLjAuMi1IRjEiLCJ0YWciOiIxLjAuMi1oZjEtYjAxIiwibmFtZSI6Ik1vZGVsIENvbnRleHQgUHJvdG9jb2wgKE1DUCkiLCJzM2xvY2F0aW9uIjoiVGliY28vTUNQIiwiaXNVc2VyRXh0ZW5zaW9uIjpmYWxzZX1d",
   "metadata": {
     "endpoints": [
       {
@@ -3413,7 +3958,7 @@
                     }
                   }
                 },
-                "description": "Flow for health GET"
+                "description": "Health-check endpoint (GET /health). Returns service status so load balancers and monitoring probes can verify the generator is running."
               }
             },
             "/api/templates": {
@@ -3443,7 +3988,7 @@
                     }
                   }
                 },
-                "description": "Flow for api/templates GET"
+                "description": "Lists available BWCE integration templates (GET /api/templates) from the cached template registry."
               }
             },
             "/api/chat/init": {
@@ -3473,7 +4018,7 @@
                     }
                   }
                 },
-                "description": "Flow for api/chat/init POST",
+                "description": "Starts a new conversational session (POST /api/chat/init). Creates an empty spec, allocates a session id, and stores the session in shared memory.",
                 "requestBody": {
                   "description": "",
                   "required": false,
@@ -3514,7 +4059,7 @@
                     }
                   }
                 },
-                "description": "Flow for api/chat/message POST",
+                "description": "Handles one turn of the conversational spec-building flow (POST /api/chat/message). Uses an LLM to extract integration fields from the user's message, checks spec completeness, and asks the next clarifying question.",
                 "requestBody": {
                   "description": "",
                   "required": false,
@@ -3555,7 +4100,7 @@
                     }
                   }
                 },
-                "description": "Flow for api/chat/reset POST",
+                "description": "Resets a conversation (POST /api/chat/reset) by deleting the stored session so the user can start over.",
                 "requestBody": {
                   "description": "",
                   "required": false,
@@ -3596,7 +4141,7 @@
                     }
                   }
                 },
-                "description": "Flow for extract POST",
+                "description": "Extracts a structured BWCE integration spec from a free-text description (POST /extract). Runs the LLM, normalizes provider/protocol aliases, and reports any missing required fields.",
                 "requestBody": {
                   "description": "",
                   "required": false,
@@ -3637,7 +4182,7 @@
                     }
                   }
                 },
-                "description": "Flow for generate POST",
+                "description": "Generates a BWCE integration repository from a validated spec (POST /generate). Validates the spec, selects the best-matching template via Weaviate vector search, records the generation in PostgreSQL, and returns the result.",
                 "requestBody": {
                   "description": "",
                   "required": false,
@@ -3659,7 +4204,7 @@
                 "properties": {
                   "session_id": {
                     "type": "string",
-                    "description": "Optional \u00e2\u0080\u0094 provide to resume an existing session"
+                    "description": "Optional â provide to resume an existing session"
                   }
                 }
               },
@@ -3865,7 +4410,7 @@
       },
       {
         "protocol": "http",
-        "port": "8080",
+        "port": "8081",
         "title": "MCPServer",
         "type": "public"
       }

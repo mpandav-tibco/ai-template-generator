@@ -2,6 +2,11 @@
 bin/
 *.exe
 *.dll
+# Flogo native binary (build artifact)
+bwce-ai-generator
+
+# Generated demo output
+generated-repos/
 
 # Flogo runtime JSON (generated from design file)
 flogo.json
