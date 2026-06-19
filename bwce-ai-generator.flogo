@@ -434,7 +434,7 @@
           },
           "reply": {
             "code": 200,
-            "configureResponseCodes": false,
+            "configureResponseCodes": true,
             "message": ""
           },
           "schemas": {
@@ -1946,13 +1946,6 @@
             "label": "Log_API to NormalizeSpec"
           },
           {
-            "id": 3,
-            "from": "ValidateSpec",
-            "to": "GetIKDInterfaces",
-            "type": "label",
-            "label": "ValidateSpec to GetIKDInterfaces"
-          },
-          {
             "id": 4,
             "from": "GetIKDInterfaces",
             "to": "GetIKDScenarios",
@@ -2084,6 +2077,36 @@
             "from": "BuildGenerateResponse",
             "to": "Reply_to_API",
             "type": "label"
+          },
+          {
+            "id": 22,
+            "from": "BuildValidationError",
+            "to": "ReplyValidationError",
+            "type": "label",
+            "label": "BuildValidationError to ReplyValidationError"
+          },
+          {
+            "id": 23,
+            "from": "ValidateSpec",
+            "to": "CheckValidation",
+            "type": "label",
+            "label": "ValidateSpec to CheckValidation"
+          },
+          {
+            "id": 24,
+            "from": "CheckValidation",
+            "to": "GetIKDInterfaces",
+            "type": "expression",
+            "label": "Spec valid",
+            "value": "$activity[CheckValidation].output.is_valid == true"
+          },
+          {
+            "id": 25,
+            "from": "CheckValidation",
+            "to": "BuildValidationError",
+            "type": "expression",
+            "label": "Spec invalid",
+            "value": "$activity[CheckValidation].output.is_valid == false"
           }
         ],
         "tasks": [
@@ -2160,9 +2183,9 @@
               "ref": "#ruleengine",
               "input": {
                 "content": "=$flow.content.spec",
-                "fileName": "\"rules/spec-validation.yaml\"",
+                "fileName": "rules/spec-validation.yaml",
                 "rulesPath": "=$property[\"RULES_PATH\"]",
-                "parserOverride": "",
+                "parserOverride": "json",
                 "disabledRules": {
                   "mapping": []
                 },
@@ -2945,9 +2968,93 @@
               },
               "feSchemaMap": {}
             }
+          },
+          {
+            "id": "BuildValidationError",
+            "name": "BuildValidationError",
+            "description": "Builds the 400 Bad Request response from the CheckValidation results (concatenated rule violations).",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "success": false,
+                    "error": "VALIDATION_FAILED",
+                    "message": "The submitted integration spec is invalid. Correct the issues listed in 'details' and resubmit.",
+                    "details": "=string.concat($activity[CheckValidation].output.e_source, $activity[CheckValidation].output.e_target, $activity[CheckValidation].output.e_object, $activity[CheckValidation].output.e_interface, $activity[CheckValidation].output.e_template, $activity[CheckValidation].output.e_badtype, $activity[CheckValidation].output.e_samesys)"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ReplyValidationError",
+            "name": "ReplyValidationError",
+            "description": "Returns HTTP 400 with the spec-validation errors; no repository is registered or scaffolded.",
+            "activity": {
+              "ref": "#actreply",
+              "input": {
+                "reply": {
+                  "mapping": {
+                    "code": 400,
+                    "data": "=$activity[BuildValidationError].output"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "reply": {
+                    "type": "json",
+                    "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                    "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "CheckValidation",
+            "name": "CheckValidation",
+            "description": "App-layer spec validation: flags missing required fields, invalid interface_type, and identical source/target, and emits an is_valid gate for the 400 branch.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "e_source": "=($activity[NormalizeSpec].output.source_system == \"\") ? \"source_system is required. \" : \"\"",
+                    "e_target": "=($activity[NormalizeSpec].output.target_system == \"\") ? \"target_system is required. \" : \"\"",
+                    "e_object": "=($activity[NormalizeSpec].output.business_object == \"\") ? \"business_object is required. \" : \"\"",
+                    "e_interface": "=($activity[NormalizeSpec].output.interface_type == \"\") ? \"interface_type is required. \" : \"\"",
+                    "e_template": "=($activity[NormalizeSpec].output.template_type == \"\") ? \"template_type is required. \" : \"\"",
+                    "e_badtype": "=($activity[NormalizeSpec].output.interface_type != \"\" && $activity[NormalizeSpec].output.interface_type != \"pub\" && $activity[NormalizeSpec].output.interface_type != \"sub\" && $activity[NormalizeSpec].output.interface_type != \"service\") ? \"interface_type must be one of pub, sub, service. \" : \"\"",
+                    "e_samesys": "=($activity[NormalizeSpec].output.source_system != \"\" && $activity[NormalizeSpec].output.source_system == $activity[NormalizeSpec].output.target_system) ? \"source_system and target_system must be different. \" : \"\"",
+                    "is_valid": "=($activity[NormalizeSpec].output.source_system != \"\" && $activity[NormalizeSpec].output.target_system != \"\" && $activity[NormalizeSpec].output.business_object != \"\" && $activity[NormalizeSpec].output.interface_type != \"\" && $activity[NormalizeSpec].output.template_type != \"\" && ($activity[NormalizeSpec].output.interface_type == \"pub\" || $activity[NormalizeSpec].output.interface_type == \"sub\" || $activity[NormalizeSpec].output.interface_type == \"service\") && $activity[NormalizeSpec].output.source_system != $activity[NormalizeSpec].output.target_system)"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"e_source\": {\"type\": \"string\"}, \"e_target\": {\"type\": \"string\"}, \"e_object\": {\"type\": \"string\"}, \"e_interface\": {\"type\": \"string\"}, \"e_template\": {\"type\": \"string\"}, \"e_badtype\": {\"type\": \"string\"}, \"e_samesys\": {\"type\": \"string\"}, \"is_valid\": {\"type\": \"boolean\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"e_source\": {\"type\": \"string\"}, \"e_target\": {\"type\": \"string\"}, \"e_object\": {\"type\": \"string\"}, \"e_interface\": {\"type\": \"string\"}, \"e_template\": {\"type\": \"string\"}, \"e_badtype\": {\"type\": \"string\"}, \"e_samesys\": {\"type\": \"string\"}, \"is_valid\": {\"type\": \"boolean\"}}}"
+                  }
+                }
+              }
+            }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjQ1fSwiR2V0SUtESW50ZXJmYWNlcyI6eyJ4Ijo2NTAsInkiOjQ1fSwiR2V0SUtEU2NlbmFyaW9zIjp7IngiOjg1MCwieSI6NDV9LCJDcm9zc0NoZWNrSUtEIjp7IngiOjEwNTAsInkiOjQ1fSwiQnVpbGRSZXBvTmFtZSI6eyJ4Ijo4ODksInkiOjIwNH0sIkNoZWNrRHVwbGljYXRlIjp7IngiOjExMzIsInkiOjE5NH0sIlNlbGVjdFRlbXBsYXRlIjp7IngiOjEzNTAsInkiOjE4OH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxNTYxLCJ5IjoxODZ9LCJTY2FmZm9sZFJlcG8iOnsieCI6ODk1LCJ5Ijo0NDN9LCJTY2FmZm9sZFJlYWRtZSI6eyJ4Ijo4OTUsInkiOjU2MH0sIlNjYWZmb2xkUGlwZWxpbmUiOnsieCI6MTA5NSwieSI6NTYwfSwiU2NhZmZvbGREb2NrZXJmaWxlIjp7IngiOjEyOTUsInkiOjU2MH0sIlNjYWZmb2xkSzhzIjp7IngiOjE0OTUsInkiOjU2MH0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6MTEwNywieSI6NDM1fSwiQnVpbGREdXBsaWNhdGVSZXNwb25zZSI6eyJ4IjoxMzU2LCJ5IjoyOTB9LCJSZXBseUR1cGxpY2F0ZSI6eyJ4IjoxNTU2LCJ5IjoyODV9LCJCdWlsZElLREVycm9yUmVzcG9uc2UiOnsieCI6MTI1NiwieSI6NDR9LCJSZXBseUlLREVycm9yIjp7IngiOjE1MDIsInkiOjQ2fSwiTm9ybWFsaXplU3BlYyI6eyJ4IjoyNTAsInkiOjE1MH19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjQ1fSwiR2V0SUtESW50ZXJmYWNlcyI6eyJ4Ijo2NTAsInkiOjQ1fSwiR2V0SUtEU2NlbmFyaW9zIjp7IngiOjg1MCwieSI6NDV9LCJDcm9zc0NoZWNrSUtEIjp7IngiOjEwNTAsInkiOjQ1fSwiQnVpbGRSZXBvTmFtZSI6eyJ4Ijo4ODksInkiOjIwNH0sIkNoZWNrRHVwbGljYXRlIjp7IngiOjExMzIsInkiOjE5NH0sIlNlbGVjdFRlbXBsYXRlIjp7IngiOjEzNTAsInkiOjE4OH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxNTYxLCJ5IjoxODZ9LCJTY2FmZm9sZFJlcG8iOnsieCI6ODk1LCJ5Ijo0NDN9LCJTY2FmZm9sZFJlYWRtZSI6eyJ4Ijo4OTUsInkiOjU2MH0sIlNjYWZmb2xkUGlwZWxpbmUiOnsieCI6MTA5NSwieSI6NTYwfSwiU2NhZmZvbGREb2NrZXJmaWxlIjp7IngiOjEyOTUsInkiOjU2MH0sIlNjYWZmb2xkSzhzIjp7IngiOjE0OTUsInkiOjU2MH0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6MTEwNywieSI6NDM1fSwiQnVpbGREdXBsaWNhdGVSZXNwb25zZSI6eyJ4IjoxMzU2LCJ5IjoyOTB9LCJSZXBseUR1cGxpY2F0ZSI6eyJ4IjoxNTU2LCJ5IjoyODV9LCJCdWlsZElLREVycm9yUmVzcG9uc2UiOnsieCI6MTI1NiwieSI6NDR9LCJSZXBseUlLREVycm9yIjp7IngiOjE1MDIsInkiOjQ2fSwiTm9ybWFsaXplU3BlYyI6eyJ4IjoyNTAsInkiOjE1MH0sIkJ1aWxkVmFsaWRhdGlvbkVycm9yIjp7IngiOjQ1MCwieSI6MzAwfSwiUmVwbHlWYWxpZGF0aW9uRXJyb3IiOnsieCI6NjUwLCJ5IjozMDB9LCJDaGVja1ZhbGlkYXRpb24iOnsieCI6MzUwLCJ5IjoyMjB9fQ==",
         "metadata": {
           "input": [
             {
