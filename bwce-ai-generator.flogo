@@ -1044,11 +1044,58 @@
             "label": "GetSession to RenderExtractionPrompt"
           },
           {
-            "id": 4,
-            "from": "RegexPreExtract",
-            "to": "RenderExtractionPrompt",
+            "from": "ExtractWithLLM",
+            "to": "CleanJSON",
             "type": "label",
-            "label": "RegexPreExtract to RenderExtractionPrompt"
+            "label": "ExtractWithLLM to CleanJSON"
+          },
+          {
+            "from": "CleanJSON",
+            "to": "ParseExtraction",
+            "type": "label",
+            "label": "CleanJSON to ParseExtraction"
+          },
+          {
+            "from": "ParseExtraction",
+            "to": "MergeSpec",
+            "type": "label",
+            "label": "ParseExtraction to MergeSpec"
+          },
+          {
+            "from": "MergeSpec",
+            "to": "ComputeMissing",
+            "type": "label",
+            "label": "MergeSpec to ComputeMissing"
+          },
+          {
+            "from": "ComputeMissing",
+            "to": "ParseMissing",
+            "type": "label",
+            "label": "ComputeMissing to ParseMissing"
+          },
+          {
+            "from": "ParseMissing",
+            "to": "BuildChatResponse",
+            "type": "label",
+            "label": "ParseMissing to BuildChatResponse"
+          },
+          {
+            "from": "BuildChatResponse",
+            "to": "SaveSession",
+            "type": "label",
+            "label": "BuildChatResponse to SaveSession"
+          },
+          {
+            "from": "SaveSession",
+            "to": "ReplyChat",
+            "type": "label",
+            "label": "SaveSession to ReplyChat"
+          },
+          {
+            "from": "RegexPreExtract",
+            "to": "ExtractWithLLM",
+            "type": "label",
+            "label": "RegexPreExtract to ExtractWithLLM"
           }
         ],
         "tasks": [
@@ -1090,6 +1137,15 @@
                 "input": {
                   "mapping": {}
                 }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}, \"missing_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}, \"ready_to_generate\": {\"type\": \"boolean\"}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}, \"missing_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}, \"ready_to_generate\": {\"type\": \"boolean\"}}}}}"
+                  }
+                }
               }
             }
           },
@@ -1114,36 +1170,273 @@
             }
           },
           {
-            "id": "RenderExtractionPrompt",
-            "name": "RenderExtractionPrompt",
-            "description": "Renders the LLM prompt that extracts BWCE integration fields from the user's message and the spec so far.",
+            "id": "ExtractWithLLM",
+            "name": "ExtractWithLLM",
+            "description": "Uses the Weaviate RAG connector LLM generation to extract a structured integration spec from the free-text message.",
             "activity": {
-              "ref": "#pongo2prompt",
+              "ref": "#ragQuery",
+              "settings": {
+                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
+                "useConnectorEmbedding": false,
+                "embeddingProvider": "OpenAI",
+                "embeddingAPIKey": "SECRET:z2Idl81n9XoGu7uhxl6PPYcMpuWR4w==",
+                "embeddingBaseURL": "http://localhost:11434/v1",
+                "embeddingModel": "nomic-embed-text",
+                "embeddingDimensions": 768,
+                "defaultCollection": "",
+                "defaultTopK": 5,
+                "scoreThreshold": 0,
+                "contentField": "text",
+                "contextFormat": "numbered",
+                "timeoutSeconds": 30,
+                "useHybridSearch": false,
+                "hybridAlpha": 0.5,
+                "enableLLMGenerate": true,
+                "llmProvider": "Ollama",
+                "llmBaseURL": "http://localhost:11434",
+                "llmAPIKey": "",
+                "llmModel": "qwen2.5:14b",
+                "systemPrompt": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}",
+                "maxTokens": 1024,
+                "temperature": 0
+              },
               "input": {
-                "templateVariables": {
+                "queryText": "=string.concat(coerce.toString($flow.content.message), \" \", coerce.toString($activity[RegexPreExtract].markdown))",
+                "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
+                "topK": 2,
+                "systemPrompt": "=\"You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \\\"true\\\" or \\\"false\\\". Use \\\"\\\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\\\"source_system\\\":\\\"SAP ECC\\\",\\\"target_system\\\":\\\"MQ\\\",\\\"business_object\\\":\\\"invoice\\\",\\\"interface_type\\\":\\\"pub\\\",\\\"template_type\\\":\\\"\\\",\\\"cdm\\\":\\\"true\\\",\\\"interface_id\\\":\\\"\\\",\\\"scenario_id\\\":\\\"\\\",\\\"bitbucket_project\\\":\\\"\\\",\\\"email\\\":\\\"\\\",\\\"env\\\":\\\"\\\",\\\"k8s_domain\\\":\\\"\\\",\\\"country_code\\\":\\\"\\\",\\\"unique_id\\\":\\\"\\\"}\""
+              },
+              "schemas": {}
+            }
+          },
+          {
+            "id": "CleanJSON",
+            "name": "CleanJSON",
+            "description": "Strips markdown code fences from the LLM answer so it can be parsed as JSON.",
+            "activity": {
+              "ref": "#mapper",
+              "settings": {},
+              "input": {
+                "input": {
                   "mapping": {
-                    "user_message": "=$flow.content.message",
-                    "current_spec": "=$activity[GetSession].output.data.spec",
-                    "deterministic_signals": "=$activity[RegexPreExtract].markdown"
+                    "cleaned": "=string.replaceAll(string.replaceAll(coerce.toString($activity[ExtractWithLLM].answer), \"```json\", \"\"), \"```\", \"\")"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"cleaned\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"cleaned\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ParseExtraction",
+            "name": "ParseExtraction",
+            "description": "Parses the cleaned LLM JSON answer into a structured object.",
+            "activity": {
+              "ref": "#parsejson",
+              "settings": {},
+              "input": {
+                "validate": false,
+                "jsonString": "=$activity[CleanJSON].output.cleaned"
+              },
+              "schemas": {
+                "output": {
+                  "jsonObject": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "MergeSpec",
+            "name": "MergeSpec",
+            "description": "Merges newly LLM-extracted fields with the spec stored in the session (extracted value wins when present).",
+            "activity": {
+              "ref": "#mapper",
+              "settings": {},
+              "input": {
+                "input": {
+                  "mapping": {
+                    "source_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.source_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.source_system) : (isDefined($activity[GetSession].output.data.spec.source_system) ? coerce.toString($activity[GetSession].output.data.spec.source_system) : \"\")",
+                    "target_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.target_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.target_system) : (isDefined($activity[GetSession].output.data.spec.target_system) ? coerce.toString($activity[GetSession].output.data.spec.target_system) : \"\")",
+                    "business_object": "=(coerce.toString($activity[ParseExtraction].jsonObject.business_object) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.business_object) : (isDefined($activity[GetSession].output.data.spec.business_object) ? coerce.toString($activity[GetSession].output.data.spec.business_object) : \"\")",
+                    "interface_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_type) : (isDefined($activity[GetSession].output.data.spec.interface_type) ? coerce.toString($activity[GetSession].output.data.spec.interface_type) : \"\")",
+                    "template_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.template_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.template_type) : (isDefined($activity[GetSession].output.data.spec.template_type) ? coerce.toString($activity[GetSession].output.data.spec.template_type) : \"\")",
+                    "cdm": "=(coerce.toString($activity[ParseExtraction].jsonObject.cdm) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.cdm) : (isDefined($activity[GetSession].output.data.spec.cdm) ? coerce.toString($activity[GetSession].output.data.spec.cdm) : \"\")",
+                    "interface_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_id) : (isDefined($activity[GetSession].output.data.spec.interface_id) ? coerce.toString($activity[GetSession].output.data.spec.interface_id) : \"\")",
+                    "scenario_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.scenario_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.scenario_id) : (isDefined($activity[GetSession].output.data.spec.scenario_id) ? coerce.toString($activity[GetSession].output.data.spec.scenario_id) : \"\")",
+                    "bitbucket_project": "=(coerce.toString($activity[ParseExtraction].jsonObject.bitbucket_project) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.bitbucket_project) : (isDefined($activity[GetSession].output.data.spec.bitbucket_project) ? coerce.toString($activity[GetSession].output.data.spec.bitbucket_project) : \"\")",
+                    "email": "=(coerce.toString($activity[ParseExtraction].jsonObject.email) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.email) : (isDefined($activity[GetSession].output.data.spec.email) ? coerce.toString($activity[GetSession].output.data.spec.email) : \"\")",
+                    "env": "=(coerce.toString($activity[ParseExtraction].jsonObject.env) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.env) : (isDefined($activity[GetSession].output.data.spec.env) ? coerce.toString($activity[GetSession].output.data.spec.env) : \"\")",
+                    "k8s_domain": "=(coerce.toString($activity[ParseExtraction].jsonObject.k8s_domain) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.k8s_domain) : (isDefined($activity[GetSession].output.data.spec.k8s_domain) ? coerce.toString($activity[GetSession].output.data.spec.k8s_domain) : \"\")",
+                    "country_code": "=(coerce.toString($activity[ParseExtraction].jsonObject.country_code) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.country_code) : (isDefined($activity[GetSession].output.data.spec.country_code) ? coerce.toString($activity[GetSession].output.data.spec.country_code) : \"\")",
+                    "unique_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.unique_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.unique_id) : (isDefined($activity[GetSession].output.data.spec.unique_id) ? coerce.toString($activity[GetSession].output.data.spec.unique_id) : \"\")"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ComputeMissing",
+            "name": "ComputeMissing",
+            "description": "Computes which required fields are still missing, whether the spec is ready, and the next clarifying question to ask.",
+            "activity": {
+              "ref": "#mapper",
+              "settings": {},
+              "input": {
+                "input": {
+                  "mapping": {
+                    "p_source_system": "=($activity[MergeSpec].output.source_system == \"\") ? \"\\\"source_system\\\",\" : \"\"",
+                    "p_target_system": "=($activity[MergeSpec].output.target_system == \"\") ? \"\\\"target_system\\\",\" : \"\"",
+                    "p_business_object": "=($activity[MergeSpec].output.business_object == \"\") ? \"\\\"business_object\\\",\" : \"\"",
+                    "p_interface_type": "=($activity[MergeSpec].output.interface_type == \"\") ? \"\\\"interface_type\\\",\" : \"\"",
+                    "p_template_type": "=($activity[MergeSpec].output.template_type == \"\") ? \"\\\"template_type\\\",\" : \"\"",
+                    "ready": "=($activity[MergeSpec].output.source_system != \"\" && $activity[MergeSpec].output.target_system != \"\" && $activity[MergeSpec].output.business_object != \"\" && $activity[MergeSpec].output.interface_type != \"\" && $activity[MergeSpec].output.template_type != \"\")",
+                    "next_q": "=($activity[MergeSpec].output.source_system == \"\") ? \"Which source system should the data come FROM? (e.g. s4hana, wms, salesforce)\" : ($activity[MergeSpec].output.target_system == \"\") ? \"Which target system should the data go TO? (e.g. kafka, ems, rest)\" : ($activity[MergeSpec].output.business_object == \"\") ? \"What business object is this integration about? (e.g. article, invoice, order)\" : ($activity[MergeSpec].output.interface_type == \"\") ? \"What interface type should this be? (pub, sub, or service)\" : ($activity[MergeSpec].output.template_type == \"\") ? \"Which template should we use? (e.g. S4HANA_PUB_To_KAFKATopic_CDM)\" : \"All required fields collected \u2014 ready to generate!\""
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"p_source_system\": {\"type\": \"string\"}, \"p_target_system\": {\"type\": \"string\"}, \"p_business_object\": {\"type\": \"string\"}, \"p_interface_type\": {\"type\": \"string\"}, \"p_template_type\": {\"type\": \"string\"}, \"ready\": {\"type\": \"boolean\"}, \"next_q\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"p_source_system\": {\"type\": \"string\"}, \"p_target_system\": {\"type\": \"string\"}, \"p_business_object\": {\"type\": \"string\"}, \"p_interface_type\": {\"type\": \"string\"}, \"p_template_type\": {\"type\": \"string\"}, \"ready\": {\"type\": \"boolean\"}, \"next_q\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ParseMissing",
+            "name": "ParseMissing",
+            "description": "Parses the assembled JSON array of missing required field names into a string array.",
+            "activity": {
+              "ref": "#parsejson",
+              "settings": {},
+              "input": {
+                "validate": false,
+                "jsonString": "=string.replaceAll(string.concat(\"[\", $activity[ComputeMissing].output.p_source_system, $activity[ComputeMissing].output.p_target_system, $activity[ComputeMissing].output.p_business_object, $activity[ComputeMissing].output.p_interface_type, $activity[ComputeMissing].output.p_template_type, \"]\"), \",]\", \"]\")"
+              },
+              "schemas": {
+                "output": {
+                  "jsonObject": {
+                    "type": "json",
+                    "value": "{\"type\": \"array\", \"items\": {\"type\": \"string\"}}",
+                    "fe_metadata": "{\"type\": \"array\", \"items\": {\"type\": \"string\"}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "BuildChatResponse",
+            "name": "BuildChatResponse",
+            "description": "Assembles the chat turn response and the updated session state: merged spec, missing fields, readiness and the assistant message.",
+            "activity": {
+              "ref": "#mapper",
+              "settings": {},
+              "input": {
+                "input": {
+                  "mapping": {
+                    "session_id": "=$flow.content.session_id",
+                    "status": "\"active\"",
+                    "message": "=$activity[ComputeMissing].output.next_q",
+                    "spec": {
+                      "source_system": "=$activity[MergeSpec].output.source_system",
+                      "target_system": "=$activity[MergeSpec].output.target_system",
+                      "business_object": "=$activity[MergeSpec].output.business_object",
+                      "interface_type": "=$activity[MergeSpec].output.interface_type",
+                      "template_type": "=$activity[MergeSpec].output.template_type",
+                      "cdm": "=$activity[MergeSpec].output.cdm",
+                      "interface_id": "=$activity[MergeSpec].output.interface_id",
+                      "scenario_id": "=$activity[MergeSpec].output.scenario_id",
+                      "bitbucket_project": "=$activity[MergeSpec].output.bitbucket_project",
+                      "email": "=$activity[MergeSpec].output.email",
+                      "env": "=$activity[MergeSpec].output.env",
+                      "k8s_domain": "=$activity[MergeSpec].output.k8s_domain",
+                      "country_code": "=$activity[MergeSpec].output.country_code",
+                      "unique_id": "=$activity[MergeSpec].output.unique_id"
+                    },
+                    "missing_fields": "=$activity[ParseMissing].jsonObject",
+                    "ready_to_generate": "=$activity[ComputeMissing].output.ready",
+                    "shell_command": "=($activity[ComputeMissing].output.ready == true) ? \"Ready \u2014 POST /generate with this spec to create the repository.\" : \"\""
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}, \"missing_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}, \"ready_to_generate\": {\"type\": \"boolean\"}, \"shell_command\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}, \"missing_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}, \"ready_to_generate\": {\"type\": \"boolean\"}, \"shell_command\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "SaveSession",
+            "name": "SaveSession",
+            "description": "Persists the updated session (merged spec + state) back to shared memory keyed by session id.",
+            "activity": {
+              "ref": "#shareddata",
+              "settings": {
+                "scope": "Application",
+                "operation": "SET",
+                "type": "object"
+              },
+              "input": {
+                "key": "=$flow.content.session_id",
+                "input": {
+                  "mapping": {
+                    "data": "=$activity[BuildChatResponse].output"
                   }
                 }
               },
               "schemas": {
                 "input": {
-                  "templateVariables": {
-                    "type": "json",
-                    "value": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"user_message\": {\n      \"type\": \"string\"\n    },\n    \"current_spec\": {\n      \"type\": \"object\"\n    }\n  }\n}",
-                    "fe_metadata": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"user_message\": {\n      \"type\": \"string\"\n    },\n    \"current_spec\": {\n      \"type\": \"object\"\n    }\n  }\n}"
-                  }
+                  "input": "schema://SessionState"
                 }
               },
-              "settings": {
-                "template": "\"You are an expert TIBCO BWCE integration analyst. Extract structured integration specification fields from the user's message.\\n\\n## Current Integration Spec State\\n{% if current_spec %}\\n{{ current_spec }}\\n{% else %}\\nNo fields collected yet.\\n{% endif %}\\n\\n## User Message\\n{{ user_message }}\\n\\n## Instructions\\nExtract any of the following fields from the user message. Only return fields that are clearly mentioned \\u2014 do NOT guess or assume. If a field is already set in the current spec and the user is not changing it, leave it as-is.\\n\\nFields to extract:\\n- source_system: The system data comes FROM (e.g., s4hana, wms, salesforce, demandware, afs, kafka, ems)\\n- target_system: The system data goes TO (e.g., kafka, afs, rest, ems, s4hana, demandware)\\n- business_object: The business entity or data object (e.g., article, invoice, order, stock, shipment, customer, price)\\n- interface_type: The integration pattern \\u2014 MUST be one of: pub, sub, service\\n- template_type: The BWCE template name (e.g., REST_SERVICE_To_KAFKATopic, REST_PUB_To_KAFKATopic)\\n- cdm: Boolean, true if Common Data Model transformation is needed\\n- scenario_id: IKD Scenario ID (numeric, e.g., 1234)\\n- interface_id: IKD Interface ID (e.g., IKD-001)\\n- country_code: Country code (2-letter ISO, or NA if not applicable)\\n- unique_id: Unique identifier suffix (or NA if not applicable)\\n- env: Deployment environment (DEV, SIT, UAT, PROD, or comma-separated)\\n- email: Contact email address\\n- k8s_domain: Kubernetes namespace domain (e.g., cite)\\n- bitbucket_project: Bitbucket project name\\n\\n## Interface Type Resolution\\n- pub/publish/producer/send/outbound \\u2192 \\\"pub\\\"\\n- sub/subscribe/consumer/receive/listen/inbound \\u2192 \\\"sub\\\"\\n- service/api/request-reply/sync/endpoint \\u2192 \\\"service\\\"\\n\\n## System Alias Resolution\\n- sap/s4/sapretail/sapr3 \\u2192 \\\"s4hana\\\"\\n- sf/sfdc \\u2192 \\\"salesforce\\\"\\n- dw/sfcc/commerce cloud \\u2192 \\\"demandware\\\"\\n- jms \\u2192 \\\"ems\\\"\\n- kafkatopic \\u2192 \\\"kafka\\\"\\n\\n## Response Format\\nRespond ONLY with valid JSON containing the extracted fields. Do not include fields you cannot determine. Do not include explanations.\\n\\nExample response:\\n{\\n  \\\"source_system\\\": \\\"s4hana\\\",\\n  \\\"target_system\\\": \\\"kafka\\\",\\n  \\\"business_object\\\": \\\"article\\\",\\n  \\\"interface_type\\\": \\\"pub\\\",\\n  \\\"cdm\\\": false\\n}\\n\""
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReplyChat",
+            "name": "ReplyChat",
+            "description": "Returns the assistant message, merged spec and readiness to the client.",
+            "activity": {
+              "ref": "#actreply",
+              "input": {
+                "reply": {
+                  "mapping": {
+                    "data": "=$activity[BuildChatResponse].output"
+                  }
+                }
               }
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5IjoxNTB9LCJHZXRTZXNzaW9uIjp7IngiOjQ1MCwieSI6MjUwfSwiUmVnZXhQcmVFeHRyYWN0Ijp7IngiOjY4OCwieSI6MTQzfSwiUmVuZGVyRXh0cmFjdGlvblByb21wdCI6eyJ4Ijo3NjgsInkiOjMyNX19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5IjoxNTB9LCJHZXRTZXNzaW9uIjp7IngiOjQ1MCwieSI6MjUwfSwiUmVnZXhQcmVFeHRyYWN0Ijp7IngiOjY4OCwieSI6MTQzfSwiRXh0cmFjdFdpdGhMTE0iOnsieCI6OTUwLCJ5Ijo0MjB9LCJDbGVhbkpTT04iOnsieCI6MTExNSwieSI6NDIwfSwiUGFyc2VFeHRyYWN0aW9uIjp7IngiOjEyODAsInkiOjQyMH0sIk1lcmdlU3BlYyI6eyJ4IjoxNDQ1LCJ5Ijo0MjB9LCJDb21wdXRlTWlzc2luZyI6eyJ4IjoxNjEwLCJ5Ijo0MjB9LCJQYXJzZU1pc3NpbmciOnsieCI6MTc3NSwieSI6NDIwfSwiQnVpbGRDaGF0UmVzcG9uc2UiOnsieCI6MTk0MCwieSI6NDIwfSwiU2F2ZVNlc3Npb24iOnsieCI6MjEwNSwieSI6NDIwfSwiUmVwbHlDaGF0Ijp7IngiOjIyNzAsInkiOjQyMH19",
         "metadata": {
           "input": [
             {
@@ -1339,18 +1632,6 @@
             "label": "GetAppConfig to RenderExtractionPrompt"
           },
           {
-            "id": 4,
-            "from": "RegexPreExtract",
-            "to": "RenderExtractionPrompt",
-            "type": "label",
-            "label": "RegexPreExtract to RenderExtractionPrompt"
-          },
-          {
-            "from": "RenderExtractionPrompt",
-            "to": "ExtractWithLLM",
-            "type": "label"
-          },
-          {
             "from": "ExtractWithLLM",
             "to": "CleanJSON",
             "type": "label"
@@ -1374,6 +1655,12 @@
             "from": "BuildExtractResponse",
             "to": "ReplyExtract",
             "type": "label"
+          },
+          {
+            "from": "RegexPreExtract",
+            "to": "ExtractWithLLM",
+            "type": "label",
+            "label": "RegexPreExtract to ExtractWithLLM"
           }
         ],
         "tasks": [
@@ -1435,35 +1722,6 @@
                 "tags": {
                   "mapping": []
                 }
-              }
-            }
-          },
-          {
-            "id": "RenderExtractionPrompt",
-            "name": "RenderExtractionPrompt",
-            "description": "Renders the LLM extraction prompt from the user message and current spec.",
-            "activity": {
-              "ref": "#pongo2prompt",
-              "input": {
-                "templateVariables": {
-                  "mapping": {
-                    "user_message": "=$flow.content.message",
-                    "current_spec": "=$flow.content.current_spec",
-                    "deterministic_signals": "=$activity[RegexPreExtract].markdown"
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "templateVariables": {
-                    "type": "json",
-                    "value": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"user_message\": {\n      \"type\": \"string\"\n    },\n    \"current_spec\": {\n      \"type\": \"object\"\n    }\n  }\n}",
-                    "fe_metadata": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"user_message\": {\n      \"type\": \"string\"\n    },\n    \"current_spec\": {\n      \"type\": \"object\"\n    }\n  }\n}"
-                  }
-                }
-              },
-              "settings": {
-                "template": "\"{{ user_message }}\\n{{ current_spec }}\""
               }
             }
           },
@@ -1669,7 +1927,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIkdldEFwcENvbmZpZyI6eyJ4Ijo0NTAsInkiOjQ1fSwiUmVnZXhQcmVFeHRyYWN0Ijp7IngiOjY5NiwieSI6NDV9LCJSZW5kZXJFeHRyYWN0aW9uUHJvbXB0Ijp7IngiOjg5OSwieSI6NDR9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIkdldEFwcENvbmZpZyI6eyJ4Ijo0NTAsInkiOjQ1fSwiUmVnZXhQcmVFeHRyYWN0Ijp7IngiOjY5NiwieSI6NDV9fQ==",
         "metadata": {
           "input": [
             {
