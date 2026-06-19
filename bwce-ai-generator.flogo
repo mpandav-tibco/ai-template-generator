@@ -29,7 +29,8 @@
     "github.com/project-flogo/contrib/function/coerce",
     "github.com/tibco/wi-postgres/src/app/PostgreSQL/connector/connection",
     "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/connector",
-    "github.com/tibco/flogo-ai-agent/src/app/AgenticAI/connector/llmprovider"
+    "github.com/tibco/flogo-ai-agent/src/app/AgenticAI/connector/llmprovider",
+    "github.com/project-flogo/contrib/activity/actreturn"
   ],
   "name": "bwce-ai-generator",
   "description": "AI-powered accelerator that generates TIBCO BusinessWorks Container Edition (BWCE) integration repositories from natural-language requirements. Exposes a REST API and an MCP server; uses an LLM to extract a structured integration spec through conversation, selects the best-matching template via Weaviate vector search, and records each generation in PostgreSQL.",
@@ -57,6 +58,59 @@
       },
       "id": "BWCEAIIntegrationGenerator",
       "handlers": [
+        {
+          "description": "Serves the Web Chat UI (GET /).",
+          "settings": {
+            "APISpecPath": "/",
+            "Method": "GET",
+            "reqType": "application/json",
+            "Path": "/",
+            "OutputValidation": false
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:root_GET"
+            }
+          },
+          "reply": {
+            "code": 200,
+            "configureResponseCodes": false,
+            "message": ""
+          },
+          "schemas": {
+            "reply": {
+              "responseBody": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}"
+              },
+              "responseCodesSchema": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"number\"},\"responseType\":{\"type\":\"string\"},\"responseSchema\":{\"type\":\"string\"}}}}",
+                "fe_metadata": "[{\"code\":200,\"responseType\":\"object\",\"responseSchema\":\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"status\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"ok\\\"},\\\"version\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"1.0.0\\\"},\\\"timestamp\\\":{\\\"type\\\":\\\"string\\\",\\\"format\\\":\\\"date-time\\\"}}}\"}]"
+              }
+            },
+            "output": {
+              "headers": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]}",
+                "fe_metadata": "[{\"parameterName\":\"Accept\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Charset\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Encoding\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Authorization\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Connection\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Length\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Type\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Cookie\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Pragma\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false}]"
+              },
+              "multipartFormData": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{}}"
+              },
+              "multipartForm": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{}}",
+                "fe_metadata": "[]"
+              }
+            }
+          },
+          "name": "root_GET"
+        },
         {
           "description": "Health-check endpoint (GET /health). Returns service status so load balancers and monitoring probes can verify the generator is running.",
           "settings": {
@@ -4409,6 +4463,129 @@
           "output": [],
           "fe_metadata": {}
         }
+      }
+    },
+    {
+      "id": "flow:root_GET",
+      "data": {
+        "name": "root_GET",
+        "description": "Serves the conversational Web Chat UI (GET /). Reads static/chat.html from disk and returns it as text/html via an implicit reply.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "ReadChatHtml",
+            "type": "label",
+            "label": "StartActivity to ReadChatHtml"
+          },
+          {
+            "id": 2,
+            "from": "ReadChatHtml",
+            "to": "BuildHtmlResponse",
+            "type": "label",
+            "label": "ReadChatHtml to BuildHtmlResponse"
+          },
+          {
+            "id": 3,
+            "from": "BuildHtmlResponse",
+            "to": "ReturnHtml",
+            "type": "label",
+            "label": "BuildHtmlResponse to ReturnHtml"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "ReadChatHtml",
+            "name": "ReadChatHtml",
+            "description": "Reads the static chat UI HTML file from disk.",
+            "activity": {
+              "ref": "#read",
+              "input": {
+                "readAs": "Text",
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "static/chat.html"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "BuildHtmlResponse",
+            "name": "BuildHtmlResponse",
+            "description": "Builds the responseBody object {body, headers} with the HTML evaluated, so the implicit reply emits text/html.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "responseBody": {
+                      "body": "=$activity[ReadChatHtml].output.fileContent.textContent",
+                      "headers": {
+                        "Content-Type": "text/html; charset=UTF-8"
+                      }
+                    }
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\":\"object\",\"properties\":{\"responseBody\":{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"string\"},\"headers\":{\"type\":\"object\",\"properties\":{\"Content-Type\":{\"type\":\"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\":\"object\",\"properties\":{\"responseBody\":{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"string\"},\"headers\":{\"type\":\"object\",\"properties\":{\"Content-Type\":{\"type\":\"string\"}}}}}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ReturnHtml",
+            "name": "ReturnHtml",
+            "description": "Returns the HTML page with Content-Type text/html (implicit reply via responseBody+headers).",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "code": 200,
+                  "responseBody": "=$activity[BuildHtmlResponse].output.responseBody"
+                }
+              }
+            }
+          }
+        ],
+        "metadata": {
+          "input": [],
+          "output": [],
+          "fe_metadata": {}
+        },
+        "explicitReply": false
       }
     }
   ],
