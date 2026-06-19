@@ -25,6 +25,8 @@
     "github.com/project-flogo/contrib/function/utils",
     "github.com/project-flogo/contrib/function/array",
     "github.com/project-flogo/contrib/function/string",
+    "github.com/project-flogo/contrib/function/number",
+    "github.com/project-flogo/contrib/function/coerce",
     "github.com/tibco/wi-postgres/src/app/PostgreSQL/connector/connection",
     "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/connector",
     "github.com/tibco/flogo-ai-agent/src/app/AgenticAI/connector/llmprovider"
@@ -212,8 +214,8 @@
               },
               "body": {
                 "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{\"session_id\":{\"type\":\"string\",\"description\":\"Optional â provide to resume an existing session\"}}}",
-                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"session_id\":{\"type\":\"string\",\"description\":\"Optional â provide to resume an existing session\"}}}"
+                "value": "{\"type\":\"object\",\"properties\":{\"session_id\":{\"type\":\"string\",\"description\":\"Optional \u00e2\u0080\u0094 provide to resume an existing session\"}}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"session_id\":{\"type\":\"string\",\"description\":\"Optional \u00e2\u0080\u0094 provide to resume an existing session\"}}}"
               },
               "multipartFormData": {
                 "type": "json",
@@ -1342,6 +1344,36 @@
             "to": "RenderExtractionPrompt",
             "type": "label",
             "label": "RegexPreExtract to RenderExtractionPrompt"
+          },
+          {
+            "from": "RenderExtractionPrompt",
+            "to": "ExtractWithLLM",
+            "type": "label"
+          },
+          {
+            "from": "ExtractWithLLM",
+            "to": "CleanJSON",
+            "type": "label"
+          },
+          {
+            "from": "CleanJSON",
+            "to": "ParseExtraction",
+            "type": "label"
+          },
+          {
+            "from": "ParseExtraction",
+            "to": "MergeSpec",
+            "type": "label"
+          },
+          {
+            "from": "MergeSpec",
+            "to": "BuildExtractResponse",
+            "type": "label"
+          },
+          {
+            "from": "BuildExtractResponse",
+            "to": "ReplyExtract",
+            "type": "label"
           }
         ],
         "tasks": [
@@ -1434,9 +1466,210 @@
                 "template": "\"{{ user_message }}\\n{{ current_spec }}\""
               }
             }
+          },
+          {
+            "id": "ExtractWithLLM",
+            "name": "ExtractWithLLM",
+            "description": "Uses the Weaviate RAG connector LLM generation to extract a structured integration spec from the free-text message.",
+            "activity": {
+              "ref": "#ragQuery",
+              "settings": {
+                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
+                "useConnectorEmbedding": false,
+                "embeddingProvider": "OpenAI",
+                "embeddingAPIKey": "SECRET:z2Idl81n9XoGu7uhxl6PPYcMpuWR4w==",
+                "embeddingBaseURL": "http://localhost:11434/v1",
+                "embeddingModel": "nomic-embed-text",
+                "embeddingDimensions": 768,
+                "defaultCollection": "",
+                "defaultTopK": 5,
+                "scoreThreshold": 0,
+                "contentField": "text",
+                "contextFormat": "numbered",
+                "timeoutSeconds": 30,
+                "useHybridSearch": false,
+                "hybridAlpha": 0.5,
+                "enableLLMGenerate": true,
+                "llmProvider": "Ollama",
+                "llmBaseURL": "http://localhost:11434",
+                "llmAPIKey": "",
+                "llmModel": "qwen2.5:14b",
+                "systemPrompt": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}",
+                "maxTokens": 1024,
+                "temperature": 0
+              },
+              "input": {
+                "queryText": "=string.concat(coerce.toString($flow.content.message), \" \", coerce.toString($activity[RegexPreExtract].markdown))",
+                "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
+                "topK": 2,
+                "systemPrompt": "=\"You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \\\"true\\\" or \\\"false\\\". Use \\\"\\\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\\\"source_system\\\":\\\"SAP ECC\\\",\\\"target_system\\\":\\\"MQ\\\",\\\"business_object\\\":\\\"invoice\\\",\\\"interface_type\\\":\\\"pub\\\",\\\"template_type\\\":\\\"\\\",\\\"cdm\\\":\\\"true\\\",\\\"interface_id\\\":\\\"\\\",\\\"scenario_id\\\":\\\"\\\",\\\"bitbucket_project\\\":\\\"\\\",\\\"email\\\":\\\"\\\",\\\"env\\\":\\\"\\\",\\\"k8s_domain\\\":\\\"\\\",\\\"country_code\\\":\\\"\\\",\\\"unique_id\\\":\\\"\\\"}\""
+              },
+              "schemas": {}
+            }
+          },
+          {
+            "id": "CleanJSON",
+            "name": "CleanJSON",
+            "description": "Strips markdown code fences from the LLM answer so it can be parsed as JSON.",
+            "activity": {
+              "ref": "#mapper",
+              "settings": {},
+              "input": {
+                "input": {
+                  "mapping": {
+                    "cleaned": "=string.replaceAll(string.replaceAll(coerce.toString($activity[ExtractWithLLM].answer), \"```json\", \"\"), \"```\", \"\")"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"cleaned\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"cleaned\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ParseExtraction",
+            "name": "ParseExtraction",
+            "description": "Parses the cleaned LLM JSON answer into a structured object.",
+            "activity": {
+              "ref": "#parsejson",
+              "settings": {},
+              "input": {
+                "validate": false,
+                "jsonString": "=$activity[CleanJSON].output.cleaned"
+              },
+              "schemas": {
+                "output": {
+                  "jsonObject": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "MergeSpec",
+            "name": "MergeSpec",
+            "description": "Merges the LLM-extracted fields with the caller's current_spec (extracted value wins when present).",
+            "activity": {
+              "ref": "#mapper",
+              "settings": {},
+              "input": {
+                "input": {
+                  "mapping": {
+                    "source_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.source_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.source_system) : (isDefined($flow.content.current_spec.source_system) ? coerce.toString($flow.content.current_spec.source_system) : \"\")",
+                    "target_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.target_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.target_system) : (isDefined($flow.content.current_spec.target_system) ? coerce.toString($flow.content.current_spec.target_system) : \"\")",
+                    "business_object": "=(coerce.toString($activity[ParseExtraction].jsonObject.business_object) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.business_object) : (isDefined($flow.content.current_spec.business_object) ? coerce.toString($flow.content.current_spec.business_object) : \"\")",
+                    "interface_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_type) : (isDefined($flow.content.current_spec.interface_type) ? coerce.toString($flow.content.current_spec.interface_type) : \"\")",
+                    "template_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.template_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.template_type) : (isDefined($flow.content.current_spec.template_type) ? coerce.toString($flow.content.current_spec.template_type) : \"\")",
+                    "cdm": "=(coerce.toString($activity[ParseExtraction].jsonObject.cdm) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.cdm) : (isDefined($flow.content.current_spec.cdm) ? coerce.toString($flow.content.current_spec.cdm) : \"\")",
+                    "interface_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_id) : (isDefined($flow.content.current_spec.interface_id) ? coerce.toString($flow.content.current_spec.interface_id) : \"\")",
+                    "scenario_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.scenario_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.scenario_id) : (isDefined($flow.content.current_spec.scenario_id) ? coerce.toString($flow.content.current_spec.scenario_id) : \"\")",
+                    "bitbucket_project": "=(coerce.toString($activity[ParseExtraction].jsonObject.bitbucket_project) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.bitbucket_project) : (isDefined($flow.content.current_spec.bitbucket_project) ? coerce.toString($flow.content.current_spec.bitbucket_project) : \"\")",
+                    "email": "=(coerce.toString($activity[ParseExtraction].jsonObject.email) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.email) : (isDefined($flow.content.current_spec.email) ? coerce.toString($flow.content.current_spec.email) : \"\")",
+                    "env": "=(coerce.toString($activity[ParseExtraction].jsonObject.env) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.env) : (isDefined($flow.content.current_spec.env) ? coerce.toString($flow.content.current_spec.env) : \"\")",
+                    "k8s_domain": "=(coerce.toString($activity[ParseExtraction].jsonObject.k8s_domain) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.k8s_domain) : (isDefined($flow.content.current_spec.k8s_domain) ? coerce.toString($flow.content.current_spec.k8s_domain) : \"\")",
+                    "country_code": "=(coerce.toString($activity[ParseExtraction].jsonObject.country_code) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.country_code) : (isDefined($flow.content.current_spec.country_code) ? coerce.toString($flow.content.current_spec.country_code) : \"\")",
+                    "unique_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.unique_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.unique_id) : (isDefined($flow.content.current_spec.unique_id) ? coerce.toString($flow.content.current_spec.unique_id) : \"\")"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "BuildExtractResponse",
+            "name": "BuildExtractResponse",
+            "description": "Assembles the /extract response: merged spec, readiness, missing required fields, and a human message.",
+            "activity": {
+              "ref": "#mapper",
+              "settings": {},
+              "input": {
+                "input": {
+                  "mapping": {
+                    "success": true,
+                    "spec": {
+                      "source_system": "=$activity[MergeSpec].output.source_system",
+                      "target_system": "=$activity[MergeSpec].output.target_system",
+                      "business_object": "=$activity[MergeSpec].output.business_object",
+                      "interface_type": "=$activity[MergeSpec].output.interface_type",
+                      "template_type": "=$activity[MergeSpec].output.template_type",
+                      "cdm": "=$activity[MergeSpec].output.cdm",
+                      "interface_id": "=$activity[MergeSpec].output.interface_id",
+                      "scenario_id": "=$activity[MergeSpec].output.scenario_id",
+                      "bitbucket_project": "=$activity[MergeSpec].output.bitbucket_project",
+                      "email": "=$activity[MergeSpec].output.email",
+                      "env": "=$activity[MergeSpec].output.env",
+                      "k8s_domain": "=$activity[MergeSpec].output.k8s_domain",
+                      "country_code": "=$activity[MergeSpec].output.country_code",
+                      "unique_id": "=$activity[MergeSpec].output.unique_id"
+                    },
+                    "ready_to_generate": "=($activity[MergeSpec].output.source_system != \"\" && $activity[MergeSpec].output.target_system != \"\" && $activity[MergeSpec].output.business_object != \"\" && $activity[MergeSpec].output.interface_type != \"\" && $activity[MergeSpec].output.template_type != \"\")",
+                    "missing": {
+                      "source_system": "=($activity[MergeSpec].output.source_system == \"\")",
+                      "target_system": "=($activity[MergeSpec].output.target_system == \"\")",
+                      "business_object": "=($activity[MergeSpec].output.business_object == \"\")",
+                      "interface_type": "=($activity[MergeSpec].output.interface_type == \"\")",
+                      "template_type": "=($activity[MergeSpec].output.template_type == \"\")"
+                    },
+                    "message": "=($activity[MergeSpec].output.source_system != \"\" && $activity[MergeSpec].output.target_system != \"\" && $activity[MergeSpec].output.business_object != \"\" && $activity[MergeSpec].output.interface_type != \"\" && $activity[MergeSpec].output.template_type != \"\") ? \"All required fields captured \u2014 ready to generate.\" : \"Some required fields are still missing. Please provide the missing values.\"",
+                    "raw_answer": "=coerce.toString($activity[ExtractWithLLM].answer)"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}, \"ready_to_generate\": {\"type\": \"boolean\"}, \"missing\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"boolean\"}, \"target_system\": {\"type\": \"boolean\"}, \"business_object\": {\"type\": \"boolean\"}, \"interface_type\": {\"type\": \"boolean\"}, \"template_type\": {\"type\": \"boolean\"}}}, \"message\": {\"type\": \"string\"}, \"raw_answer\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}, \"ready_to_generate\": {\"type\": \"boolean\"}, \"missing\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"boolean\"}, \"target_system\": {\"type\": \"boolean\"}, \"business_object\": {\"type\": \"boolean\"}, \"interface_type\": {\"type\": \"boolean\"}, \"template_type\": {\"type\": \"boolean\"}}}, \"message\": {\"type\": \"string\"}, \"raw_answer\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ReplyExtract",
+            "name": "ReplyExtract",
+            "description": "Returns the extracted spec and readiness to the caller.",
+            "activity": {
+              "ref": "#actreply",
+              "input": {
+                "reply": {
+                  "mapping": {
+                    "data": "=$activity[BuildExtractResponse].output"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "reply": {
+                    "type": "json",
+                    "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                    "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIkdldEFwcENvbmZpZyI6eyJ4Ijo0NTAsInkiOjQ1fSwiUmVnZXhQcmVFeHRyYWN0Ijp7IngiOjU1MCwieSI6NDV9LCJSZW5kZXJFeHRyYWN0aW9uUHJvbXB0Ijp7IngiOjY1MCwieSI6NDV9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIkdldEFwcENvbmZpZyI6eyJ4Ijo0NTAsInkiOjQ1fSwiUmVnZXhQcmVFeHRyYWN0Ijp7IngiOjY5NiwieSI6NDV9LCJSZW5kZXJFeHRyYWN0aW9uUHJvbXB0Ijp7IngiOjg5OSwieSI6NDR9fQ==",
         "metadata": {
           "input": [
             {
@@ -1468,9 +1701,9 @@
           {
             "id": 2,
             "from": "Log_API",
-            "to": "ValidateSpec",
+            "to": "NormalizeSpec",
             "type": "label",
-            "label": "Log_API to ValidateSpec"
+            "label": "Log_API to NormalizeSpec"
           },
           {
             "id": 3,
@@ -1533,26 +1766,40 @@
           {
             "id": 11,
             "from": "ScaffoldRepo",
-            "to": "SendNotification",
+            "to": "ScaffoldReadme",
             "type": "label",
-            "label": "ScaffoldRepo to SendNotification"
+            "label": "ScaffoldRepo to ScaffoldReadme"
           },
           {
             "id": 12,
-            "from": "SendNotification",
-            "to": "BuildGenerateResponse",
+            "from": "ScaffoldReadme",
+            "to": "ScaffoldPipeline",
             "type": "label",
-            "label": "SendNotification to BuildGenerateResponse"
+            "label": "ScaffoldReadme to ScaffoldPipeline"
           },
           {
             "id": 13,
-            "from": "BuildGenerateResponse",
-            "to": "Reply_to_API",
+            "from": "ScaffoldPipeline",
+            "to": "ScaffoldDockerfile",
             "type": "label",
-            "label": "BuildGenerateResponse to Reply_to_API"
+            "label": "ScaffoldPipeline to ScaffoldDockerfile"
           },
           {
             "id": 14,
+            "from": "ScaffoldDockerfile",
+            "to": "ScaffoldK8s",
+            "type": "label",
+            "label": "ScaffoldDockerfile to ScaffoldK8s"
+          },
+          {
+            "id": 15,
+            "from": "ScaffoldK8s",
+            "to": "SendNotification",
+            "type": "label",
+            "label": "ScaffoldK8s to SendNotification"
+          },
+          {
+            "id": 16,
             "from": "CheckDuplicate",
             "to": "BuildDuplicateResponse",
             "type": "expression",
@@ -1560,14 +1807,14 @@
             "value": "array.count($activity[CheckDuplicate].Output.records) > 0"
           },
           {
-            "id": 15,
+            "id": 17,
             "from": "BuildDuplicateResponse",
             "to": "ReplyDuplicate",
             "type": "label",
             "label": "BuildDuplicateResponse to ReplyDuplicate"
           },
           {
-            "id": 16,
+            "id": 18,
             "from": "CrossCheckIKD",
             "to": "BuildIKDErrorResponse",
             "type": "expression",
@@ -1575,11 +1822,28 @@
             "value": "$activity[CrossCheckIKD].output.ikd_valid == false"
           },
           {
-            "id": 17,
+            "id": 19,
             "from": "BuildIKDErrorResponse",
             "to": "ReplyIKDError",
             "type": "label",
             "label": "BuildIKDErrorResponse to ReplyIKDError"
+          },
+          {
+            "id": 20,
+            "from": "NormalizeSpec",
+            "to": "ValidateSpec",
+            "type": "label",
+            "label": "NormalizeSpec to ValidateSpec"
+          },
+          {
+            "from": "SendNotification",
+            "to": "BuildGenerateResponse",
+            "type": "label"
+          },
+          {
+            "from": "BuildGenerateResponse",
+            "to": "Reply_to_API",
+            "type": "label"
           }
         ],
         "tasks": [
@@ -1603,6 +1867,49 @@
                 "message": "\"[GENERATE] Processing generation request\"",
                 "logLevel": ""
               }
+            }
+          },
+          {
+            "id": "NormalizeSpec",
+            "name": "NormalizeSpec",
+            "description": "Normalises the incoming spec: lowercases/trims identifiers and applies safe defaults (scenario_id=1234, env=DEV, k8s_domain=cite, bw_profile=default, interface_id/country_code/unique_id=NA).",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "source_system": "=string.toLower(string.trim(coerce.toString($flow.content.spec.source_system), \" \"))",
+                    "target_system": "=string.toLower(string.trim(coerce.toString($flow.content.spec.target_system), \" \"))",
+                    "business_object": "=string.toLower(string.trim(coerce.toString($flow.content.spec.business_object), \" \"))",
+                    "interface_type": "=string.toLower(string.trim(coerce.toString($flow.content.spec.interface_type), \" \"))",
+                    "template_type": "=coerce.toString($flow.content.spec.template_type)",
+                    "bitbucket_project": "=coerce.toString($flow.content.spec.bitbucket_project)",
+                    "email": "=coerce.toString($flow.content.spec.email)",
+                    "cdm": "=$flow.content.spec.cdm == true",
+                    "need_secret": "=$flow.content.spec.need_secret == true",
+                    "interface_id": "=(coerce.toString($flow.content.spec.interface_id) != \"\") ? coerce.toString($flow.content.spec.interface_id) : \"NA\"",
+                    "scenario_id": "=(coerce.toString($flow.content.spec.scenario_id) != \"\") ? coerce.toString($flow.content.spec.scenario_id) : \"1234\"",
+                    "env": "=(coerce.toString($flow.content.spec.env) != \"\") ? coerce.toString($flow.content.spec.env) : \"DEV\"",
+                    "k8s_domain": "=(coerce.toString($flow.content.spec.k8s_domain) != \"\") ? coerce.toString($flow.content.spec.k8s_domain) : \"cite\"",
+                    "bw_profile": "=(coerce.toString($flow.content.spec.bw_profile) != \"\") ? coerce.toString($flow.content.spec.bw_profile) : \"default\"",
+                    "country_code": "=(coerce.toString($flow.content.spec.country_code) != \"\") ? coerce.toString($flow.content.spec.country_code) : \"NA\"",
+                    "unique_id": "=(coerce.toString($flow.content.spec.unique_id) != \"\") ? coerce.toString($flow.content.spec.unique_id) : \"NA\"",
+                    "country_suffix": "=(string.toLower(coerce.toString($flow.content.spec.country_code)) != \"na\" && string.toLower(coerce.toString($flow.content.spec.country_code)) != \"none\" && string.toLower(coerce.toString($flow.content.spec.country_code)) != \"\") ? string.concat(\"-\", string.toLower(coerce.toString($flow.content.spec.country_code))) : \"\"",
+                    "unique_suffix": "=(string.toLower(coerce.toString($flow.content.spec.unique_id)) != \"na\" && string.toLower(coerce.toString($flow.content.spec.unique_id)) != \"none\" && string.toLower(coerce.toString($flow.content.spec.unique_id)) != \"1none\" && string.toLower(coerce.toString($flow.content.spec.unique_id)) != \"\") ? string.concat(\"-\", string.toLower(coerce.toString($flow.content.spec.unique_id))) : \"\"",
+                    "generation_id": "=utils.uuid()"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"country_suffix\": {\"type\": \"string\"}, \"unique_suffix\": {\"type\": \"string\"}, \"generation_id\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
             }
           },
           {
@@ -1672,9 +1979,9 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "interface_id_valid": "(!isDefined($flow.content.spec.interface_id) || $flow.content.spec.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $flow.content.spec.interface_id))",
-                    "scenario_id_valid": "(!isDefined($flow.content.spec.scenario_id) || $flow.content.spec.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $flow.content.spec.scenario_id))",
-                    "ikd_valid": "(!isDefined($flow.content.spec.interface_id) || $flow.content.spec.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $flow.content.spec.interface_id)) && (!isDefined($flow.content.spec.scenario_id) || $flow.content.spec.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $flow.content.spec.scenario_id))"
+                    "interface_id_valid": "=(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id))",
+                    "scenario_id_valid": "=(!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))",
+                    "ikd_valid": "=(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id)) && (!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))"
                   }
                 }
               },
@@ -1698,12 +2005,12 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "source_system": "=$flow.content.spec.source_system",
-                    "target_system": "=$flow.content.spec.target_system",
-                    "business_object": "=$flow.content.spec.business_object",
-                    "interface_type": "=$flow.content.spec.interface_type",
-                    "template_type": "=$flow.content.spec.template_type",
-                    "repo_name": "=string.concat($flow.content.spec.source_system, \"-\", $flow.content.spec.business_object, \"-\", $flow.content.spec.target_system, \"-\", $flow.content.spec.interface_type)"
+                    "source_system": "=$activity[NormalizeSpec].output.source_system",
+                    "target_system": "=$activity[NormalizeSpec].output.target_system",
+                    "business_object": "=$activity[NormalizeSpec].output.business_object",
+                    "interface_type": "=$activity[NormalizeSpec].output.interface_type",
+                    "template_type": "=$activity[NormalizeSpec].output.template_type",
+                    "repo_name": "=(number.len(string.trim(string.replaceRegEx(\"-+\", string.replaceRegEx(\"[^a-z0-9-]+\", string.concat($activity[NormalizeSpec].output.source_system, \"-\", $activity[NormalizeSpec].output.business_object, \"-\", $activity[NormalizeSpec].output.target_system, \"-\", $activity[NormalizeSpec].output.interface_type, $activity[NormalizeSpec].output.country_suffix, $activity[NormalizeSpec].output.unique_suffix), \"-\"), \"-\"), \"-\")) > 100) ? string.substring(string.trim(string.replaceRegEx(\"-+\", string.replaceRegEx(\"[^a-z0-9-]+\", string.concat($activity[NormalizeSpec].output.source_system, \"-\", $activity[NormalizeSpec].output.business_object, \"-\", $activity[NormalizeSpec].output.target_system, \"-\", $activity[NormalizeSpec].output.interface_type, $activity[NormalizeSpec].output.country_suffix, $activity[NormalizeSpec].output.unique_suffix), \"-\"), \"-\"), \"-\"), 0, 100) : string.trim(string.replaceRegEx(\"-+\", string.replaceRegEx(\"[^a-z0-9-]+\", string.concat($activity[NormalizeSpec].output.source_system, \"-\", $activity[NormalizeSpec].output.business_object, \"-\", $activity[NormalizeSpec].output.target_system, \"-\", $activity[NormalizeSpec].output.interface_type, $activity[NormalizeSpec].output.country_suffix, $activity[NormalizeSpec].output.unique_suffix), \"-\"), \"-\"), \"-\")"
                   }
                 }
               },
@@ -1747,7 +2054,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "03c8a0f8-f0e9-4a16-b6cf-88f6bc5c448eSELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "State": "6f2c73be-5254-4fcd-8b7e-da53f925877dSELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -1785,10 +2092,11 @@
                 "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:wbRqdxfhOvbvLaB5jCby25oumh77bg==",
+                "embeddingAPIKey": "SECRET:z2Idl81n9XoGu7uhxl6PPYcMpuWR4w==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
+                "defaultCollection": "",
                 "defaultTopK": 5,
                 "scoreThreshold": 0,
                 "contentField": "text",
@@ -1799,13 +2107,14 @@
                 "enableLLMGenerate": false,
                 "llmProvider": "Ollama",
                 "llmBaseURL": "http://localhost:11434",
+                "llmAPIKey": "",
                 "llmModel": "llama3.1:8b",
                 "systemPrompt": "You are a helpful assistant. Answer the question using only the provided context. If the context does not contain enough information, say so.",
                 "maxTokens": 1024,
                 "temperature": 0.1
               },
               "input": {
-                "queryText": "=string.concat($flow.content.spec.source_system, \" to \", $flow.content.spec.target_system, \" \", $flow.content.spec.business_object, \" \", $flow.content.spec.interface_type, \" \", $flow.content.spec.template_type)",
+                "queryText": "=string.concat($activity[NormalizeSpec].output.source_system, \" to \", $activity[NormalizeSpec].output.target_system, \" \", $activity[NormalizeSpec].output.business_object, \" \", $activity[NormalizeSpec].output.interface_type, \" \", $activity[NormalizeSpec].output.template_type)",
                 "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
                 "topK": 3
               }
@@ -1827,9 +2136,17 @@
                 "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
                 "QueryName": "",
                 "Schema": "public",
-                "Query": "INSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
+                "Query": "INSERT INTO public.generation_log(generation_id, repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?generation_id, ?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
                 "manualmode": false,
                 "Fields": [
+                  {
+                    "FieldName": "generation_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
                   {
                     "FieldName": "repo_name",
                     "Type": "VARCHAR",
@@ -1944,24 +2261,25 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "05fe7cb1-33bc-4ec1-baa5-137311ca5de8INSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
+                "State": "f0489c2f-07f8-4546-8350-0ca10b09efcaINSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
                 "input": {
                   "mapping": {
                     "values": [
                       {
+                        "generation_id": "=$activity[NormalizeSpec].output.generation_id",
                         "repo_name": "=$activity[BuildRepoName].output.repo_name",
-                        "source_system": "=$flow.content.spec.source_system",
-                        "target_system": "=$flow.content.spec.target_system",
-                        "business_object": "=$flow.content.spec.business_object",
-                        "interface_type": "=$flow.content.spec.interface_type",
-                        "template_type": "=$flow.content.spec.template_type",
-                        "cdm": "=$flow.content.spec.cdm",
-                        "interface_id": "=$flow.content.spec.interface_id",
-                        "scenario_id": "=$flow.content.spec.scenario_id",
-                        "bitbucket_project": "=$flow.content.spec.bitbucket_project",
-                        "env": "=$flow.content.spec.env",
-                        "email": "=$flow.content.spec.email",
-                        "k8s_domain": "=$flow.content.spec.k8s_domain",
+                        "source_system": "=$activity[NormalizeSpec].output.source_system",
+                        "target_system": "=$activity[NormalizeSpec].output.target_system",
+                        "business_object": "=$activity[NormalizeSpec].output.business_object",
+                        "interface_type": "=$activity[NormalizeSpec].output.interface_type",
+                        "template_type": "=$activity[NormalizeSpec].output.template_type",
+                        "cdm": "=$activity[NormalizeSpec].output.cdm",
+                        "interface_id": "=$activity[NormalizeSpec].output.interface_id",
+                        "scenario_id": "=$activity[NormalizeSpec].output.scenario_id",
+                        "bitbucket_project": "=$activity[NormalizeSpec].output.bitbucket_project",
+                        "env": "=$activity[NormalizeSpec].output.env",
+                        "email": "=$activity[NormalizeSpec].output.email",
+                        "k8s_domain": "=$activity[NormalizeSpec].output.k8s_domain",
                         "status": "GENERATED"
                       }
                     ]
@@ -2001,7 +2319,155 @@
                   "mapping": {
                     "fileName": "=string.concat($property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/manifest.json\")",
                     "overwrite": true,
-                    "textContent": "=string.concat(\"{\\n  \\\"repo_name\\\": \\\"\", $activity[BuildRepoName].output.repo_name, \"\\\",\\n  \\\"bitbucket_url\\\": \\\"\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\\",\\n  \\\"template\\\": \\\"\", $activity[SelectTemplate].sourceDocuments[0].name, \"\\\",\\n  \\\"source_system\\\": \\\"\", $flow.content.spec.source_system, \"\\\",\\n  \\\"target_system\\\": \\\"\", $flow.content.spec.target_system, \"\\\",\\n  \\\"business_object\\\": \\\"\", $flow.content.spec.business_object, \"\\\",\\n  \\\"interface_type\\\": \\\"\", $flow.content.spec.interface_type, \"\\\",\\n  \\\"env\\\": \\\"\", $flow.content.spec.env, \"\\\",\\n  \\\"scaffold_command\\\": \\\"./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name, \"\\\"\\n}\")"
+                    "textContent": "=string.concat(\"{\\n  \\\"repo_name\\\": \\\"\", $activity[BuildRepoName].output.repo_name, \"\\\",\\n  \\\"bitbucket_url\\\": \\\"\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\\",\\n  \\\"template\\\": \\\"\", $activity[SelectTemplate].sourceDocuments[0].name, \"\\\",\\n  \\\"source_system\\\": \\\"\", $activity[NormalizeSpec].output.source_system, \"\\\",\\n  \\\"target_system\\\": \\\"\", $activity[NormalizeSpec].output.target_system, \"\\\",\\n  \\\"business_object\\\": \\\"\", $activity[NormalizeSpec].output.business_object, \"\\\",\\n  \\\"interface_type\\\": \\\"\", $activity[NormalizeSpec].output.interface_type, \"\\\",\\n  \\\"env\\\": \\\"\", $activity[NormalizeSpec].output.env, \"\\\",\\n  \\\"scaffold_command\\\": \\\"./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name, \"\\\"\\n}\")"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ScaffoldReadme",
+            "name": "ScaffoldReadme",
+            "description": "Mock scaffold: writes the repository README.md describing the generated integration.",
+            "activity": {
+              "ref": "#write",
+              "input": {
+                "writeAs": "Text",
+                "createNonExistingDir": true,
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "=string.concat($property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/README.md\")",
+                    "overwrite": true,
+                    "textContent": "=string.concat(\"# \", $activity[BuildRepoName].output.repo_name, \"\\n\\nAuto-generated BWCE integration repository (mock scaffold).\\n\\n| Field | Value |\\n| --- | --- |\\n| Source System | \", $activity[NormalizeSpec].output.source_system, \" |\\n| Target System | \", $activity[NormalizeSpec].output.target_system, \" |\\n| Business Object | \", $activity[NormalizeSpec].output.business_object, \" |\\n| Interface Type | \", $activity[NormalizeSpec].output.interface_type, \" |\\n| Environment | \", $activity[NormalizeSpec].output.env, \" |\\n\\n## Repository\\n\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\\n\\n## Build & Deploy\\n```\\n./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name, \"\\nmvn clean package\\ndocker build -t \", $activity[BuildRepoName].output.repo_name, \":latest .\\nkubectl apply -f k8s/deployment.yaml\\n```\\n\")"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ScaffoldPipeline",
+            "name": "ScaffoldPipeline",
+            "description": "Mock scaffold: writes the Bitbucket CI/CD pipeline (bitbucket-pipelines.yml).",
+            "activity": {
+              "ref": "#write",
+              "input": {
+                "writeAs": "Text",
+                "createNonExistingDir": true,
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "=string.concat($property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/bitbucket-pipelines.yml\")",
+                    "overwrite": true,
+                    "textContent": "=string.concat(\"image: tibco/bwce:latest\\n\\npipelines:\\n  default:\\n    - step:\\n        name: Build EAR\\n        script:\\n          - mvn -q clean package\\n        artifacts:\\n          - target/*.ear\\n    - step:\\n        name: Docker Build & Push\\n        services:\\n          - docker\\n        script:\\n          - docker build -t \", $activity[BuildRepoName].output.repo_name, \":$BITBUCKET_BUILD_NUMBER .\\n          - docker push \", $activity[BuildRepoName].output.repo_name, \":$BITBUCKET_BUILD_NUMBER\\n    - step:\\n        name: Deploy to Kubernetes (\", $activity[NormalizeSpec].output.env, \")\\n        deployment: \", $activity[NormalizeSpec].output.env, \"\\n        script:\\n          - kubectl apply -f k8s/deployment.yaml\\n\")"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ScaffoldDockerfile",
+            "name": "ScaffoldDockerfile",
+            "description": "Mock scaffold: writes the container Dockerfile for the BWCE app.",
+            "activity": {
+              "ref": "#write",
+              "input": {
+                "writeAs": "Text",
+                "createNonExistingDir": true,
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "=string.concat($property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/Dockerfile\")",
+                    "overwrite": true,
+                    "textContent": "=string.concat(\"FROM tibco/bwce:latest\\n\\nLABEL repo=\\\"\", $activity[BuildRepoName].output.repo_name, \"\\\" source=\\\"\", $activity[NormalizeSpec].output.source_system, \"\\\" target=\\\"\", $activity[NormalizeSpec].output.target_system, \"\\\" interface=\\\"\", $activity[NormalizeSpec].output.interface_type, \"\\\"\\n\\nCOPY target/\", $activity[BuildRepoName].output.repo_name, \".ear /resources/addons/ear/\\nENV APP_NAME=\", $activity[BuildRepoName].output.repo_name, \"\\nEXPOSE 8080\\n\")"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ScaffoldK8s",
+            "name": "ScaffoldK8s",
+            "description": "Mock scaffold: writes the Kubernetes Deployment + Service manifest.",
+            "activity": {
+              "ref": "#write",
+              "input": {
+                "writeAs": "Text",
+                "createNonExistingDir": true,
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "=string.concat($property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/k8s/deployment.yaml\")",
+                    "overwrite": true,
+                    "textContent": "=string.concat(\"apiVersion: apps/v1\\nkind: Deployment\\nmetadata:\\n  name: \", $activity[BuildRepoName].output.repo_name, \"\\n  namespace: \", $activity[NormalizeSpec].output.env, \"\\n  labels:\\n    app: \", $activity[BuildRepoName].output.repo_name, \"\\nspec:\\n  replicas: 1\\n  selector:\\n    matchLabels:\\n      app: \", $activity[BuildRepoName].output.repo_name, \"\\n  template:\\n    metadata:\\n      labels:\\n        app: \", $activity[BuildRepoName].output.repo_name, \"\\n    spec:\\n      containers:\\n        - name: \", $activity[BuildRepoName].output.repo_name, \"\\n          image: \", $activity[BuildRepoName].output.repo_name, \":latest\\n          ports:\\n            - containerPort: 8080\\n          env:\\n            - name: SOURCE_SYSTEM\\n              value: \\\"\", $activity[NormalizeSpec].output.source_system, \"\\\"\\n            - name: TARGET_SYSTEM\\n              value: \\\"\", $activity[NormalizeSpec].output.target_system, \"\\\"\\n---\\napiVersion: v1\\nkind: Service\\nmetadata:\\n  name: \", $activity[BuildRepoName].output.repo_name, \"\\n  namespace: \", $activity[NormalizeSpec].output.env, \"\\nspec:\\n  selector:\\n    app: \", $activity[BuildRepoName].output.repo_name, \"\\n  ports:\\n    - port: 80\\n      targetPort: 8080\\n\")"
                   }
                 }
               },
@@ -2051,7 +2517,7 @@
                 "bcc_recipients": "",
                 "reply_to": "",
                 "subject": "=string.concat(\"[BWCE AI Generator] New repository scaffolded: \", $activity[BuildRepoName].output.repo_name)",
-                "message": "=string.concat(\"A new BWCE integration repository has been generated and scaffolded.\\n\\nRepository: \", $activity[BuildRepoName].output.repo_name, \"\\nBitbucket: \", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\nSource System: \", $flow.content.spec.source_system, \"\\nTarget System: \", $flow.content.spec.target_system, \"\\nInterface Type: \", $flow.content.spec.interface_type, \"\\n\\nScaffold command:\\n./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name)"
+                "message": "=string.concat(\"A new BWCE integration repository has been generated and scaffolded.\\n\\nRepository: \", $activity[BuildRepoName].output.repo_name, \"\\nBitbucket: \", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\nSource System: \", $activity[NormalizeSpec].output.source_system, \"\\nTarget System: \", $activity[NormalizeSpec].output.target_system, \"\\nInterface Type: \", $activity[NormalizeSpec].output.interface_type, \"\\n\\nScaffold command:\\n./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name)"
               },
               "schemas": {
                 "input": {
@@ -2064,59 +2530,6 @@
                     "type": "json",
                     "value": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}",
                     "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}"
-                  }
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "BuildGenerateResponse",
-            "name": "BuildGenerateResponse",
-            "description": "Assembles the generation response (selected template, repository name, and status).",
-            "activity": {
-              "ref": "#mapper",
-              "input": {
-                "input": {
-                  "mapping": {
-                    "success": true,
-                    "repo_name": "=$activity[BuildRepoName].output.repo_name",
-                    "template_name": "=$activity[SelectTemplate].sourceDocuments[0].name",
-                    "generation_id": "=utils.uuid()",
-                    "shell_command": "=string.concat(\"./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name)"
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "input": "schema://GenerateResponse"
-                },
-                "output": {
-                  "output": "schema://GenerateResponse"
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "Reply_to_API",
-            "name": "Reply_to_API",
-            "description": "Returns the generation result to the caller.",
-            "activity": {
-              "ref": "#actreply",
-              "input": {
-                "reply": {
-                  "mapping": {
-                    "data": "=$activity[BuildGenerateResponse].output"
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "reply": {
-                    "type": "json",
-                    "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
-                    "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
                   }
                 }
               },
@@ -2188,11 +2601,11 @@
                   "mapping": {
                     "success": false,
                     "error": "IKD_VALIDATION_FAILED",
-                    "message": "=string.concat(\"IKD validation failed. interface_id='\", $flow.content.spec.interface_id, \"', scenario_id='\", $flow.content.spec.scenario_id, \"'. One or both are not present in the IKD registry.\")",
+                    "message": "=string.concat(\"IKD validation failed. interface_id='\", $activity[NormalizeSpec].output.interface_id, \"', scenario_id='\", $activity[NormalizeSpec].output.scenario_id, \"'. One or both are not present in the IKD registry.\")",
                     "interface_id_valid": "=$activity[CrossCheckIKD].output.interface_id_valid",
                     "scenario_id_valid": "=$activity[CrossCheckIKD].output.scenario_id_valid",
-                    "interface_id": "=$flow.content.spec.interface_id",
-                    "scenario_id": "=$flow.content.spec.scenario_id"
+                    "interface_id": "=$activity[NormalizeSpec].output.interface_id",
+                    "scenario_id": "=$activity[NormalizeSpec].output.scenario_id"
                   }
                 }
               },
@@ -2231,9 +2644,70 @@
               },
               "feSchemaMap": {}
             }
+          },
+          {
+            "id": "BuildGenerateResponse",
+            "name": "BuildGenerateResponse",
+            "description": "Builds an idempotent response indicating the repository already exists, echoing the existing registration id and status from the registry.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "success": true,
+                    "repo_name": "=$activity[BuildRepoName].output.repo_name",
+                    "generation_id": "=$activity[NormalizeSpec].output.generation_id",
+                    "template_name": "=$activity[NormalizeSpec].output.template_type",
+                    "message": "Repository scaffolded successfully and registered.",
+                    "shell_command": "=string.concat(\"git clone https://bitbucket.org/\", $activity[NormalizeSpec].output.bitbucket_project, \"/\", $activity[BuildRepoName].output.repo_name, \".git\")",
+                    "source_system": "=$activity[NormalizeSpec].output.source_system",
+                    "target_system": "=$activity[NormalizeSpec].output.target_system",
+                    "business_object": "=$activity[NormalizeSpec].output.business_object",
+                    "interface_type": "=$activity[NormalizeSpec].output.interface_type",
+                    "env": "=$activity[NormalizeSpec].output.env",
+                    "scenario_id": "=$activity[NormalizeSpec].output.scenario_id",
+                    "interface_id": "=$activity[NormalizeSpec].output.interface_id"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": "schema://DuplicateResponse"
+                },
+                "output": {
+                  "output": "schema://DuplicateResponse"
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "Reply_to_API",
+            "name": "Reply_to_API",
+            "description": "Returns the idempotent duplicate-detection result to the caller without creating a new repository.",
+            "activity": {
+              "ref": "#actreply",
+              "input": {
+                "reply": {
+                  "mapping": {
+                    "data": "=$activity[BuildGenerateResponse].output"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "reply": {
+                    "type": "json",
+                    "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                    "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjQ1fSwiR2V0SUtESW50ZXJmYWNlcyI6eyJ4Ijo2NTAsInkiOjQ1fSwiR2V0SUtEU2NlbmFyaW9zIjp7IngiOjg1MCwieSI6NDV9LCJDcm9zc0NoZWNrSUtEIjp7IngiOjEwNTAsInkiOjQ1fSwiQnVpbGRSZXBvTmFtZSI6eyJ4Ijo2NTAsInkiOjE5NX0sIkNoZWNrRHVwbGljYXRlIjp7IngiOjY1MCwieSI6MzQ1fSwiU2VsZWN0VGVtcGxhdGUiOnsieCI6ODUwLCJ5IjozNDV9LCJSZWdpc3RlckdlbmVyYXRpb24iOnsieCI6MTA1MCwieSI6MzQ1fSwiU2NhZmZvbGRSZXBvIjp7IngiOjEyNTAsInkiOjM0NX0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6MTQ1MCwieSI6MzQ1fSwiQnVpbGRHZW5lcmF0ZVJlc3BvbnNlIjp7IngiOjE0NTAsInkiOjQ5NX0sIlJlcGx5X3RvX0FQSSI6eyJ4IjoxNjUwLCJ5Ijo0OTV9LCJCdWlsZER1cGxpY2F0ZVJlc3BvbnNlIjp7IngiOjQ1MCwieSI6MzQ1fSwiUmVwbHlEdXBsaWNhdGUiOnsieCI6MjUwLCJ5IjozNDV9LCJCdWlsZElLREVycm9yUmVzcG9uc2UiOnsieCI6MTA1MCwieSI6MTk1fSwiUmVwbHlJS0RFcnJvciI6eyJ4IjoxMjUwLCJ5IjoxOTV9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjQ1fSwiR2V0SUtESW50ZXJmYWNlcyI6eyJ4Ijo2NTAsInkiOjQ1fSwiR2V0SUtEU2NlbmFyaW9zIjp7IngiOjg1MCwieSI6NDV9LCJDcm9zc0NoZWNrSUtEIjp7IngiOjEwNTAsInkiOjQ1fSwiQnVpbGRSZXBvTmFtZSI6eyJ4Ijo4ODksInkiOjIwNH0sIkNoZWNrRHVwbGljYXRlIjp7IngiOjExMzIsInkiOjE5NH0sIlNlbGVjdFRlbXBsYXRlIjp7IngiOjEzNTAsInkiOjE4OH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxNTYxLCJ5IjoxODZ9LCJTY2FmZm9sZFJlcG8iOnsieCI6ODk1LCJ5Ijo0NDN9LCJTY2FmZm9sZFJlYWRtZSI6eyJ4Ijo4OTUsInkiOjU2MH0sIlNjYWZmb2xkUGlwZWxpbmUiOnsieCI6MTA5NSwieSI6NTYwfSwiU2NhZmZvbGREb2NrZXJmaWxlIjp7IngiOjEyOTUsInkiOjU2MH0sIlNjYWZmb2xkSzhzIjp7IngiOjE0OTUsInkiOjU2MH0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6MTEwNywieSI6NDM1fSwiQnVpbGREdXBsaWNhdGVSZXNwb25zZSI6eyJ4IjoxMzU2LCJ5IjoyOTB9LCJSZXBseUR1cGxpY2F0ZSI6eyJ4IjoxNTU2LCJ5IjoyODV9LCJCdWlsZElLREVycm9yUmVzcG9uc2UiOnsieCI6MTI1NiwieSI6NDR9LCJSZXBseUlLREVycm9yIjp7IngiOjE1MDIsInkiOjQ2fSwiTm9ybWFsaXplU3BlYyI6eyJ4IjoyNTAsInkiOjE1MH19",
         "metadata": {
           "input": [
             {
@@ -2973,7 +3447,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "3ee9fd6c-b5fd-45aa-b5bb-985ed5490718SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "State": "1cd58178-66ba-44f4-8493-9dfd053ffe33SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -3134,7 +3608,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "e62ebd2f-3541-4960-8bfa-caf135a5fbcdINSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
+                "State": "7c9501a4-e189-4439-8986-e7590f25e15aINSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
                 "input": {
                   "mapping": {
                     "values": [
@@ -3405,7 +3879,7 @@
                 "manualmode": false,
                 "Fields": [],
                 "RuntimeQuery": "",
-                "State": "f2f2feb3-5860-4aa5-82bf-20da77c9595aCREATE TABLE IF NOT EXISTS generation_log (id SERIAL PRIMARY KEY, generation_id VARCHAR(36) NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, repo_name VARCHAR(100) NOT NULL, source_system VARCHAR(50) NOT NULL, target_system VARCHAR(50) NOT NULL, business_object VARCHAR(100) NOT NULL, interface_type VARCHAR(10) NOT NULL CHECK (interface_type IN ('pub','sub','service')), template_type VARCHAR(200), cdm BOOLEAN DEFAULT FALSE, interface_id VARCHAR(50) DEFAULT 'NA', scenario_id VARCHAR(20) DEFAULT '1234', bitbucket_project VARCHAR(50), env VARCHAR(50) DEFAULT 'DEV', email VARCHAR(200), k8s_domain VARCHAR(50) DEFAULT 'cite', status VARCHAR(20) DEFAULT 'GENERATED' CHECK (status IN ('GENERATED','FAILED','DUPLICATE')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
+                "State": "51948436-c9ef-4912-9335-a2258b9f5f36CREATE TABLE IF NOT EXISTS generation_log (id SERIAL PRIMARY KEY, generation_id VARCHAR(36) NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, repo_name VARCHAR(100) NOT NULL, source_system VARCHAR(50) NOT NULL, target_system VARCHAR(50) NOT NULL, business_object VARCHAR(100) NOT NULL, interface_type VARCHAR(10) NOT NULL CHECK (interface_type IN ('pub','sub','service')), template_type VARCHAR(200), cdm BOOLEAN DEFAULT FALSE, interface_id VARCHAR(50) DEFAULT 'NA', scenario_id VARCHAR(20) DEFAULT '1234', bitbucket_project VARCHAR(50), env VARCHAR(50) DEFAULT 'DEV', email VARCHAR(200), k8s_domain VARCHAR(50) DEFAULT 'cite', status VARCHAR(20) DEFAULT 'GENERATED' CHECK (status IN ('GENERATED','FAILED','DUPLICATE')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
               },
               "schemas": {
                 "input": {
@@ -3562,7 +4036,7 @@
                 "chunkOverlap": 200,
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:lzlHKWsXAmAABWcI+Ay/myzbC+y5+w==",
+                "embeddingAPIKey": "SECRET:PEOxhO0STxIzpkyMCBR55/KOCaH20g==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
@@ -3625,7 +4099,7 @@
     {
       "name": "PostgreSQL.GenerationRegistry.Password",
       "type": "string",
-      "value": "SECRET:JX+EQNMlLSxi8lP3ZPgEiF6aBG34wytH"
+      "value": "SECRET:/bhW90Dc5kf43TfRce7x2cz+owhk5R7k"
     },
     {
       "name": "PostgreSQL.GenerationRegistry.Maximum_Open_Connections",
@@ -3743,47 +4217,47 @@
       "value": "config/ikd/ikd-interface-ids.json"
     },
     {
-      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Connection_Name",
+      "name": "VectorDB.WeaviateTemplateKB.Connection_Name",
       "type": "string",
       "value": "WeaviateTemplateKB"
     },
     {
-      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Host",
+      "name": "VectorDB.WeaviateTemplateKB.Host",
       "type": "string",
       "value": "localhost"
     },
     {
-      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Port",
+      "name": "VectorDB.WeaviateTemplateKB.Port",
       "type": "float64",
       "value": 18080
     },
     {
-      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].API_Key",
+      "name": "VectorDB.WeaviateTemplateKB.API_Key",
       "type": "string",
       "value": ""
     },
     {
-      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Secure_Connection",
+      "name": "VectorDB.WeaviateTemplateKB.Secure_Connection",
       "type": "boolean",
       "value": false
     },
     {
-      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Timeout_(seconds)",
+      "name": "VectorDB.WeaviateTemplateKB.Timeout_(seconds)",
       "type": "float64",
       "value": 30
     },
     {
-      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Max_Retries",
+      "name": "VectorDB.WeaviateTemplateKB.Max_Retries",
       "type": "float64",
       "value": 3
     },
     {
-      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Retry_Backoff_(ms)",
+      "name": "VectorDB.WeaviateTemplateKB.Retry_Backoff_(ms)",
       "type": "float64",
       "value": 500
     },
     {
-      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Configure_Embedding_Provider",
+      "name": "VectorDB.WeaviateTemplateKB.Configure_Embedding_Provider",
       "type": "boolean",
       "value": false
     }
@@ -4204,7 +4678,7 @@
                 "properties": {
                   "session_id": {
                     "type": "string",
-                    "description": "Optional â provide to resume an existing session"
+                    "description": "Optional \u00e2\u0080\u0094 provide to resume an existing session"
                   }
                 }
               },
