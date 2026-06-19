@@ -2039,9 +2039,9 @@
           {
             "id": 9,
             "from": "SelectTemplate",
-            "to": "RegisterGeneration",
+            "to": "ResolveTemplateName",
             "type": "label",
-            "label": "SelectTemplate to RegisterGeneration"
+            "label": "SelectTemplate to ResolveTemplateName"
           },
           {
             "id": 10,
@@ -2161,6 +2161,13 @@
             "type": "expression",
             "label": "Spec invalid",
             "value": "$activity[CheckValidation].output.is_valid == false"
+          },
+          {
+            "id": 26,
+            "from": "ResolveTemplateName",
+            "to": "RegisterGeneration",
+            "type": "label",
+            "label": "ResolveTemplateName to RegisterGeneration"
           }
         ],
         "tasks": [
@@ -2438,6 +2445,32 @@
             }
           },
           {
+            "id": "ResolveTemplateName",
+            "name": "ResolveTemplateName",
+            "description": "Resolves the actual template selected by the Weaviate vector search (sourceDocuments[0].id) and exposes it alongside the requested template_type. Falls back to the requested template when no match is returned.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "template_name": "=(coerce.toString($activity[SelectTemplate].sourceDocuments[0].id) != \"\") ? coerce.toString($activity[SelectTemplate].sourceDocuments[0].id) : coerce.toString($activity[NormalizeSpec].output.template_type)",
+                    "requested_template": "=coerce.toString($activity[NormalizeSpec].output.template_type)",
+                    "match_score": "=coerce.toString($activity[SelectTemplate].sourceDocuments[0].score)"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"template_name\": {\"type\": \"string\"}, \"requested_template\": {\"type\": \"string\"}, \"match_score\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"template_name\": {\"type\": \"string\"}, \"requested_template\": {\"type\": \"string\"}, \"match_score\": {\"type\": \"string\"}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
             "id": "RegisterGeneration",
             "name": "RegisterGeneration",
             "description": "Records the generation request in the PostgreSQL generation_log table.",
@@ -2636,7 +2669,7 @@
                   "mapping": {
                     "fileName": "=string.concat($property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/manifest.json\")",
                     "overwrite": true,
-                    "textContent": "=string.concat(\"{\\n  \\\"repo_name\\\": \\\"\", $activity[BuildRepoName].output.repo_name, \"\\\",\\n  \\\"bitbucket_url\\\": \\\"\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\\",\\n  \\\"template\\\": \\\"\", $activity[SelectTemplate].sourceDocuments[0].name, \"\\\",\\n  \\\"source_system\\\": \\\"\", $activity[NormalizeSpec].output.source_system, \"\\\",\\n  \\\"target_system\\\": \\\"\", $activity[NormalizeSpec].output.target_system, \"\\\",\\n  \\\"business_object\\\": \\\"\", $activity[NormalizeSpec].output.business_object, \"\\\",\\n  \\\"interface_type\\\": \\\"\", $activity[NormalizeSpec].output.interface_type, \"\\\",\\n  \\\"env\\\": \\\"\", $activity[NormalizeSpec].output.env, \"\\\",\\n  \\\"scaffold_command\\\": \\\"./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name, \"\\\"\\n}\")"
+                    "textContent": "=string.concat(\"{\\n  \\\"repo_name\\\": \\\"\", $activity[BuildRepoName].output.repo_name, \"\\\",\\n  \\\"bitbucket_url\\\": \\\"\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\\",\\n  \\\"template\\\": \\\"\", $activity[ResolveTemplateName].output.template_name, \"\\\",\\n  \\\"source_system\\\": \\\"\", $activity[NormalizeSpec].output.source_system, \"\\\",\\n  \\\"target_system\\\": \\\"\", $activity[NormalizeSpec].output.target_system, \"\\\",\\n  \\\"business_object\\\": \\\"\", $activity[NormalizeSpec].output.business_object, \"\\\",\\n  \\\"interface_type\\\": \\\"\", $activity[NormalizeSpec].output.interface_type, \"\\\",\\n  \\\"env\\\": \\\"\", $activity[NormalizeSpec].output.env, \"\\\",\\n  \\\"scaffold_command\\\": \\\"./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name, \"\\\"\\n}\")"
                   }
                 }
               },
@@ -2974,7 +3007,7 @@
                     "success": true,
                     "repo_name": "=$activity[BuildRepoName].output.repo_name",
                     "generation_id": "=$activity[NormalizeSpec].output.generation_id",
-                    "template_name": "=$activity[NormalizeSpec].output.template_type",
+                    "template_name": "=$activity[ResolveTemplateName].output.template_name",
                     "message": "Repository scaffolded successfully and registered.",
                     "shell_command": "=string.concat(\"git clone https://bitbucket.org/\", $activity[NormalizeSpec].output.bitbucket_project, \"/\", $activity[BuildRepoName].output.repo_name, \".git\")",
                     "source_system": "=$activity[NormalizeSpec].output.source_system",
@@ -2983,7 +3016,9 @@
                     "interface_type": "=$activity[NormalizeSpec].output.interface_type",
                     "env": "=$activity[NormalizeSpec].output.env",
                     "scenario_id": "=$activity[NormalizeSpec].output.scenario_id",
-                    "interface_id": "=$activity[NormalizeSpec].output.interface_id"
+                    "interface_id": "=$activity[NormalizeSpec].output.interface_id",
+                    "template_type": "=coerce.toString($activity[NormalizeSpec].output.template_type)",
+                    "template_match_score": "=$activity[ResolveTemplateName].output.match_score"
                   }
                 }
               },
