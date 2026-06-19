@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BWCE AI Integration Generator</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #151922;
+    --panel-2: #1c2230;
+    --border: #2a3142;
+    --txt: #e6e9ef;
+    --muted: #97a0b3;
+    --accent: #00e0a4;
+    --accent-2: #4a9eff;
+    --user: #243044;
+    --bot: #1a1f2b;
+    --danger: #ff6b6b;
+    --ok: #00e0a4;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--txt);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  header {
+    padding: 14px 20px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header .logo {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: #06131d;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 650; }
+  header .sub { color: var(--muted); font-size: 12px; margin-left: 2px; }
+  header .spacer { flex: 1; }
+  header button {
+    background: var(--panel-2); color: var(--muted);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; cursor: pointer; font-size: 13px;
+  }
+  header button:hover { color: var(--txt); border-color: var(--accent-2); }
+
+  main { flex: 1; display: flex; overflow: hidden; }
+
+  .chat {
+    flex: 1; display: flex; flex-direction: column;
+    border-right: 1px solid var(--border); min-width: 0;
+  }
+  .messages { flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { display: flex; gap: 10px; max-width: 80%; }
+  .msg .avatar {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+  }
+  .msg.bot { align-self: flex-start; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg .bubble { padding: 11px 14px; border-radius: 12px; line-height: 1.5; font-size: 14px; white-space: pre-wrap; word-wrap: break-word; }
+  .msg.bot .avatar { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06131d; }
+  .msg.bot .bubble { background: var(--bot); border: 1px solid var(--border); border-top-left-radius: 3px; }
+  .msg.user .avatar { background: var(--user); color: var(--txt); }
+  .msg.user .bubble { background: var(--user); border-top-right-radius: 3px; }
+
+  .composer { padding: 16px; border-top: 1px solid var(--border); background: var(--panel); display: flex; gap: 10px; }
+  .composer input {
+    flex: 1; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; color: var(--txt); font-size: 14px; outline: none;
+  }
+  .composer input:focus { border-color: var(--accent-2); }
+  .composer button {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06131d;
+    border: none; border-radius: 10px; padding: 0 20px; font-weight: 700; cursor: pointer; font-size: 14px;
+  }
+  .composer button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .side { width: 340px; flex-shrink: 0; overflow-y: auto; padding: 20px; background: var(--bg); }
+  .side h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 12px; }
+  .spec-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+  .field { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+  .field:last-child { border-bottom: none; }
+  .field .k { color: var(--muted); }
+  .field .v { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .field .v.empty { color: #5b6478; font-weight: 400; font-style: italic; }
+  .field .v.req-missing { color: var(--danger); }
+
+  .status { border-radius: 10px; padding: 12px 14px; font-size: 13px; margin-bottom: 14px; border: 1px solid var(--border); }
+  .status.waiting { background: rgba(74,158,255,0.08); border-color: rgba(74,158,255,0.3); color: var(--accent-2); }
+  .status.ready { background: rgba(0,224,164,0.08); border-color: rgba(0,224,164,0.35); color: var(--ok); }
+
+  .gen-btn {
+    width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06131d;
+    border: none; border-radius: 10px; padding: 12px; font-weight: 700; cursor: pointer; font-size: 14px; margin-bottom: 14px;
+  }
+  .gen-btn:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.4); }
+
+  .result { background: var(--panel); border: 1px solid var(--ok); border-radius: 12px; padding: 14px; font-size: 13px; }
+  .result .repo { font-family: ui-monospace, monospace; color: var(--ok); font-weight: 700; font-size: 15px; word-break: break-all; }
+  .result pre { background: #0a0c10; border: 1px solid var(--border); border-radius: 8px; padding: 10px; overflow-x: auto; font-size: 12px; color: var(--accent); margin: 10px 0 0; white-space: pre-wrap; word-break: break-all; }
+  .hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .typing { display: inline-flex; gap: 4px; align-items: center; }
+  .typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite both; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">AI</div>
+    <div>
+      <h1>BWCE AI Integration Generator</h1>
+      <div class="sub">Describe your integration in plain English — I'll build the repository.</div>
+    </div>
+    <div class="spacer"></div>
+    <button id="resetBtn">↻ New conversation</button>
+  </header>
+
+  <main>
+    <section class="chat">
+      <div class="messages" id="messages"></div>
+      <div class="composer">
+        <input id="input" type="text" placeholder="e.g. publish article data from S4HANA to Kafka" autocomplete="off" />
+        <button id="sendBtn">Send</button>
+      </div>
+    </section>
+
+    <aside class="side">
+      <h2>Integration Spec</h2>
+      <div id="status" class="status waiting">Collecting requirements…</div>
+      <button id="generateBtn" class="gen-btn" disabled>Generate Repository</button>
+      <div class="spec-card" id="specCard"></div>
+      <div id="resultBox"></div>
+      <p class="hint">Required fields: source system, target system, business object, interface type, and template.</p>
+    </aside>
+  </main>
+
+<script>
+  const REQUIRED = ["source_system", "target_system", "business_object", "interface_type", "template_type"];
+  const ALL_FIELDS = REQUIRED.concat(["cdm", "interface_id", "scenario_id", "bitbucket_project", "email", "env", "k8s_domain", "country_code", "unique_id"]);
+  const LABELS = {
+    source_system: "Source", target_system: "Target", business_object: "Object",
+    interface_type: "Interface", template_type: "Template", cdm: "CDM",
+    interface_id: "Interface ID", scenario_id: "Scenario ID", bitbucket_project: "Bitbucket",
+    email: "Email", env: "Env", k8s_domain: "K8s domain", country_code: "Country", unique_id: "Unique ID"
+  };
+
+  let sessionId = null;
+  let lastSpec = {};
+  let ready = false;
+
+  const messagesEl = document.getElementById("messages");
+  const inputEl = document.getElementById("input");
+  const sendBtn = document.getElementById("sendBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const generateBtn = document.getElementById("generateBtn");
+  const statusEl = document.getElementById("status");
+  const specCard = document.getElementById("specCard");
+  const resultBox = document.getElementById("resultBox");
+
+  function addMessage(text, who) {
+    const msg = document.createElement("div");
+    msg.className = "msg " + who;
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = who === "bot" ? "AI" : "You";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = text;
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    messagesEl.appendChild(msg);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return msg;
+  }
+
+  function showTyping() {
+    const msg = document.createElement("div");
+    msg.className = "msg bot";
+    msg.id = "typingIndicator";
+    msg.innerHTML = '<div class="avatar">AI</div><div class="bubble"><span class="typing"><span></span><span></span><span></span></span></div>';
+    messagesEl.appendChild(msg);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function hideTyping() {
+    const t = document.getElementById("typingIndicator");
+    if (t) t.remove();
+  }
+
+  function renderSpec(spec) {
+    lastSpec = spec || {};
+    specCard.innerHTML = "";
+    ALL_FIELDS.forEach(function (f) {
+      const val = (spec && spec[f] != null) ? String(spec[f]) : "";
+      const row = document.createElement("div");
+      row.className = "field";
+      const k = document.createElement("span");
+      k.className = "k";
+      k.textContent = LABELS[f] || f;
+      const v = document.createElement("span");
+      v.className = "v";
+      if (val === "" || val === "NA") {
+        v.textContent = val === "NA" ? "NA" : "—";
+        v.className = "v empty";
+        if (REQUIRED.indexOf(f) >= 0 && val === "") v.className = "v req-missing";
+      } else {
+        v.textContent = val;
+      }
+      row.appendChild(k);
+      row.appendChild(v);
+      specCard.appendChild(row);
+    });
+  }
+
+  function setStatus(missing, isReady) {
+    ready = isReady;
+    if (isReady) {
+      statusEl.className = "status ready";
+      statusEl.textContent = "✓ All required fields captured — ready to generate.";
+      generateBtn.disabled = false;
+    } else {
+      statusEl.className = "status waiting";
+      const miss = (missing && missing.length) ? missing.map(function (m) { return LABELS[m] || m; }).join(", ") : "…";
+      statusEl.textContent = "Still needed: " + miss;
+      generateBtn.disabled = true;
+    }
+  }
+
+  async function api(path, body) {
+    const res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {})
+    });
+    if (!res.ok) {
+      let detail = "";
+      try { detail = JSON.stringify(await res.json()); } catch (e) { detail = await res.text(); }
+      throw new Error("HTTP " + res.status + " " + detail);
+    }
+    return res.json();
+  }
+
+  async function initSession() {
+    messagesEl.innerHTML = "";
+    resultBox.innerHTML = "";
+    renderSpec({});
+    setStatus([], false);
+    try {
+      const data = await api("/api/chat/init", {});
+      sessionId = data.session_id;
+      addMessage(data.message || "Hello! Describe the integration you need.", "bot");
+    } catch (e) {
+      addMessage("Could not start a session: " + e.message, "bot");
+    }
+  }
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text || !sessionId) return;
+    inputEl.value = "";
+    addMessage(text, "user");
+    sendBtn.disabled = true;
+    showTyping();
+    try {
+      const data = await api("/api/chat/message", { session_id: sessionId, message: text });
+      hideTyping();
+      addMessage(data.message || "(no response)", "bot");
+      if (data.spec) renderSpec(data.spec);
+      setStatus(data.missing_fields || [], !!data.ready_to_generate);
+    } catch (e) {
+      hideTyping();
+      addMessage("Error: " + e.message, "bot");
+    } finally {
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+
+  async function generate() {
+    if (!ready) return;
+    generateBtn.disabled = true;
+    generateBtn.textContent = "Generating…";
+    resultBox.innerHTML = "";
+    try {
+      const data = await api("/generate", { spec: lastSpec });
+      if (data.success) {
+        resultBox.innerHTML =
+          '<div class="result"><div>✓ Repository generated</div>' +
+          '<div class="repo">' + (data.repo_name || "") + '</div>' +
+          (data.generation_id ? '<div class="hint" style="margin-top:6px">ID: ' + data.generation_id + '</div>' : '') +
+          (data.shell_command ? '<pre>' + data.shell_command + '</pre>' : '') +
+          '</div>';
+        addMessage("Done! I generated the repository '" + data.repo_name + "'.", "bot");
+      } else if (data.duplicate) {
+        resultBox.innerHTML = '<div class="result" style="border-color:var(--accent-2)"><div>This repository already exists.</div><div class="repo">' + (data.repo_name || "") + '</div></div>';
+        addMessage("That repository already exists: " + data.repo_name, "bot");
+      } else {
+        resultBox.innerHTML = '<div class="result" style="border-color:var(--danger)"><div>' + (data.message || data.error || "Generation failed") + '</div></div>';
+      }
+    } catch (e) {
+      resultBox.innerHTML = '<div class="result" style="border-color:var(--danger)"><div>Error: ' + e.message + '</div></div>';
+    } finally {
+      generateBtn.textContent = "Generate Repository";
+      generateBtn.disabled = !ready;
+    }
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  inputEl.addEventListener("keydown", function (e) { if (e.key === "Enter") sendMessage(); });
+  resetBtn.addEventListener("click", initSession);
+  generateBtn.addEventListener("click", generate);
+
+  initSession();
+</script>
+</body>
+</html>
