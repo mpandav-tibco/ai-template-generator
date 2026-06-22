@@ -10,17 +10,28 @@ CREATE TABLE IF NOT EXISTS generation_log (
     business_object VARCHAR(100) NOT NULL,
     interface_type  VARCHAR(10)  NOT NULL CHECK (interface_type IN ('pub', 'sub', 'service')),
     template_type   VARCHAR(200),
+    template_name   VARCHAR(200),
     cdm             BOOLEAN      DEFAULT FALSE,
+    need_secret     BOOLEAN      DEFAULT FALSE,
     interface_id    VARCHAR(50)  DEFAULT 'NA',
     scenario_id     VARCHAR(20)  DEFAULT '1234',
     bitbucket_project VARCHAR(50),
     env             VARCHAR(50)  DEFAULT 'DEV',
     email           VARCHAR(200),
     k8s_domain      VARCHAR(50)  DEFAULT 'cite',
+    country_code    VARCHAR(10)  DEFAULT 'NA',
+    unique_id       VARCHAR(50)  DEFAULT 'NA',
     status          VARCHAR(20)  DEFAULT 'GENERATED' CHECK (status IN ('GENERATED', 'FAILED', 'DUPLICATE')),
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ  DEFAULT NOW()
 );
+
+-- Idempotent migration: add columns to pre-existing generation_log tables
+ALTER TABLE generation_log
+    ADD COLUMN IF NOT EXISTS template_name VARCHAR(200),
+    ADD COLUMN IF NOT EXISTS need_secret   BOOLEAN     DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS country_code  VARCHAR(10) DEFAULT 'NA',
+    ADD COLUMN IF NOT EXISTS unique_id     VARCHAR(50) DEFAULT 'NA';
 
 CREATE INDEX IF NOT EXISTS idx_generation_repo_name ON generation_log(repo_name);
 CREATE INDEX IF NOT EXISTS idx_generation_created_at ON generation_log(created_at DESC);

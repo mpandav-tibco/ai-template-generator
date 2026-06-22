@@ -2486,7 +2486,7 @@
                 "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
                 "QueryName": "",
                 "Schema": "public",
-                "Query": "INSERT INTO public.generation_log(generation_id, repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?generation_id, ?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
+                "Query": "INSERT INTO public.generation_log(generation_id, repo_name, source_system, target_system, business_object, interface_type, template_type, template_name, cdm, need_secret, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, country_code, unique_id, status)\n\tVALUES (?generation_id, ?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?template_name, ?cdm, ?need_secret, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?country_code, ?unique_id, ?status);",
                 "manualmode": false,
                 "Fields": [
                   {
@@ -2546,7 +2546,23 @@
                     "Value": true
                   },
                   {
+                    "FieldName": "template_name",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
                     "FieldName": "cdm",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "need_secret",
                     "Type": "VARCHAR",
                     "Selected": false,
                     "Parameter": true,
@@ -2602,6 +2618,22 @@
                     "Value": true
                   },
                   {
+                    "FieldName": "country_code",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "unique_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
                     "FieldName": "status",
                     "Type": "VARCHAR",
                     "Selected": false,
@@ -2630,7 +2662,11 @@
                         "env": "=$activity[NormalizeSpec].output.env",
                         "email": "=$activity[NormalizeSpec].output.email",
                         "k8s_domain": "=$activity[NormalizeSpec].output.k8s_domain",
-                        "status": "GENERATED"
+                        "status": "GENERATED",
+                        "template_name": "=$activity[ResolveTemplateName].output.template_name",
+                        "need_secret": "=$activity[NormalizeSpec].output.need_secret",
+                        "country_code": "=$activity[NormalizeSpec].output.country_code",
+                        "unique_id": "=$activity[NormalizeSpec].output.unique_id"
                       }
                     ]
                   }
@@ -2640,8 +2676,8 @@
                 "input": {
                   "input": {
                     "type": "json",
-                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"values\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"string\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}}},\"parameters\":{\"type\":\"object\",\"properties\":{}}}}",
-                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"values\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"string\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}}},\"parameters\":{\"type\":\"object\",\"properties\":{}}}}"
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"values\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"template_name\": {\"type\": \"string\"}, \"need_secret\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}}, \"parameters\": {\"type\": \"object\", \"properties\": {}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"values\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"template_name\": {\"type\": \"string\"}, \"need_secret\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}}, \"parameters\": {\"type\": \"object\", \"properties\": {}}}}"
                   }
                 },
                 "output": {
@@ -2669,7 +2705,7 @@
                   "mapping": {
                     "fileName": "=string.concat($property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/manifest.json\")",
                     "overwrite": true,
-                    "textContent": "=string.concat(\"{\\n  \\\"repo_name\\\": \\\"\", $activity[BuildRepoName].output.repo_name, \"\\\",\\n  \\\"bitbucket_url\\\": \\\"\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\\",\\n  \\\"template\\\": \\\"\", $activity[ResolveTemplateName].output.template_name, \"\\\",\\n  \\\"source_system\\\": \\\"\", $activity[NormalizeSpec].output.source_system, \"\\\",\\n  \\\"target_system\\\": \\\"\", $activity[NormalizeSpec].output.target_system, \"\\\",\\n  \\\"business_object\\\": \\\"\", $activity[NormalizeSpec].output.business_object, \"\\\",\\n  \\\"interface_type\\\": \\\"\", $activity[NormalizeSpec].output.interface_type, \"\\\",\\n  \\\"env\\\": \\\"\", $activity[NormalizeSpec].output.env, \"\\\",\\n  \\\"scaffold_command\\\": \\\"./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name, \"\\\"\\n}\")"
+                    "textContent": "=string.concat(\"{\\n  \\\"repo_name\\\": \\\"\", $activity[BuildRepoName].output.repo_name, \"\\\",\\n  \\\"bitbucket_url\\\": \\\"\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\\",\\n  \\\"template\\\": \\\"\", $activity[ResolveTemplateName].output.template_name, \"\\\",\\n  \\\"source_system\\\": \\\"\", $activity[NormalizeSpec].output.source_system, \"\\\",\\n  \\\"target_system\\\": \\\"\", $activity[NormalizeSpec].output.target_system, \"\\\",\\n  \\\"business_object\\\": \\\"\", $activity[NormalizeSpec].output.business_object, \"\\\",\\n  \\\"interface_type\\\": \\\"\", $activity[NormalizeSpec].output.interface_type, \"\\\",\\n  \\\"env\\\": \\\"\", $activity[NormalizeSpec].output.env, \"\\\",\\n  \\\"country_code\\\": \\\"\", $activity[NormalizeSpec].output.country_code, \"\\\",\\n  \\\"unique_id\\\": \\\"\", $activity[NormalizeSpec].output.unique_id, \"\\\",\\n  \\\"need_secret\\\": \", coerce.toString($activity[NormalizeSpec].output.need_secret), \",\\n  \\\"scaffold_command\\\": \\\"./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name, \"\\\"\\n}\")"
                   }
                 }
               },
@@ -3018,7 +3054,10 @@
                     "scenario_id": "=$activity[NormalizeSpec].output.scenario_id",
                     "interface_id": "=$activity[NormalizeSpec].output.interface_id",
                     "template_type": "=coerce.toString($activity[NormalizeSpec].output.template_type)",
-                    "template_match_score": "=$activity[ResolveTemplateName].output.match_score"
+                    "template_match_score": "=$activity[ResolveTemplateName].output.match_score",
+                    "need_secret": "=$activity[NormalizeSpec].output.need_secret",
+                    "country_code": "=$activity[NormalizeSpec].output.country_code",
+                    "unique_id": "=$activity[NormalizeSpec].output.unique_id"
                   }
                 }
               },
