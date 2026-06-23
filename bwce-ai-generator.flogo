@@ -296,7 +296,7 @@
           },
           "reply": {
             "code": 200,
-            "configureResponseCodes": false,
+            "configureResponseCodes": true,
             "message": ""
           },
           "schemas": {
@@ -352,7 +352,7 @@
           },
           "reply": {
             "code": 200,
-            "configureResponseCodes": false,
+            "configureResponseCodes": true,
             "message": ""
           },
           "schemas": {
@@ -413,7 +413,7 @@
           },
           "reply": {
             "code": 200,
-            "configureResponseCodes": false,
+            "configureResponseCodes": true,
             "message": ""
           },
           "schemas": {
@@ -474,7 +474,7 @@
           },
           "reply": {
             "code": 200,
-            "configureResponseCodes": false,
+            "configureResponseCodes": true,
             "message": ""
           },
           "schemas": {
@@ -535,7 +535,7 @@
           },
           "reply": {
             "code": 200,
-            "configureResponseCodes": false,
+            "configureResponseCodes": true,
             "message": ""
           },
           "schemas": {
@@ -1012,7 +1012,94 @@
             "input": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"content\":{\"type\":\"object\",\"properties\":{}}}}"
           }
         },
-        "explicitReply": true
+        "explicitReply": true,
+        "errorHandler": {
+          "tasks": [
+            {
+              "id": "LogError",
+              "name": "LogError",
+              "description": "Logs the unhandled flow error (activity, code, message).",
+              "activity": {
+                "ref": "#log",
+                "input": {
+                  "Log Level": "ERROR",
+                  "flowInfo": true,
+                  "message": "=string.concat(\"[ERROR] api_templates_GET failed at activity \", coerce.toString($error.activity), \" (code \", coerce.toString($error.code), \"): \", coerce.toString($error.message))",
+                  "logLevel": ""
+                }
+              }
+            },
+            {
+              "id": "BuildError",
+              "name": "BuildError",
+              "description": "Builds the structured HTTP 500 error body from the flow error.",
+              "activity": {
+                "ref": "#mapper",
+                "input": {
+                  "input": {
+                    "mapping": {
+                      "success": false,
+                      "error": "INTERNAL_ERROR",
+                      "message": "=coerce.toString($error.message)",
+                      "activity": "=coerce.toString($error.activity)",
+                      "code": "=coerce.toString($error.code)"
+                    }
+                  }
+                },
+                "schemas": {
+                  "output": {
+                    "output": {
+                      "type": "json",
+                      "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}",
+                      "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "id": "ReplyError",
+              "name": "ReplyError",
+              "description": "Returns HTTP 500 with the structured error body.",
+              "activity": {
+                "ref": "#actreply",
+                "input": {
+                  "reply": {
+                    "mapping": {
+                      "code": 500,
+                      "data": "=$activity[BuildError].output"
+                    }
+                  }
+                },
+                "schemas": {
+                  "input": {
+                    "reply": {
+                      "type": "json",
+                      "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                      "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "id": 1,
+              "from": "LogError",
+              "to": "BuildError",
+              "type": "label",
+              "label": "LogError to BuildError"
+            },
+            {
+              "id": 2,
+              "from": "BuildError",
+              "to": "ReplyError",
+              "type": "label",
+              "label": "BuildError to ReplyError"
+            }
+          ]
+        }
       }
     },
     {
@@ -1207,7 +1294,94 @@
             "input": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"content\":{\"type\":\"object\",\"properties\":{}}}}"
           }
         },
-        "explicitReply": true
+        "explicitReply": true,
+        "errorHandler": {
+          "tasks": [
+            {
+              "id": "LogError",
+              "name": "LogError",
+              "description": "Logs the unhandled flow error (activity, code, message).",
+              "activity": {
+                "ref": "#log",
+                "input": {
+                  "Log Level": "ERROR",
+                  "flowInfo": true,
+                  "message": "=string.concat(\"[ERROR] api_chat/init_POST failed at activity \", coerce.toString($error.activity), \" (code \", coerce.toString($error.code), \"): \", coerce.toString($error.message))",
+                  "logLevel": ""
+                }
+              }
+            },
+            {
+              "id": "BuildError",
+              "name": "BuildError",
+              "description": "Builds the structured HTTP 500 error body from the flow error.",
+              "activity": {
+                "ref": "#mapper",
+                "input": {
+                  "input": {
+                    "mapping": {
+                      "success": false,
+                      "error": "INTERNAL_ERROR",
+                      "message": "=coerce.toString($error.message)",
+                      "activity": "=coerce.toString($error.activity)",
+                      "code": "=coerce.toString($error.code)"
+                    }
+                  }
+                },
+                "schemas": {
+                  "output": {
+                    "output": {
+                      "type": "json",
+                      "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}",
+                      "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "id": "ReplyError",
+              "name": "ReplyError",
+              "description": "Returns HTTP 500 with the structured error body.",
+              "activity": {
+                "ref": "#actreply",
+                "input": {
+                  "reply": {
+                    "mapping": {
+                      "code": 500,
+                      "data": "=$activity[BuildError].output"
+                    }
+                  }
+                },
+                "schemas": {
+                  "input": {
+                    "reply": {
+                      "type": "json",
+                      "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                      "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "id": 1,
+              "from": "LogError",
+              "to": "BuildError",
+              "type": "label",
+              "label": "LogError to BuildError"
+            },
+            {
+              "id": 2,
+              "from": "BuildError",
+              "to": "ReplyError",
+              "type": "label",
+              "label": "BuildError to ReplyError"
+            }
+          ]
+        }
       }
     },
     {
@@ -1859,7 +2033,94 @@
             "input": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"content\":{\"type\":\"object\",\"properties\":{}}}}"
           }
         },
-        "explicitReply": true
+        "explicitReply": true,
+        "errorHandler": {
+          "tasks": [
+            {
+              "id": "LogError",
+              "name": "LogError",
+              "description": "Logs the unhandled flow error (activity, code, message).",
+              "activity": {
+                "ref": "#log",
+                "input": {
+                  "Log Level": "ERROR",
+                  "flowInfo": true,
+                  "message": "=string.concat(\"[ERROR] api_chat/message_POST failed at activity \", coerce.toString($error.activity), \" (code \", coerce.toString($error.code), \"): \", coerce.toString($error.message))",
+                  "logLevel": ""
+                }
+              }
+            },
+            {
+              "id": "BuildError",
+              "name": "BuildError",
+              "description": "Builds the structured HTTP 500 error body from the flow error.",
+              "activity": {
+                "ref": "#mapper",
+                "input": {
+                  "input": {
+                    "mapping": {
+                      "success": false,
+                      "error": "INTERNAL_ERROR",
+                      "message": "=coerce.toString($error.message)",
+                      "activity": "=coerce.toString($error.activity)",
+                      "code": "=coerce.toString($error.code)"
+                    }
+                  }
+                },
+                "schemas": {
+                  "output": {
+                    "output": {
+                      "type": "json",
+                      "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}",
+                      "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "id": "ReplyError",
+              "name": "ReplyError",
+              "description": "Returns HTTP 500 with the structured error body.",
+              "activity": {
+                "ref": "#actreply",
+                "input": {
+                  "reply": {
+                    "mapping": {
+                      "code": 500,
+                      "data": "=$activity[BuildError].output"
+                    }
+                  }
+                },
+                "schemas": {
+                  "input": {
+                    "reply": {
+                      "type": "json",
+                      "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                      "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "id": 1,
+              "from": "LogError",
+              "to": "BuildError",
+              "type": "label",
+              "label": "LogError to BuildError"
+            },
+            {
+              "id": 2,
+              "from": "BuildError",
+              "to": "ReplyError",
+              "type": "label",
+              "label": "BuildError to ReplyError"
+            }
+          ]
+        }
       }
     },
     {
@@ -2038,7 +2299,94 @@
             "input": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"content\":{\"type\":\"object\",\"properties\":{}}}}"
           }
         },
-        "explicitReply": true
+        "explicitReply": true,
+        "errorHandler": {
+          "tasks": [
+            {
+              "id": "LogError",
+              "name": "LogError",
+              "description": "Logs the unhandled flow error (activity, code, message).",
+              "activity": {
+                "ref": "#log",
+                "input": {
+                  "Log Level": "ERROR",
+                  "flowInfo": true,
+                  "message": "=string.concat(\"[ERROR] api_chat/reset_POST failed at activity \", coerce.toString($error.activity), \" (code \", coerce.toString($error.code), \"): \", coerce.toString($error.message))",
+                  "logLevel": ""
+                }
+              }
+            },
+            {
+              "id": "BuildError",
+              "name": "BuildError",
+              "description": "Builds the structured HTTP 500 error body from the flow error.",
+              "activity": {
+                "ref": "#mapper",
+                "input": {
+                  "input": {
+                    "mapping": {
+                      "success": false,
+                      "error": "INTERNAL_ERROR",
+                      "message": "=coerce.toString($error.message)",
+                      "activity": "=coerce.toString($error.activity)",
+                      "code": "=coerce.toString($error.code)"
+                    }
+                  }
+                },
+                "schemas": {
+                  "output": {
+                    "output": {
+                      "type": "json",
+                      "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}",
+                      "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "id": "ReplyError",
+              "name": "ReplyError",
+              "description": "Returns HTTP 500 with the structured error body.",
+              "activity": {
+                "ref": "#actreply",
+                "input": {
+                  "reply": {
+                    "mapping": {
+                      "code": 500,
+                      "data": "=$activity[BuildError].output"
+                    }
+                  }
+                },
+                "schemas": {
+                  "input": {
+                    "reply": {
+                      "type": "json",
+                      "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                      "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "id": 1,
+              "from": "LogError",
+              "to": "BuildError",
+              "type": "label",
+              "label": "LogError to BuildError"
+            },
+            {
+              "id": 2,
+              "from": "BuildError",
+              "to": "ReplyError",
+              "type": "label",
+              "label": "BuildError to ReplyError"
+            }
+          ]
+        }
       }
     },
     {
@@ -2377,7 +2725,94 @@
             "input": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"content\":{\"type\":\"object\",\"properties\":{}}}}"
           }
         },
-        "explicitReply": true
+        "explicitReply": true,
+        "errorHandler": {
+          "tasks": [
+            {
+              "id": "LogError",
+              "name": "LogError",
+              "description": "Logs the unhandled flow error (activity, code, message).",
+              "activity": {
+                "ref": "#log",
+                "input": {
+                  "Log Level": "ERROR",
+                  "flowInfo": true,
+                  "message": "=string.concat(\"[ERROR] extract_POST failed at activity \", coerce.toString($error.activity), \" (code \", coerce.toString($error.code), \"): \", coerce.toString($error.message))",
+                  "logLevel": ""
+                }
+              }
+            },
+            {
+              "id": "BuildError",
+              "name": "BuildError",
+              "description": "Builds the structured HTTP 500 error body from the flow error.",
+              "activity": {
+                "ref": "#mapper",
+                "input": {
+                  "input": {
+                    "mapping": {
+                      "success": false,
+                      "error": "INTERNAL_ERROR",
+                      "message": "=coerce.toString($error.message)",
+                      "activity": "=coerce.toString($error.activity)",
+                      "code": "=coerce.toString($error.code)"
+                    }
+                  }
+                },
+                "schemas": {
+                  "output": {
+                    "output": {
+                      "type": "json",
+                      "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}",
+                      "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "id": "ReplyError",
+              "name": "ReplyError",
+              "description": "Returns HTTP 500 with the structured error body.",
+              "activity": {
+                "ref": "#actreply",
+                "input": {
+                  "reply": {
+                    "mapping": {
+                      "code": 500,
+                      "data": "=$activity[BuildError].output"
+                    }
+                  }
+                },
+                "schemas": {
+                  "input": {
+                    "reply": {
+                      "type": "json",
+                      "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                      "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "id": 1,
+              "from": "LogError",
+              "to": "BuildError",
+              "type": "label",
+              "label": "LogError to BuildError"
+            },
+            {
+              "id": 2,
+              "from": "BuildError",
+              "to": "ReplyError",
+              "type": "label",
+              "label": "BuildError to ReplyError"
+            }
+          ]
+        }
       }
     },
     {
@@ -3665,7 +4100,94 @@
             "input": "{\"type\":\"object\",\"title\":\"BWCEAIIntegrationGenerator\",\"properties\":{\"headers\":{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]},\"requestURI\":{\"type\":\"string\",\"required\":false},\"method\":{\"type\":\"string\",\"required\":false}}}"
           }
         },
-        "explicitReply": true
+        "explicitReply": true,
+        "errorHandler": {
+          "tasks": [
+            {
+              "id": "LogError",
+              "name": "LogError",
+              "description": "Logs the unhandled flow error (activity, code, message).",
+              "activity": {
+                "ref": "#log",
+                "input": {
+                  "Log Level": "ERROR",
+                  "flowInfo": true,
+                  "message": "=string.concat(\"[ERROR] generate_POST failed at activity \", coerce.toString($error.activity), \" (code \", coerce.toString($error.code), \"): \", coerce.toString($error.message))",
+                  "logLevel": ""
+                }
+              }
+            },
+            {
+              "id": "BuildError",
+              "name": "BuildError",
+              "description": "Builds the structured HTTP 500 error body from the flow error.",
+              "activity": {
+                "ref": "#mapper",
+                "input": {
+                  "input": {
+                    "mapping": {
+                      "success": false,
+                      "error": "INTERNAL_ERROR",
+                      "message": "=coerce.toString($error.message)",
+                      "activity": "=coerce.toString($error.activity)",
+                      "code": "=coerce.toString($error.code)"
+                    }
+                  }
+                },
+                "schemas": {
+                  "output": {
+                    "output": {
+                      "type": "json",
+                      "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}",
+                      "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"activity\": {\"type\": \"string\"}, \"code\": {\"type\": \"string\"}}}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "id": "ReplyError",
+              "name": "ReplyError",
+              "description": "Returns HTTP 500 with the structured error body.",
+              "activity": {
+                "ref": "#actreply",
+                "input": {
+                  "reply": {
+                    "mapping": {
+                      "code": 500,
+                      "data": "=$activity[BuildError].output"
+                    }
+                  }
+                },
+                "schemas": {
+                  "input": {
+                    "reply": {
+                      "type": "json",
+                      "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
+                      "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "id": 1,
+              "from": "LogError",
+              "to": "BuildError",
+              "type": "label",
+              "label": "LogError to BuildError"
+            },
+            {
+              "id": 2,
+              "from": "BuildError",
+              "to": "ReplyError",
+              "type": "label",
+              "label": "BuildError to ReplyError"
+            }
+          ]
+        }
       }
     },
     {
