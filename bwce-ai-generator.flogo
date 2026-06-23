@@ -1233,7 +1233,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "75742b17-f8ed-4430-9675-6d088647572cINSERT INTO public.chat_session(session_id, status, message) VALUES (?session_id, ?status, ?message) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, updated_at = NOW();",
+                "State": "c0474726-adac-4ecf-b8f9-53f67fee431dINSERT INTO public.chat_session(session_id, status, message) VALUES (?session_id, ?status, ?message) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, updated_at = NOW();",
                 "input": {
                   "mapping": {
                     "values": [
@@ -1648,7 +1648,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "71e0fe36-e9f8-4253-b181-7acd2316a786SELECT session_id, status, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate FROM public.chat_session WHERE session_id = ?session_id;",
+                "State": "a30c1b9b-b1a1-4502-94ed-8f9cee968532SELECT session_id, status, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate FROM public.chat_session WHERE session_id = ?session_id;",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -1708,7 +1708,7 @@
                 "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:M+pvKWfu/O+I7zbJ5AMqxctCdyOHLg==",
+                "embeddingAPIKey": "SECRET:jB0SFBx3H99F6Egxoi96RlvJHWX/1g==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
@@ -2094,7 +2094,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "8141e52c-487d-4048-8815-a1c8531e6d45INSERT INTO public.chat_session(session_id, status, message, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate, updated_at) VALUES (?session_id, ?status, ?message, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?email, ?env, ?k8s_domain, ?country_code, ?unique_id, ?missing_fields, ?ready_to_generate, NOW()) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, source_system = EXCLUDED.source_system, target_system = EXCLUDED.target_system, business_object = EXCLUDED.business_object, interface_type = EXCLUDED.interface_type, template_type = EXCLUDED.template_type, cdm = EXCLUDED.cdm, interface_id = EXCLUDED.interface_id, scenario_id = EXCLUDED.scenario_id, bitbucket_project = EXCLUDED.bitbucket_project, email = EXCLUDED.email, env = EXCLUDED.env, k8s_domain = EXCLUDED.k8s_domain, country_code = EXCLUDED.country_code, unique_id = EXCLUDED.unique_id, missing_fields = EXCLUDED.missing_fields, ready_to_generate = EXCLUDED.ready_to_generate, updated_at = NOW();",
+                "State": "c20cd560-cc3b-4950-bf1a-a7f331a462e7INSERT INTO public.chat_session(session_id, status, message, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate, updated_at) VALUES (?session_id, ?status, ?message, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?email, ?env, ?k8s_domain, ?country_code, ?unique_id, ?missing_fields, ?ready_to_generate, NOW()) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, source_system = EXCLUDED.source_system, target_system = EXCLUDED.target_system, business_object = EXCLUDED.business_object, interface_type = EXCLUDED.interface_type, template_type = EXCLUDED.template_type, cdm = EXCLUDED.cdm, interface_id = EXCLUDED.interface_id, scenario_id = EXCLUDED.scenario_id, bitbucket_project = EXCLUDED.bitbucket_project, email = EXCLUDED.email, env = EXCLUDED.env, k8s_domain = EXCLUDED.k8s_domain, country_code = EXCLUDED.country_code, unique_id = EXCLUDED.unique_id, missing_fields = EXCLUDED.missing_fields, ready_to_generate = EXCLUDED.ready_to_generate, updated_at = NOW();",
                 "input": {
                   "mapping": {
                     "values": [
@@ -2349,7 +2349,7 @@
                     "isEditable": false
                   }
                 ],
-                "State": "b53b8098-9920-48ab-8f13-40ff97ae4860DELETE FROM public.chat_session WHERE session_id = ?session_id;",
+                "State": "d40fffb9-3b56-41c6-a970-8f39edb758b4DELETE FROM public.chat_session WHERE session_id = ?session_id;",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -2675,7 +2675,7 @@
                 "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:DxZANvHxhVmELLmzf+HstHkCqRGMeQ==",
+                "embeddingAPIKey": "SECRET:tro+3WNqx1jB2Q7ycp3EWElqm4PvaA==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
@@ -3318,9 +3318,9 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "interface_id_valid": "(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id))",
-                    "scenario_id_valid": "(!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))",
-                    "ikd_valid": "(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id)) && (!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))"
+                    "interface_id_valid": "=(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id))",
+                    "scenario_id_valid": "=(!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))",
+                    "ikd_valid": "=(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id)) && (!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))"
                   }
                 }
               },
@@ -3393,7 +3393,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "05a86c49-841a-4207-be88-0a9cec758e07SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "State": "8da74599-f3a2-4f86-acf3-baa251dc542dSELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -3431,7 +3431,7 @@
                 "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:24DF6ixtQT2jGDFRgSjC3CP19e5efw==",
+                "embeddingAPIKey": "SECRET:KKt8q/1TlP5/Ub1QNSxvJFtvDKmgKw==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
@@ -3659,7 +3659,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "f61ab04e-b84c-488f-aef7-f7783e5a477cINSERT INTO public.generation_log(generation_id, repo_name, source_system, target_system, business_object, interface_type, template_type, template_name, cdm, need_secret, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, country_code, unique_id, status)\n\tVALUES (?generation_id, ?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?template_name, ?cdm, ?need_secret, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?country_code, ?unique_id, ?status);",
+                "State": "7a00b015-7c8e-4bf4-b584-d670eb03f528INSERT INTO public.generation_log(generation_id, repo_name, source_system, target_system, business_object, interface_type, template_type, template_name, cdm, need_secret, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, country_code, unique_id, status)\n\tVALUES (?generation_id, ?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?template_name, ?cdm, ?need_secret, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?country_code, ?unique_id, ?status);",
                 "input": {
                   "mapping": {
                     "values": [
@@ -4205,12 +4205,11 @@
                 }
               },
               "schemas": {
+                "input": {
+                  "input": "schema://ValidationErrorResponse"
+                },
                 "output": {
-                  "output": {
-                    "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"error_count\": {\"type\": \"integer\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"error_count\": {\"type\": \"integer\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}"
-                  }
+                  "output": "schema://ValidationErrorResponse"
                 }
               },
               "feSchemaMap": {}
@@ -4243,7 +4242,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIk5vcm1hbGl6ZVNwZWMiOnsieCI6MjUwLCJ5IjoxNTB9LCJWYWxpZGF0ZVNwZWMiOnsieCI6NDUwLCJ5Ijo0NX0sIkdldElLREludGVyZmFjZXMiOnsieCI6NjUwLCJ5Ijo0NX0sIkdldElLRFNjZW5hcmlvcyI6eyJ4Ijo4NTAsInkiOjQ1fSwiQ3Jvc3NDaGVja0lLRCI6eyJ4IjoxMDUwLCJ5Ijo0NX0sIkJ1aWxkUmVwb05hbWUiOnsieCI6ODg5LCJ5IjoyMDR9LCJDaGVja0R1cGxpY2F0ZSI6eyJ4IjoxMTMyLCJ5IjoxOTR9LCJTZWxlY3RUZW1wbGF0ZSI6eyJ4IjoxMzUwLCJ5IjoxODh9LCJSZXNvbHZlVGVtcGxhdGVOYW1lIjp7IngiOjE0NTUsInkiOjMwMH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxNTYxLCJ5IjoxODZ9LCJTY2FmZm9sZFJlcG8iOnsieCI6ODk1LCJ5Ijo0NDN9LCJTY2FmZm9sZFJlYWRtZSI6eyJ4Ijo4OTUsInkiOjU2MH0sIlNjYWZmb2xkUGlwZWxpbmUiOnsieCI6MTA5NSwieSI6NTYwfSwiU2NhZmZvbGREb2NrZXJmaWxlIjp7IngiOjEyOTUsInkiOjU2MH0sIlNjYWZmb2xkSzhzIjp7IngiOjE0OTUsInkiOjU2MH0sIkJ1aWxkRW1haWxQYXJ0cyI6eyJ4IjoxNDk1LCJ5Ijo2OTB9LCJCdWlsZEVtYWlsQXR0YWNobWVudCI6eyJ4IjoxMzAwLCJ5Ijo0OTh9LCJTZW5kTm90aWZpY2F0aW9uIjp7IngiOjExMDcsInkiOjQzNX0sIkJ1aWxkR2VuZXJhdGVSZXNwb25zZSI6eyJ4IjoxMDAwLCJ5IjozMjB9LCJSZXBseV90b19BUEkiOnsieCI6ODAwLCJ5IjozMjB9LCJCdWlsZER1cGxpY2F0ZVJlc3BvbnNlIjp7IngiOjEzNTYsInkiOjI5MH0sIlJlcGx5RHVwbGljYXRlIjp7IngiOjE1NTYsInkiOjI4NX0sIkJ1aWxkSUtERXJyb3JSZXNwb25zZSI6eyJ4IjoxMjU2LCJ5Ijo0NH0sIlJlcGx5SUtERXJyb3IiOnsieCI6MTUwMiwieSI6NDZ9LCJCdWlsZFZhbGlkYXRpb25FcnJvciI6eyJ4Ijo0NTAsInkiOjMwMH0sIlJlcGx5VmFsaWRhdGlvbkVycm9yIjp7IngiOjY1MCwieSI6MzAwfX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIk5vcm1hbGl6ZVNwZWMiOnsieCI6MjUwLCJ5IjoxNTB9LCJWYWxpZGF0ZVNwZWMiOnsieCI6NDUwLCJ5Ijo0NX0sIkdldElLREludGVyZmFjZXMiOnsieCI6NjUwLCJ5Ijo0NX0sIkdldElLRFNjZW5hcmlvcyI6eyJ4Ijo4NTAsInkiOjQ1fSwiQ3Jvc3NDaGVja0lLRCI6eyJ4IjoxMDUwLCJ5Ijo0NX0sIkJ1aWxkUmVwb05hbWUiOnsieCI6ODg5LCJ5IjoyMDR9LCJDaGVja0R1cGxpY2F0ZSI6eyJ4IjoxMTMyLCJ5IjoxOTR9LCJTZWxlY3RUZW1wbGF0ZSI6eyJ4IjoxMzUwLCJ5IjoxODh9LCJSZXNvbHZlVGVtcGxhdGVOYW1lIjp7IngiOjE0NTUsInkiOjMwMH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxNTYxLCJ5IjoxODZ9LCJTY2FmZm9sZFJlcG8iOnsieCI6NjUyLCJ5Ijo0Mzl9LCJTY2FmZm9sZFJlYWRtZSI6eyJ4Ijo2MzEsInkiOjYyMH0sIlNjYWZmb2xkUGlwZWxpbmUiOnsieCI6MTAyNCwieSI6NzYxfSwiU2NhZmZvbGREb2NrZXJmaWxlIjp7IngiOjEyOTEsInkiOjc2MH0sIlNjYWZmb2xkSzhzIjp7IngiOjE1MDksInkiOjc2NH0sIkJ1aWxkRW1haWxQYXJ0cyI6eyJ4IjoxMTY1LCJ5Ijo2NDl9LCJCdWlsZEVtYWlsQXR0YWNobWVudCI6eyJ4IjoxMzg4LCJ5Ijo2NDN9LCJTZW5kTm90aWZpY2F0aW9uIjp7IngiOjExMzQsInkiOjU0Mn0sIkJ1aWxkR2VuZXJhdGVSZXNwb25zZSI6eyJ4IjoxMDAwLCJ5IjozMjB9LCJSZXBseV90b19BUEkiOnsieCI6ODAwLCJ5IjozMjB9LCJCdWlsZER1cGxpY2F0ZVJlc3BvbnNlIjp7IngiOjEzNTYsInkiOjI5MH0sIlJlcGx5RHVwbGljYXRlIjp7IngiOjE0ODQsInkiOjQxN30sIkJ1aWxkSUtERXJyb3JSZXNwb25zZSI6eyJ4IjoxMjU2LCJ5Ijo0NH0sIlJlcGx5SUtERXJyb3IiOnsieCI6MTUwMiwieSI6NDZ9LCJCdWlsZFZhbGlkYXRpb25FcnJvciI6eyJ4Ijo0NTAsInkiOjMwMH0sIlJlcGx5VmFsaWRhdGlvbkVycm9yIjp7IngiOjY1MCwieSI6MzAwfX0=",
         "errorHandler": {
           "tasks": [
             {
@@ -5062,7 +5061,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "3252ba1e-b85c-4db8-bc45-ca66c7877b71SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "State": "9e8cf44b-dc3b-42fc-b673-e22e4938014aSELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -5223,7 +5222,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "63a9111a-3431-406a-b282-9562a7bd593fINSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
+                "State": "70a2c232-cc61-4c20-bdf7-dcc541758566INSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status);",
                 "input": {
                   "mapping": {
                     "values": [
@@ -5501,7 +5500,7 @@
                 "manualmode": false,
                 "Fields": [],
                 "RuntimeQuery": "",
-                "State": "2cb38a95-b044-4e42-8415-81f2eb6dc621CREATE TABLE IF NOT EXISTS generation_log (id SERIAL PRIMARY KEY, generation_id VARCHAR(36) NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, repo_name VARCHAR(100) NOT NULL, source_system VARCHAR(50) NOT NULL, target_system VARCHAR(50) NOT NULL, business_object VARCHAR(100) NOT NULL, interface_type VARCHAR(10) NOT NULL CHECK (interface_type IN ('pub','sub','service')), template_type VARCHAR(200), cdm BOOLEAN DEFAULT FALSE, interface_id VARCHAR(50) DEFAULT 'NA', scenario_id VARCHAR(20) DEFAULT '1234', bitbucket_project VARCHAR(50), env VARCHAR(50) DEFAULT 'DEV', email VARCHAR(200), k8s_domain VARCHAR(50) DEFAULT 'cite', status VARCHAR(20) DEFAULT 'GENERATED' CHECK (status IN ('GENERATED','FAILED','DUPLICATE')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
+                "State": "d1c73d33-a38c-4f3d-9732-335612c486a5CREATE TABLE IF NOT EXISTS generation_log (id SERIAL PRIMARY KEY, generation_id VARCHAR(36) NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, repo_name VARCHAR(100) NOT NULL, source_system VARCHAR(50) NOT NULL, target_system VARCHAR(50) NOT NULL, business_object VARCHAR(100) NOT NULL, interface_type VARCHAR(10) NOT NULL CHECK (interface_type IN ('pub','sub','service')), template_type VARCHAR(200), cdm BOOLEAN DEFAULT FALSE, interface_id VARCHAR(50) DEFAULT 'NA', scenario_id VARCHAR(20) DEFAULT '1234', bitbucket_project VARCHAR(50), env VARCHAR(50) DEFAULT 'DEV', email VARCHAR(200), k8s_domain VARCHAR(50) DEFAULT 'cite', status VARCHAR(20) DEFAULT 'GENERATED' CHECK (status IN ('GENERATED','FAILED','DUPLICATE')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
               },
               "schemas": {
                 "input": {
@@ -5542,7 +5541,7 @@
                 "manualmode": false,
                 "Fields": [],
                 "RuntimeQuery": "",
-                "State": "31667c1b-840e-4150-8dbc-aa7545e59125CREATE TABLE IF NOT EXISTS public.chat_session (session_id VARCHAR(64) PRIMARY KEY, status VARCHAR(20) DEFAULT 'active', message TEXT DEFAULT '', source_system VARCHAR(50) DEFAULT '', target_system VARCHAR(50) DEFAULT '', business_object VARCHAR(100) DEFAULT '', interface_type VARCHAR(20) DEFAULT '', template_type VARCHAR(200) DEFAULT '', cdm VARCHAR(10) DEFAULT '', interface_id VARCHAR(50) DEFAULT '', scenario_id VARCHAR(20) DEFAULT '', bitbucket_project VARCHAR(50) DEFAULT '', email VARCHAR(200) DEFAULT '', env VARCHAR(50) DEFAULT '', k8s_domain VARCHAR(50) DEFAULT '', country_code VARCHAR(10) DEFAULT '', unique_id VARCHAR(50) DEFAULT '', missing_fields TEXT DEFAULT '[]', ready_to_generate BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
+                "State": "016474a3-2739-4d23-a4ca-0dd3e30d20e6CREATE TABLE IF NOT EXISTS public.chat_session (session_id VARCHAR(64) PRIMARY KEY, status VARCHAR(20) DEFAULT 'active', message TEXT DEFAULT '', source_system VARCHAR(50) DEFAULT '', target_system VARCHAR(50) DEFAULT '', business_object VARCHAR(100) DEFAULT '', interface_type VARCHAR(20) DEFAULT '', template_type VARCHAR(200) DEFAULT '', cdm VARCHAR(10) DEFAULT '', interface_id VARCHAR(50) DEFAULT '', scenario_id VARCHAR(20) DEFAULT '', bitbucket_project VARCHAR(50) DEFAULT '', email VARCHAR(200) DEFAULT '', env VARCHAR(50) DEFAULT '', k8s_domain VARCHAR(50) DEFAULT '', country_code VARCHAR(10) DEFAULT '', unique_id VARCHAR(50) DEFAULT '', missing_fields TEXT DEFAULT '[]', ready_to_generate BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
               },
               "schemas": {
                 "input": {
@@ -5699,7 +5698,7 @@
                 "chunkOverlap": 200,
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:dP/UOaZDb2l9UYTvCW1R9znPsJCT9A==",
+                "embeddingAPIKey": "SECRET:yJ4kvCQdM+1FQBh/1dW8bFpoGCNx+w==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
@@ -6137,7 +6136,7 @@
     {
       "name": "PostgreSQL.GenerationRegistry.Password",
       "type": "string",
-      "value": "SECRET:N3pl2tv5em1uDoHZ7NSDyPU0T7gw+3BM"
+      "value": "SECRET:Wc7okVEeEpB/SH3s52fsqU8EyUK6pQsO"
     },
     {
       "name": "PostgreSQL.GenerationRegistry.Maximum_Open_Connections",
@@ -6260,47 +6259,47 @@
       "value": "config/ikd/ikd-interface-ids.json"
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Connection_Name",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Connection_Name",
       "type": "string",
       "value": "WeaviateTemplateKB"
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Host",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Host",
       "type": "string",
       "value": "localhost"
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Port",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Port",
       "type": "float64",
       "value": 18080
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.API_Key",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].API_Key",
       "type": "string",
       "value": ""
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Secure_Connection",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Secure_Connection",
       "type": "boolean",
       "value": false
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Timeout_(seconds)",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Timeout_(seconds)",
       "type": "float64",
       "value": 30
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Max_Retries",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Max_Retries",
       "type": "float64",
       "value": 3
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Retry_Backoff_(ms)",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Retry_Backoff_(ms)",
       "type": "float64",
       "value": 500
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Configure_Embedding_Provider",
+      "name": "VectorDB.=$property[\"VectorDB_WeaviateTemplateKB_Connection_Name\"].Configure_Embedding_Provider",
       "type": "boolean",
       "value": false
     }
@@ -6355,6 +6354,11 @@
       "type": "json",
       "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"interface_id_valid\": {\"type\": \"boolean\"}, \"scenario_id_valid\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}}}",
       "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"interface_id_valid\": {\"type\": \"boolean\"}, \"scenario_id_valid\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}}}"
+    },
+    "ValidationErrorResponse": {
+      "type": "json",
+      "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"error_count\": {\"type\": \"integer\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}",
+      "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"error_count\": {\"type\": \"integer\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}"
     }
   },
   "specs": {
