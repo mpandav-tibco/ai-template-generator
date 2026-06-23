@@ -1300,15 +1300,15 @@
               "ref": "#ruleengine",
               "input": {
                 "content": "=$flow.content",
-                "fileName": "\"rules/nlu-extraction.yaml\"",
+                "fileName": "rules/nlu-extraction.yaml",
                 "rulesPath": "=$property[\"RULES_PATH\"]",
-                "parserOverride": "",
+                "parserOverride": "json",
                 "disabledRules": {
                   "mapping": []
                 },
-                "tags": {
-                  "mapping": []
-                }
+                "tags": [
+                  "nlu"
+                ]
               }
             }
           },
@@ -1856,15 +1856,15 @@
               "ref": "#ruleengine",
               "input": {
                 "content": "=$flow.content",
-                "fileName": "\"rules/nlu-extraction.yaml\"",
+                "fileName": "rules/nlu-extraction.yaml",
                 "rulesPath": "=$property[\"RULES_PATH\"]",
-                "parserOverride": "",
+                "parserOverride": "json",
                 "disabledRules": {
                   "mapping": []
                 },
-                "tags": {
-                  "mapping": []
-                }
+                "tags": [
+                  "nlu"
+                ]
               }
             }
           },
@@ -2249,29 +2249,6 @@
             "label": "BuildValidationError to ReplyValidationError"
           },
           {
-            "id": 23,
-            "from": "ValidateSpec",
-            "to": "CheckValidation",
-            "type": "label",
-            "label": "ValidateSpec to CheckValidation"
-          },
-          {
-            "id": 24,
-            "from": "CheckValidation",
-            "to": "GetIKDInterfaces",
-            "type": "expression",
-            "label": "Spec valid",
-            "value": "$activity[CheckValidation].output.is_valid == true"
-          },
-          {
-            "id": 25,
-            "from": "CheckValidation",
-            "to": "BuildValidationError",
-            "type": "expression",
-            "label": "Spec invalid",
-            "value": "$activity[CheckValidation].output.is_valid == false"
-          },
-          {
             "id": 26,
             "from": "ResolveTemplateName",
             "to": "RegisterGeneration",
@@ -2296,6 +2273,22 @@
             "type": "expression",
             "label": "Config-only (skip repo scaffold)",
             "value": "$activity[NormalizeSpec].output.config_only == true"
+          },
+          {
+            "id": 27,
+            "from": "ValidateSpec",
+            "to": "GetIKDInterfaces",
+            "type": "expression",
+            "label": "Spec valid (0 errors)",
+            "value": "$activity[ValidateSpec].errorCount == 0"
+          },
+          {
+            "id": 28,
+            "from": "ValidateSpec",
+            "to": "BuildValidationError",
+            "type": "expression",
+            "label": "Spec invalid",
+            "value": "$activity[ValidateSpec].errorCount > 0"
           }
         ],
         "tasks": [
@@ -2372,16 +2365,16 @@
             "activity": {
               "ref": "#ruleengine",
               "input": {
-                "content": "=$flow.content.spec",
+                "content": "=$activity[NormalizeSpec].output",
                 "fileName": "rules/spec-validation.yaml",
                 "rulesPath": "=$property[\"RULES_PATH\"]",
                 "parserOverride": "json",
                 "disabledRules": {
                   "mapping": []
                 },
-                "tags": {
-                  "mapping": []
-                }
+                "tags": [
+                  "validation"
+                ]
               }
             }
           },
@@ -3301,7 +3294,7 @@
           {
             "id": "BuildValidationError",
             "name": "BuildValidationError",
-            "description": "Builds the 400 Bad Request response from the CheckValidation results (concatenated rule violations).",
+            "description": "Builds the 400 Bad Request response from the rule-engine validation findings (errorCount + formatted markdown report).",
             "activity": {
               "ref": "#mapper",
               "input": {
@@ -3309,8 +3302,9 @@
                   "mapping": {
                     "success": false,
                     "error": "VALIDATION_FAILED",
-                    "message": "The submitted integration spec is invalid. Correct the issues listed in 'details' and resubmit.",
-                    "details": "=string.concat($activity[CheckValidation].output.e_source, $activity[CheckValidation].output.e_target, $activity[CheckValidation].output.e_object, $activity[CheckValidation].output.e_interface, $activity[CheckValidation].output.e_template, $activity[CheckValidation].output.e_badtype, $activity[CheckValidation].output.e_samesys)"
+                    "error_count": "=$activity[ValidateSpec].errorCount",
+                    "message": "=string.concat(\"Spec validation failed with \", coerce.toString($activity[ValidateSpec].errorCount), \" error(s). See details.\")",
+                    "details": "=coerce.toString($activity[ValidateSpec].markdown)"
                   }
                 }
               },
@@ -3318,8 +3312,8 @@
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"error_count\": {\"type\": \"integer\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"success\": {\"type\": \"boolean\"}, \"error\": {\"type\": \"string\"}, \"error_count\": {\"type\": \"integer\"}, \"message\": {\"type\": \"string\"}, \"details\": {\"type\": \"string\"}}}"
                   }
                 }
               }
@@ -3349,37 +3343,6 @@
                 }
               },
               "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "CheckValidation",
-            "name": "CheckValidation",
-            "description": "App-layer spec validation: flags missing required fields, invalid interface_type, and identical source/target, and emits an is_valid gate for the 400 branch.",
-            "activity": {
-              "ref": "#mapper",
-              "input": {
-                "input": {
-                  "mapping": {
-                    "e_source": "=($activity[NormalizeSpec].output.source_system == \"\") ? \"source_system is required. \" : \"\"",
-                    "e_target": "=($activity[NormalizeSpec].output.target_system == \"\") ? \"target_system is required. \" : \"\"",
-                    "e_object": "=($activity[NormalizeSpec].output.business_object == \"\") ? \"business_object is required. \" : \"\"",
-                    "e_interface": "=($activity[NormalizeSpec].output.interface_type == \"\") ? \"interface_type is required. \" : \"\"",
-                    "e_template": "=($activity[NormalizeSpec].output.template_type == \"\") ? \"template_type is required. \" : \"\"",
-                    "e_badtype": "=($activity[NormalizeSpec].output.interface_type != \"\" && $activity[NormalizeSpec].output.interface_type != \"pub\" && $activity[NormalizeSpec].output.interface_type != \"sub\" && $activity[NormalizeSpec].output.interface_type != \"service\") ? \"interface_type must be one of pub, sub, service. \" : \"\"",
-                    "e_samesys": "=($activity[NormalizeSpec].output.source_system != \"\" && $activity[NormalizeSpec].output.source_system == $activity[NormalizeSpec].output.target_system) ? \"source_system and target_system must be different. \" : \"\"",
-                    "is_valid": "=($activity[NormalizeSpec].output.source_system != \"\" && $activity[NormalizeSpec].output.target_system != \"\" && $activity[NormalizeSpec].output.business_object != \"\" && $activity[NormalizeSpec].output.interface_type != \"\" && $activity[NormalizeSpec].output.template_type != \"\" && ($activity[NormalizeSpec].output.interface_type == \"pub\" || $activity[NormalizeSpec].output.interface_type == \"sub\" || $activity[NormalizeSpec].output.interface_type == \"service\") && $activity[NormalizeSpec].output.source_system != $activity[NormalizeSpec].output.target_system)"
-                  }
-                }
-              },
-              "schemas": {
-                "output": {
-                  "output": {
-                    "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"e_source\": {\"type\": \"string\"}, \"e_target\": {\"type\": \"string\"}, \"e_object\": {\"type\": \"string\"}, \"e_interface\": {\"type\": \"string\"}, \"e_template\": {\"type\": \"string\"}, \"e_badtype\": {\"type\": \"string\"}, \"e_samesys\": {\"type\": \"string\"}, \"is_valid\": {\"type\": \"boolean\"}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"e_source\": {\"type\": \"string\"}, \"e_target\": {\"type\": \"string\"}, \"e_object\": {\"type\": \"string\"}, \"e_interface\": {\"type\": \"string\"}, \"e_template\": {\"type\": \"string\"}, \"e_badtype\": {\"type\": \"string\"}, \"e_samesys\": {\"type\": \"string\"}, \"is_valid\": {\"type\": \"boolean\"}}}"
-                  }
-                }
-              }
             }
           }
         ],
