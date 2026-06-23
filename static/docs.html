@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BWCE AI Generator — API Reference</title>
+<style>
+  :root {
+    --bg: #0b0d12; --panel: #151922; --panel-2: #1c2230; --border: #2a3142;
+    --txt: #e6e9ef; --muted: #97a0b3; --accent: #00e0a4; --accent-2: #4a9eff;
+    --get: #4a9eff; --post: #00e0a4; --put: #f5a623; --delete: #ff6b6b;
+    --code-bg: #0a0c10;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--txt); line-height: 1.5;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    padding: 16px 28px; background: var(--panel); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+  header .logo {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center; font-weight: 800; color: #06131d;
+  }
+  header h1 { font-size: 17px; margin: 0; font-weight: 650; }
+  header .ver { color: var(--muted); font-size: 12px; }
+  header .spacer { flex: 1; }
+  header a {
+    color: var(--muted); text-decoration: none; font-size: 13px; padding: 7px 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+  }
+  header a:hover { color: var(--txt); border-color: var(--accent-2); }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px; }
+  .intro { color: var(--muted); margin-bottom: 8px; }
+  .servers { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .servers code { color: var(--accent); }
+
+  .op { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 14px; overflow: hidden; background: var(--panel); }
+  .op-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; user-select: none; }
+  .op-head:hover { background: var(--panel-2); }
+  .method { font-weight: 800; font-size: 12px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.04em; min-width: 56px; text-align: center; color: #06131d; }
+  .method.get { background: var(--get); }
+  .method.post { background: var(--post); }
+  .method.put { background: var(--put); }
+  .method.delete { background: var(--delete); color: #fff; }
+  .op-path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600; font-size: 14px; }
+  .op-summary { color: var(--muted); font-size: 13px; flex: 1; }
+  .op-caret { color: var(--muted); transition: transform 0.15s; }
+  .op.open .op-caret { transform: rotate(90deg); }
+  .op-body { display: none; padding: 0 16px 18px; border-top: 1px solid var(--border); }
+  .op.open .op-body { display: block; }
+  .op-desc { color: var(--muted); font-size: 13px; margin: 14px 0; }
+  h3.sec { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 18px 0 8px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; overflow-x: auto; font-size: 12.5px; color: #cbd5e1; margin: 0; }
+  pre .k { color: var(--accent-2); }
+  pre .s { color: var(--accent); }
+  pre .n { color: #f5a623; }
+  .resp-row { display: flex; gap: 10px; align-items: center; padding: 6px 0; font-size: 13px; }
+  .code-badge { font-weight: 700; font-family: ui-monospace, monospace; padding: 2px 8px; border-radius: 5px; font-size: 12px; }
+  .code-2xx { background: rgba(0,224,164,0.15); color: var(--accent); }
+  .code-4xx { background: rgba(255,107,107,0.15); color: var(--delete); }
+  .code-5xx { background: rgba(245,166,35,0.15); color: var(--put); }
+  .tryit { margin-top: 16px; }
+  .tryit textarea {
+    width: 100%; min-height: 90px; background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--txt); font-family: ui-monospace, monospace; font-size: 12.5px; padding: 10px; resize: vertical;
+  }
+  .tryit-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+  .tryit button {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06131d;
+    border: none; border-radius: 8px; padding: 9px 18px; font-weight: 700; cursor: pointer; font-size: 13px;
+  }
+  .tryit button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .tryit .status { font-size: 12px; color: var(--muted); font-family: ui-monospace, monospace; }
+  .tryit pre.out { margin-top: 10px; max-height: 320px; overflow: auto; }
+  .loading, .error { color: var(--muted); padding: 40px; text-align: center; }
+  .error { color: var(--delete); }
+  .tag-group > .tag-title { font-size: 14px; font-weight: 700; margin: 26px 0 12px; color: var(--txt); }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">AI</div>
+    <div>
+      <h1>BWCE AI Generator — API Reference</h1>
+      <div class="ver" id="ver"></div>
+    </div>
+    <div class="spacer"></div>
+    <a href="/openapi.json" target="_blank">openapi.json</a>
+    <a href="/">Chat UI →</a>
+  </header>
+  <div class="wrap">
+    <div id="content"><div class="loading">Loading API specification…</div></div>
+  </div>
+
+<script>
+  const METHOD_ORDER = { get: 0, post: 1, put: 2, delete: 3, patch: 4 };
+
+  function esc(s) { return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+
+  function highlight(jsonStr) {
+    return esc(jsonStr)
+      .replace(/("(\\.|[^"\\])*")(\s*:)/g, '<span class="k">$1</span>$3')
+      .replace(/:\s*("(\\.|[^"\\])*")/g, ': <span class="s">$1</span>')
+      .replace(/:\s*(-?\d+\.?\d*|true|false|null)/g, ': <span class="n">$1</span>');
+  }
+
+  function resolveRef(spec, ref) {
+    if (!ref || !ref.startsWith("#/")) return null;
+    return ref.slice(2).split("/").reduce((o, k) => (o ? o[k] : null), spec);
+  }
+
+  // Build a minimal example object from a schema (best-effort).
+  function exampleFromSchema(spec, schema, depth) {
+    if (!schema || depth > 6) return null;
+    if (schema.$ref) schema = resolveRef(spec, schema.$ref) || {};
+    if (schema.example !== undefined) return schema.example;
+    if (schema.default !== undefined) return schema.default;
+    if (schema.enum) return schema.enum[0];
+    switch (schema.type) {
+      case "object": {
+        const o = {};
+        const props = schema.properties || {};
+        for (const k of Object.keys(props)) o[k] = exampleFromSchema(spec, props[k], depth + 1);
+        return o;
+      }
+      case "array": return [exampleFromSchema(spec, schema.items || {}, depth + 1)].filter(v => v !== null);
+      case "integer": case "number": return 0;
+      case "boolean": return false;
+      case "string": return schema.format === "email" ? "user@adidas.com" : "string";
+      default: return null;
+    }
+  }
+
+  function requestExample(spec, op) {
+    const rb = op.requestBody;
+    if (!rb || !rb.content) return null;
+    const json = rb.content["application/json"];
+    if (!json || !json.schema) return null;
+    return exampleFromSchema(spec, json.schema, 0);
+  }
+
+  function codeClass(code) {
+    const c = String(code);
+    if (c.startsWith("2")) return "code-2xx";
+    if (c.startsWith("4")) return "code-4xx";
+    return "code-5xx";
+  }
+
+  function renderOp(spec, path, method, op) {
+    const wrap = document.createElement("div");
+    wrap.className = "op";
+    const id = method + "_" + path;
+
+    const head = document.createElement("div");
+    head.className = "op-head";
+    head.innerHTML =
+      '<span class="method ' + method + '">' + method.toUpperCase() + '</span>' +
+      '<span class="op-path">' + esc(path) + '</span>' +
+      '<span class="op-summary">' + esc(op.summary || "") + '</span>' +
+      '<span class="op-caret">▶</span>';
+    head.addEventListener("click", () => wrap.classList.toggle("open"));
+
+    const body = document.createElement("div");
+    body.className = "op-body";
+
+    let html = "";
+    if (op.description) html += '<div class="op-desc">' + esc(op.description) + "</div>";
+
+    const reqEx = requestExample(spec, op);
+    if (reqEx !== null) {
+      html += '<h3 class="sec">Request body</h3><pre>' + highlight(JSON.stringify(reqEx, null, 2)) + "</pre>";
+    }
+
+    html += '<h3 class="sec">Responses</h3>';
+    const responses = op.responses || {};
+    for (const code of Object.keys(responses)) {
+      html += '<div class="resp-row"><span class="code-badge ' + codeClass(code) + '">' + esc(code) +
+        '</span><span>' + esc(responses[code].description || "") + "</span></div>";
+    }
+
+    body.innerHTML = html;
+
+    // Try-it
+    const try_ = document.createElement("div");
+    try_.className = "tryit";
+    const hasBody = reqEx !== null;
+    try_.innerHTML =
+      '<h3 class="sec">Try it</h3>' +
+      (hasBody ? '<textarea>' + esc(JSON.stringify(reqEx, null, 2)) + "</textarea>" : "") +
+      '<div class="tryit-row"><button>Send ' + method.toUpperCase() + " " + esc(path) +
+      '</button><span class="status"></span></div><pre class="out" style="display:none"></pre>';
+    const btn = try_.querySelector("button");
+    const ta = try_.querySelector("textarea");
+    const status = try_.querySelector(".status");
+    const out = try_.querySelector(".out");
+    btn.addEventListener("click", async () => {
+      btn.disabled = true; status.textContent = "…"; out.style.display = "none";
+      const opts = { method: method.toUpperCase(), headers: {} };
+      if (hasBody) {
+        opts.headers["Content-Type"] = "application/json";
+        opts.body = ta.value;
+      }
+      const t0 = performance.now();
+      try {
+        const res = await fetch(path, opts);
+        const ms = Math.round(performance.now() - t0);
+        status.textContent = "HTTP " + res.status + " · " + ms + " ms";
+        let text = await res.text();
+        try { text = JSON.stringify(JSON.parse(text), null, 2); } catch (e) {}
+        out.innerHTML = highlight(text); out.style.display = "block";
+      } catch (e) {
+        status.textContent = "Error"; out.textContent = String(e); out.style.display = "block";
+      } finally {
+        btn.disabled = false;
+      }
+    });
+    body.appendChild(try_);
+
+    wrap.appendChild(head);
+    wrap.appendChild(body);
+    return wrap;
+  }
+
+  async function load() {
+    const content = document.getElementById("content");
+    let spec;
+    try {
+      const res = await fetch("/openapi.json");
+      spec = await res.json();
+    } catch (e) {
+      content.innerHTML = '<div class="error">Could not load /openapi.json: ' + esc(e.message) + "</div>";
+      return;
+    }
+    document.getElementById("ver").textContent = "v" + (spec.info && spec.info.version || "");
+    content.innerHTML = "";
+
+    if (spec.info && spec.info.description) {
+      const intro = document.createElement("div");
+      intro.className = "intro";
+      intro.textContent = spec.info.description;
+      content.appendChild(intro);
+    }
+    if (spec.servers && spec.servers.length) {
+      const srv = document.createElement("div");
+      srv.className = "servers";
+      srv.innerHTML = "Base URL: <code>" + esc(spec.servers[0].url) + "</code>";
+      content.appendChild(srv);
+    }
+
+    // Flatten operations, group by first tag.
+    const groups = {};
+    for (const path of Object.keys(spec.paths)) {
+      const methods = spec.paths[path];
+      for (const method of Object.keys(methods).sort((a, b) => (METHOD_ORDER[a] ?? 9) - (METHOD_ORDER[b] ?? 9))) {
+        const op = methods[method];
+        const tag = (op.tags && op.tags[0]) || "API";
+        (groups[tag] = groups[tag] || []).push({ path, method, op });
+      }
+    }
+    for (const tag of Object.keys(groups)) {
+      const g = document.createElement("div");
+      g.className = "tag-group";
+      const t = document.createElement("div");
+      t.className = "tag-title";
+      t.textContent = tag;
+      g.appendChild(t);
+      for (const { path, method, op } of groups[tag]) g.appendChild(renderOp(spec, path, method, op));
+      content.appendChild(g);
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>

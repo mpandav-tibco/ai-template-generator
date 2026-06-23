@@ -113,6 +113,112 @@
           "name": "root_GET"
         },
         {
+          "description": "Serves the API reference page (GET /docs).",
+          "settings": {
+            "APISpecPath": "/docs",
+            "Method": "GET",
+            "reqType": "application/json",
+            "Path": "/docs",
+            "OutputValidation": false
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:docs_GET"
+            }
+          },
+          "reply": {
+            "code": 200,
+            "configureResponseCodes": false,
+            "message": ""
+          },
+          "schemas": {
+            "reply": {
+              "responseBody": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}"
+              },
+              "responseCodesSchema": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"number\"},\"responseType\":{\"type\":\"string\"},\"responseSchema\":{\"type\":\"string\"}}}}",
+                "fe_metadata": "[{\"code\":200,\"responseType\":\"object\",\"responseSchema\":\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"status\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"ok\\\"},\\\"version\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"1.0.0\\\"},\\\"timestamp\\\":{\\\"type\\\":\\\"string\\\",\\\"format\\\":\\\"date-time\\\"}}}\"}]"
+              }
+            },
+            "output": {
+              "headers": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]}",
+                "fe_metadata": "[{\"parameterName\":\"Accept\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Charset\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Encoding\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Authorization\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Connection\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Length\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Type\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Cookie\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Pragma\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false}]"
+              },
+              "multipartFormData": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{}}"
+              },
+              "multipartForm": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{}}",
+                "fe_metadata": "[]"
+              }
+            }
+          },
+          "name": "docs_GET"
+        },
+        {
+          "description": "Serves the OpenAPI spec (GET /openapi.json).",
+          "settings": {
+            "APISpecPath": "/openapi.json",
+            "Method": "GET",
+            "reqType": "application/json",
+            "Path": "/openapi.json",
+            "OutputValidation": false
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:openapi_GET"
+            }
+          },
+          "reply": {
+            "code": 200,
+            "configureResponseCodes": false,
+            "message": ""
+          },
+          "schemas": {
+            "reply": {
+              "responseBody": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}"
+              },
+              "responseCodesSchema": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"number\"},\"responseType\":{\"type\":\"string\"},\"responseSchema\":{\"type\":\"string\"}}}}",
+                "fe_metadata": "[{\"code\":200,\"responseType\":\"object\",\"responseSchema\":\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"status\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"ok\\\"},\\\"version\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"1.0.0\\\"},\\\"timestamp\\\":{\\\"type\\\":\\\"string\\\",\\\"format\\\":\\\"date-time\\\"}}}\"}]"
+              }
+            },
+            "output": {
+              "headers": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]}",
+                "fe_metadata": "[{\"parameterName\":\"Accept\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Charset\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Encoding\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Authorization\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Connection\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Length\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Type\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Cookie\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Pragma\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false}]"
+              },
+              "multipartFormData": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{}}"
+              },
+              "multipartForm": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{}}",
+                "fe_metadata": "[]"
+              }
+            }
+          },
+          "name": "openapi_GET"
+        },
+        {
           "description": "Health-check endpoint (GET /health). Returns service status so load balancers and monitoring probes can verify the generator is running.",
           "settings": {
             "APISpecPath": "/health",
@@ -4708,6 +4814,252 @@
                       "body": "=$activity[ReadChatHtml].output.fileContent.textContent",
                       "headers": {
                         "Content-Type": "text/html; charset=UTF-8"
+                      }
+                    }
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\":\"object\",\"properties\":{\"responseBody\":{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"string\"},\"headers\":{\"type\":\"object\",\"properties\":{\"Content-Type\":{\"type\":\"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\":\"object\",\"properties\":{\"responseBody\":{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"string\"},\"headers\":{\"type\":\"object\",\"properties\":{\"Content-Type\":{\"type\":\"string\"}}}}}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ReturnHtml",
+            "name": "ReturnHtml",
+            "description": "Returns the HTML page with Content-Type text/html (implicit reply via responseBody+headers).",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "code": 200,
+                  "responseBody": "=$activity[BuildHtmlResponse].output.responseBody"
+                }
+              }
+            }
+          }
+        ],
+        "metadata": {
+          "input": [],
+          "output": [],
+          "fe_metadata": {}
+        },
+        "explicitReply": false
+      }
+    },
+    {
+      "id": "flow:docs_GET",
+      "data": {
+        "name": "docs_GET",
+        "description": "Serves the API reference page (GET /docs). Reads static/docs.html and returns it as text/html via implicit reply.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "ReadChatHtml",
+            "type": "label",
+            "label": "StartActivity to ReadChatHtml"
+          },
+          {
+            "id": 2,
+            "from": "ReadChatHtml",
+            "to": "BuildHtmlResponse",
+            "type": "label",
+            "label": "ReadChatHtml to BuildHtmlResponse"
+          },
+          {
+            "id": 3,
+            "from": "BuildHtmlResponse",
+            "to": "ReturnHtml",
+            "type": "label",
+            "label": "BuildHtmlResponse to ReturnHtml"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "ReadChatHtml",
+            "name": "ReadChatHtml",
+            "description": "Reads static/docs.html from disk.",
+            "activity": {
+              "ref": "#read",
+              "input": {
+                "readAs": "Text",
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "static/docs.html"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "BuildHtmlResponse",
+            "name": "BuildHtmlResponse",
+            "description": "Builds responseBody{body,headers} with Content-Type text/html; charset=UTF-8.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "responseBody": {
+                      "body": "=$activity[ReadChatHtml].output.fileContent.textContent",
+                      "headers": {
+                        "Content-Type": "text/html; charset=UTF-8"
+                      }
+                    }
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\":\"object\",\"properties\":{\"responseBody\":{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"string\"},\"headers\":{\"type\":\"object\",\"properties\":{\"Content-Type\":{\"type\":\"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\":\"object\",\"properties\":{\"responseBody\":{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"string\"},\"headers\":{\"type\":\"object\",\"properties\":{\"Content-Type\":{\"type\":\"string\"}}}}}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "ReturnHtml",
+            "name": "ReturnHtml",
+            "description": "Returns the HTML page with Content-Type text/html (implicit reply via responseBody+headers).",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "code": 200,
+                  "responseBody": "=$activity[BuildHtmlResponse].output.responseBody"
+                }
+              }
+            }
+          }
+        ],
+        "metadata": {
+          "input": [],
+          "output": [],
+          "fe_metadata": {}
+        },
+        "explicitReply": false
+      }
+    },
+    {
+      "id": "flow:openapi_GET",
+      "data": {
+        "name": "openapi_GET",
+        "description": "Serves the OpenAPI 3.0 specification (GET /openapi.json) as application/json via implicit reply.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "ReadChatHtml",
+            "type": "label",
+            "label": "StartActivity to ReadChatHtml"
+          },
+          {
+            "id": 2,
+            "from": "ReadChatHtml",
+            "to": "BuildHtmlResponse",
+            "type": "label",
+            "label": "ReadChatHtml to BuildHtmlResponse"
+          },
+          {
+            "id": 3,
+            "from": "BuildHtmlResponse",
+            "to": "ReturnHtml",
+            "type": "label",
+            "label": "BuildHtmlResponse to ReturnHtml"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "ReadChatHtml",
+            "name": "ReadChatHtml",
+            "description": "Reads static/openapi.json from disk.",
+            "activity": {
+              "ref": "#read",
+              "input": {
+                "readAs": "Text",
+                "compress": "None",
+                "input": {
+                  "mapping": {
+                    "fileName": "static/openapi.json"
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "BuildHtmlResponse",
+            "name": "BuildHtmlResponse",
+            "description": "Builds responseBody{body,headers} with Content-Type application/json; charset=UTF-8.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "responseBody": {
+                      "body": "=$activity[ReadChatHtml].output.fileContent.textContent",
+                      "headers": {
+                        "Content-Type": "application/json; charset=UTF-8"
                       }
                     }
                   }
