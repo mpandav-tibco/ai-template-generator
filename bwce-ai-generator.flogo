@@ -3113,34 +3113,20 @@
           },
           {
             "from": "ScaffoldArtifacts",
-            "to": "BuildEmailParts",
+            "to": "NotifyTeam",
             "type": "label",
-            "label": "ScaffoldArtifacts to BuildEmailParts",
+            "label": "ScaffoldArtifacts to NotifyTeam",
             "id": 19
           },
           {
-            "id": 20,
-            "from": "BuildEmailParts",
-            "to": "BuildEmailAttachment",
+            "from": "NotifyTeam",
+            "to": "BuildGenerateResponse",
             "type": "label",
-            "label": "BuildEmailParts to BuildEmailAttachment"
+            "label": "NotifyTeam to BuildGenerateResponse",
+            "id": 20
           },
           {
             "id": 21,
-            "from": "BuildEmailAttachment",
-            "to": "SendNotification",
-            "type": "label",
-            "label": "BuildEmailAttachment to SendNotification"
-          },
-          {
-            "id": 22,
-            "from": "SendNotification",
-            "to": "BuildGenerateResponse",
-            "type": "label",
-            "label": "SendNotification to BuildGenerateResponse"
-          },
-          {
-            "id": 23,
             "from": "BuildGenerateResponse",
             "to": "Reply_to_API",
             "type": "label",
@@ -3706,122 +3692,35 @@
             }
           },
           {
-            "id": "BuildEmailParts",
-            "name": "BuildEmailParts",
-            "description": "Pre-builds both notification variants (full repo vs config-only) as complete plain-concat strings: message, subject and the doc-attachment file/name. The downstream mapper then selects per config_only with simple ref-only ternaries (Flogo cannot parse a ternary whose branch is a function call).",
-            "activity": {
-              "ref": "#mapper",
-              "input": {
-                "input": {
-                  "mapping": {
-                    "message_full": "=string.concat(\"<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><meta name='color-scheme' content='light dark'><meta name='supported-color-schemes' content='light dark'></head><body style='margin:0;padding:0;background:#eef1f6'><div style='display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:#eef1f6;font-size:1px;line-height:1px'>New repository scaffolded &mdash; \", $activity[BuildRepoName].output.repo_name, \"</div><div style='margin:0;padding:24px 12px;background:#eef1f6;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif'><table role='presentation' align='center' width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0'><tr><td style='background:#0b1f3a;padding:22px 28px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr><td style='vertical-align:middle;width:44px'><img src='cid:email-logo.png' width='44' height='44' alt='BWCE AI' style='display:block;width:44px;height:44px;border-radius:10px' /></td><td style='vertical-align:middle;padding-left:14px'><div style='color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.2px'>BWCE AI Generator</div><div style='color:#9fb3c8;font-size:12px;margin-top:2px'>New integration repository scaffolded</div></td></tr></table></td></tr><tr><td style='height:3px;background:#00e0a4;line-height:3px;font-size:0'>&nbsp;</td></tr><tr><td style='padding:22px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#e6f9f2;border:1px solid #00b386;border-radius:10px'><tr><td style='padding:13px 16px;color:#04694f;font-size:14px;font-weight:600'>&#10003;&nbsp; Repository generated and registered successfully.</td></tr></table></td></tr><tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em'>Repository</div><div style='font-family:Consolas,Menlo,monospace;font-size:20px;font-weight:700;color:#0b1f3a;margin-top:5px;word-break:break-all'>\", $activity[BuildRepoName].output.repo_name, \"</div></td></tr><tr><td style='padding:18px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px;border-collapse:collapse'>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Template</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[ResolveTemplateName].output.template_name, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Source &rarr; Target</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6'>\", $activity[NormalizeSpec].output.source_system, \" &rarr; \", $activity[NormalizeSpec].output.target_system, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Business Object</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[NormalizeSpec].output.business_object, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Interface Type</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[NormalizeSpec].output.interface_type, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Environment</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[NormalizeSpec].output.env, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>CDM</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", coerce.toString($activity[NormalizeSpec].output.cdm), \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;width:42%'>Template Match Score</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;'>\", coerce.toString($activity[ResolveTemplateName].output.match_score), \"</td></tr>\", \"</table></td></tr>\", \"<tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px'>Clone</div><div style='background:#0a0c10;border-radius:8px;padding:12px 14px;font-family:Consolas,Menlo,monospace;font-size:12.5px;color:#00e0a4;word-break:break-all'>git clone \", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git</div></td></tr><tr><td style='padding:18px 28px 26px'><a href='\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git' style='display:inline-block;background:#00b386;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px'>Open in Bitbucket &rarr;</a></td></tr>\", \"<tr><td style='background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 28px;color:#94a3b8;font-size:11px;line-height:1.6'>Generation ID: \", $activity[NormalizeSpec].output.generation_id, \"<br />Automated notification from the BWCE AI Integration Generator</td></tr></table><div style='text-align:center;color:#b4c0cf;font-size:11px;padding:14px 0 2px'>adidas &middot; Core Integration Platform</div></div></body></html>\")",
-                    "message_config": "=string.concat(\"<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><meta name='color-scheme' content='light dark'><meta name='supported-color-schemes' content='light dark'></head><body style='margin:0;padding:0;background:#eef1f6'><div style='display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:#eef1f6;font-size:1px;line-height:1px'>Config-only generation complete &mdash; \", $activity[BuildRepoName].output.repo_name, \"</div><div style='margin:0;padding:24px 12px;background:#eef1f6;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif'><table role='presentation' align='center' width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0'><tr><td style='background:#0b1f3a;padding:22px 28px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr><td style='vertical-align:middle;width:44px'><img src='cid:email-logo.png' width='44' height='44' alt='BWCE AI' style='display:block;width:44px;height:44px;border-radius:10px' /></td><td style='vertical-align:middle;padding-left:14px'><div style='color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.2px'>BWCE AI Generator</div><div style='color:#9fb3c8;font-size:12px;margin-top:2px'>Config-only generation &middot; scaffold skipped</div></td></tr></table></td></tr><tr><td style='height:3px;background:#00e0a4;line-height:3px;font-size:0'>&nbsp;</td></tr><tr><td style='padding:22px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#e6f9f2;border:1px solid #00b386;border-radius:10px'><tr><td style='padding:13px 16px;color:#04694f;font-size:14px;font-weight:600'>&#10003;&nbsp; Configuration generated successfully (config-only).</td></tr></table></td></tr><tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em'>Repository (name reserved)</div><div style='font-family:Consolas,Menlo,monospace;font-size:20px;font-weight:700;color:#0b1f3a;margin-top:5px;word-break:break-all'>\", $activity[BuildRepoName].output.repo_name, \"</div></td></tr><tr><td style='padding:18px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px;border-collapse:collapse'>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Template</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[ResolveTemplateName].output.template_name, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Source &rarr; Target</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6'>\", $activity[NormalizeSpec].output.source_system, \" &rarr; \", $activity[NormalizeSpec].output.target_system, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Business Object</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[NormalizeSpec].output.business_object, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Interface Type</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[NormalizeSpec].output.interface_type, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Environment</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[NormalizeSpec].output.env, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>CDM</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", coerce.toString($activity[NormalizeSpec].output.cdm), \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;width:42%'>Template Match Score</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;'>\", coerce.toString($activity[ResolveTemplateName].output.match_score), \"</td></tr>\", \"</table></td></tr>\", \"<tr><td style='padding:20px 28px 26px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#fff7ed;border:1px solid #fdba74;border-radius:10px'><tr><td style='padding:13px 16px;color:#9a3412;font-size:13px;line-height:1.55'><strong>Config-only run.</strong> No Bitbucket repository was created. Generated artifacts: <strong>bitbucket-pipelines.yml</strong>, <strong>Dockerfile</strong> and the <strong>Kubernetes manifest</strong> &mdash; the pipeline file is attached.</td></tr></table></td></tr>\", \"<tr><td style='background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 28px;color:#94a3b8;font-size:11px;line-height:1.6'>Generation ID: \", $activity[NormalizeSpec].output.generation_id, \"<br />Automated notification from the BWCE AI Integration Generator</td></tr></table><div style='text-align:center;color:#b4c0cf;font-size:11px;padding:14px 0 2px'>adidas &middot; Core Integration Platform</div></div></body></html>\")",
-                    "subject_full": "=string.concat(\"\u2705 [BWCE AI Generator] New repository: \", $activity[BuildRepoName].output.repo_name)",
-                    "subject_config": "=string.concat(\"\u2705 [BWCE AI Generator] Config generated: \", $activity[BuildRepoName].output.repo_name)",
-                    "docfile_full": "=string.concat(\"file://\", $property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/manifest.json\")",
-                    "docfile_config": "=string.concat(\"file://\", $property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/bitbucket-pipelines.yml\")",
-                    "docname_full": "=string.concat($activity[BuildRepoName].output.repo_name, \"-manifest.json\")",
-                    "docname_config": "=string.concat($activity[BuildRepoName].output.repo_name, \"-pipeline.yml\")"
-                  }
-                }
-              },
-              "schemas": {
-                "output": {
-                  "output": {
-                    "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"message_full\": {\"type\": \"string\"}, \"message_config\": {\"type\": \"string\"}, \"subject_full\": {\"type\": \"string\"}, \"subject_config\": {\"type\": \"string\"}, \"docfile_full\": {\"type\": \"string\"}, \"docfile_config\": {\"type\": \"string\"}, \"docname_full\": {\"type\": \"string\"}, \"docname_config\": {\"type\": \"string\"}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"message_full\": {\"type\": \"string\"}, \"message_config\": {\"type\": \"string\"}, \"subject_full\": {\"type\": \"string\"}, \"subject_config\": {\"type\": \"string\"}, \"docfile_full\": {\"type\": \"string\"}, \"docfile_config\": {\"type\": \"string\"}, \"docname_full\": {\"type\": \"string\"}, \"docname_config\": {\"type\": \"string\"}}}"
-                  }
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "BuildEmailAttachment",
-            "name": "BuildEmailAttachment",
-            "description": "Selects the notification variant (full repo vs config-only) for subject, HTML body and the doc attachment via ref-only ternaries on config_only, and adds the inline CID brand logo attachment.",
-            "activity": {
-              "ref": "#mapper",
-              "input": {
-                "input": {
-                  "mapping": {
-                    "subject": "=$activity[NormalizeSpec].output.config_only == true ? $activity[BuildEmailParts].output.subject_config : $activity[BuildEmailParts].output.subject_full",
-                    "message": "=$activity[NormalizeSpec].output.config_only == true ? $activity[BuildEmailParts].output.message_config : $activity[BuildEmailParts].output.message_full",
-                    "attachments": [
-                      {
-                        "file": "=string.concat(\"file://\", $property[\"BRAND_LOGO_FILE\"])",
-                        "filename": "email-logo.png",
-                        "inline": true,
-                        "base64EncodedContents": false
-                      },
-                      {
-                        "file": "=$activity[NormalizeSpec].output.config_only == true ? $activity[BuildEmailParts].output.docfile_config : $activity[BuildEmailParts].output.docfile_full",
-                        "filename": "=$activity[NormalizeSpec].output.config_only == true ? $activity[BuildEmailParts].output.docname_config : $activity[BuildEmailParts].output.docname_full",
-                        "inline": false,
-                        "base64EncodedContents": false
-                      }
-                    ]
-                  }
-                }
-              },
-              "schemas": {
-                "output": {
-                  "output": {
-                    "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"subject\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"attachments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"file\": {\"type\": \"string\"}, \"filename\": {\"type\": \"string\"}, \"inline\": {\"type\": \"boolean\"}, \"base64EncodedContents\": {\"type\": \"boolean\"}}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"subject\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"attachments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"file\": {\"type\": \"string\"}, \"filename\": {\"type\": \"string\"}, \"inline\": {\"type\": \"boolean\"}, \"base64EncodedContents\": {\"type\": \"boolean\"}}}}}}"
-                  }
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "SendNotification",
-            "name": "SendNotification",
-            "description": "Sends an email notification (via the configured SMTP server / maildev mock) to the core integration team announcing the newly scaffolded repository.",
+            "id": "NotifyTeam",
+            "name": "NotifyTeam",
+            "description": "Invokes SendNotificationFlow subflow to build and send the email notification.",
             "settings": {
               "retryOnError": {
-                "count": 3,
-                "interval": 2000
+                "count": 0,
+                "interval": 0
               }
             },
             "activity": {
-              "ref": "#sendmail",
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:SendNotificationFlow",
+                "detached": false,
+                "execTimeout": 0
+              },
               "input": {
-                "Server": "=$property[\"SMTP_HOST\"]",
-                "Port": "=$property[\"SMTP_PORT\"]",
-                "authorizationType": "Basic",
-                "Username": "",
-                "Password": "",
-                "authorizationConn": "",
-                "Connection Security": "NONE",
-                "message_content_type": "text/html",
-                "sender": "=$property[\"NOTIFY_SENDER\"]",
-                "recipients": "=$property[\"NOTIFY_RECIPIENTS\"]",
-                "cc_recipients": "",
-                "bcc_recipients": "",
-                "reply_to": "",
-                "subject": "=$activity[BuildEmailAttachment].output.subject",
-                "message": "=$activity[BuildEmailAttachment].output.message",
-                "attachments": "=$activity[BuildEmailAttachment].output.attachments"
-              },
-              "schemas": {
-                "input": {
-                  "attachments": {
-                    "type": "json",
-                    "value": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"items\":{\"properties\":{\"file\":{\"type\":\"string\"},\"filename\":{\"type\":\"string\"},\"base64EncodedContents\":{\"type\":\"boolean\"}},\"required\":[\"file\"],\"type\":\"object\"},\"type\":\"array\"}",
-                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"items\":{\"properties\":{\"file\":{\"type\":\"string\"},\"filename\":{\"type\":\"string\"},\"base64EncodedContents\":{\"type\":\"boolean\"}},\"required\":[\"file\"],\"type\":\"object\"},\"type\":\"array\"}"
-                  },
-                  "headers": {
-                    "type": "json",
-                    "value": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}",
-                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}"
-                  }
-                }
-              },
-              "feSchemaMap": {}
+                "business_object": "=$activity[NormalizeSpec].output.business_object",
+                "cdm": "=$activity[NormalizeSpec].output.cdm",
+                "config_only": "=$activity[NormalizeSpec].output.config_only",
+                "env": "=$activity[NormalizeSpec].output.env",
+                "generation_id": "=$activity[NormalizeSpec].output.generation_id",
+                "interface_type": "=$activity[NormalizeSpec].output.interface_type",
+                "match_score": "=$activity[ResolveTemplateName].output.match_score",
+                "repo_name": "=$activity[BuildRepoName].output.repo_name",
+                "source_system": "=$activity[NormalizeSpec].output.source_system",
+                "target_system": "=$activity[NormalizeSpec].output.target_system",
+                "template_name": "=$activity[ResolveTemplateName].output.template_name"
+              }
             }
           },
           {
@@ -4055,7 +3954,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIk5vcm1hbGl6ZVNwZWMiOnsieCI6MjUwLCJ5IjoxNTB9LCJWYWxpZGF0ZVNwZWMiOnsieCI6NDUwLCJ5Ijo0NX0sIkdldElLREludGVyZmFjZXMiOnsieCI6NjUwLCJ5Ijo0NX0sIkdldElLRFNjZW5hcmlvcyI6eyJ4Ijo4NTAsInkiOjQ1fSwiQ3Jvc3NDaGVja0lLRCI6eyJ4IjoxMDUwLCJ5Ijo0NX0sIkJ1aWxkUmVwb05hbWUiOnsieCI6ODg5LCJ5IjoyMDR9LCJDaGVja0R1cGxpY2F0ZSI6eyJ4IjoxMTMyLCJ5IjoxOTR9LCJTZWxlY3RUZW1wbGF0ZSI6eyJ4IjoxMzUwLCJ5IjoxODh9LCJSZXNvbHZlVGVtcGxhdGVOYW1lIjp7IngiOjE0NTUsInkiOjMwMH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxNTYxLCJ5IjoxODZ9LCJCdWlsZEVtYWlsUGFydHMiOnsieCI6MTE2NSwieSI6NjQ5fSwiQnVpbGRFbWFpbEF0dGFjaG1lbnQiOnsieCI6MTM4OCwieSI6NjQzfSwiU2VuZE5vdGlmaWNhdGlvbiI6eyJ4IjoxMTM0LCJ5Ijo1NDJ9LCJCdWlsZEdlbmVyYXRlUmVzcG9uc2UiOnsieCI6MTAwMCwieSI6MzIwfSwiUmVwbHlfdG9fQVBJIjp7IngiOjgwMCwieSI6MzIwfSwiQnVpbGREdXBsaWNhdGVSZXNwb25zZSI6eyJ4IjoxMzU2LCJ5IjoyOTB9LCJSZXBseUR1cGxpY2F0ZSI6eyJ4IjoxNDg0LCJ5Ijo0MTd9LCJCdWlsZElLREVycm9yUmVzcG9uc2UiOnsieCI6MTI1NiwieSI6NDR9LCJSZXBseUlLREVycm9yIjp7IngiOjE1MDIsInkiOjQ2fSwiQnVpbGRWYWxpZGF0aW9uRXJyb3IiOnsieCI6NDUwLCJ5IjozMDB9LCJSZXBseVZhbGlkYXRpb25FcnJvciI6eyJ4Ijo2NTAsInkiOjMwMH0sIlNjYWZmb2xkQXJ0aWZhY3RzIjp7IngiOjg5NSwieSI6NDQzfX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIk5vcm1hbGl6ZVNwZWMiOnsieCI6MjUwLCJ5IjoxNTB9LCJWYWxpZGF0ZVNwZWMiOnsieCI6NDUwLCJ5Ijo0NX0sIkdldElLREludGVyZmFjZXMiOnsieCI6NjUwLCJ5Ijo0NX0sIkdldElLRFNjZW5hcmlvcyI6eyJ4Ijo4NTAsInkiOjQ1fSwiQ3Jvc3NDaGVja0lLRCI6eyJ4IjoxMDUwLCJ5Ijo0NX0sIkJ1aWxkUmVwb05hbWUiOnsieCI6ODg5LCJ5IjoyMDR9LCJDaGVja0R1cGxpY2F0ZSI6eyJ4IjoxMTMyLCJ5IjoxOTR9LCJTZWxlY3RUZW1wbGF0ZSI6eyJ4IjoxMzUwLCJ5IjoxODh9LCJSZXNvbHZlVGVtcGxhdGVOYW1lIjp7IngiOjE0NTUsInkiOjMwMH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxNTYxLCJ5IjoxODZ9LCJCdWlsZEdlbmVyYXRlUmVzcG9uc2UiOnsieCI6MTAwMCwieSI6MzIwfSwiUmVwbHlfdG9fQVBJIjp7IngiOjgwMCwieSI6MzIwfSwiQnVpbGREdXBsaWNhdGVSZXNwb25zZSI6eyJ4IjoxMzU2LCJ5IjoyOTB9LCJSZXBseUR1cGxpY2F0ZSI6eyJ4IjoxNDg0LCJ5Ijo0MTd9LCJCdWlsZElLREVycm9yUmVzcG9uc2UiOnsieCI6MTI1NiwieSI6NDR9LCJSZXBseUlLREVycm9yIjp7IngiOjE1MDIsInkiOjQ2fSwiQnVpbGRWYWxpZGF0aW9uRXJyb3IiOnsieCI6NDUwLCJ5IjozMDB9LCJSZXBseVZhbGlkYXRpb25FcnJvciI6eyJ4Ijo2NTAsInkiOjMwMH0sIlNjYWZmb2xkQXJ0aWZhY3RzIjp7IngiOjg5NSwieSI6NDQzfSwiTm90aWZ5VGVhbSI6eyJ4IjoxMTA3LCJ5Ijo0MzV9fQ==",
         "errorHandler": {
           "tasks": [
             {
@@ -4463,6 +4362,216 @@
             },
             {
               "name": "unique_id",
+              "type": "string"
+            }
+          ],
+          "output": [],
+          "fe_metadata": {}
+        }
+      }
+    },
+    {
+      "id": "flow:SendNotificationFlow",
+      "data": {
+        "name": "SendNotificationFlow",
+        "description": "Builds the rich HTML email (full-repo vs config-only variant) with the inline brand logo and doc attachment, and sends it via SMTP to the core integration team.",
+        "links": [
+          {
+            "from": "StartActivity",
+            "to": "BuildEmailParts",
+            "type": "label",
+            "label": "StartActivity to BuildEmailParts",
+            "id": 1
+          },
+          {
+            "from": "BuildEmailParts",
+            "to": "BuildEmailAttachment",
+            "type": "label",
+            "label": "BuildEmailParts to BuildEmailAttachment",
+            "id": 2
+          },
+          {
+            "from": "BuildEmailAttachment",
+            "to": "SendNotification",
+            "type": "label",
+            "label": "BuildEmailAttachment to SendNotification",
+            "id": 3
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "BuildEmailParts",
+            "name": "BuildEmailParts",
+            "description": "Pre-builds both notification variants (full repo vs config-only) as complete plain-concat strings: message, subject and the doc-attachment file/name. The downstream mapper then selects per config_only with simple ref-only ternaries (Flogo cannot parse a ternary whose branch is a function call).",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "message_full": "=string.concat(\"<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><meta name='color-scheme' content='light dark'><meta name='supported-color-schemes' content='light dark'></head><body style='margin:0;padding:0;background:#eef1f6'><div style='display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:#eef1f6;font-size:1px;line-height:1px'>New repository scaffolded &mdash; \", $flow.repo_name, \"</div><div style='margin:0;padding:24px 12px;background:#eef1f6;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif'><table role='presentation' align='center' width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0'><tr><td style='background:#0b1f3a;padding:22px 28px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr><td style='vertical-align:middle;width:44px'><img src='cid:email-logo.png' width='44' height='44' alt='BWCE AI' style='display:block;width:44px;height:44px;border-radius:10px' /></td><td style='vertical-align:middle;padding-left:14px'><div style='color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.2px'>BWCE AI Generator</div><div style='color:#9fb3c8;font-size:12px;margin-top:2px'>New integration repository scaffolded</div></td></tr></table></td></tr><tr><td style='height:3px;background:#00e0a4;line-height:3px;font-size:0'>&nbsp;</td></tr><tr><td style='padding:22px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#e6f9f2;border:1px solid #00b386;border-radius:10px'><tr><td style='padding:13px 16px;color:#04694f;font-size:14px;font-weight:600'>&#10003;&nbsp; Repository generated and registered successfully.</td></tr></table></td></tr><tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em'>Repository</div><div style='font-family:Consolas,Menlo,monospace;font-size:20px;font-weight:700;color:#0b1f3a;margin-top:5px;word-break:break-all'>\", $flow.repo_name, \"</div></td></tr><tr><td style='padding:18px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px;border-collapse:collapse'>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Template</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.template_name, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Source &rarr; Target</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6'>\", $flow.source_system, \" &rarr; \", $flow.target_system, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Business Object</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.business_object, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Interface Type</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.interface_type, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Environment</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.env, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>CDM</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", coerce.toString($flow.cdm), \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;width:42%'>Template Match Score</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;'>\", coerce.toString($flow.match_score), \"</td></tr>\", \"</table></td></tr>\", \"<tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px'>Clone</div><div style='background:#0a0c10;border-radius:8px;padding:12px 14px;font-family:Consolas,Menlo,monospace;font-size:12.5px;color:#00e0a4;word-break:break-all'>git clone \", $property[\"BITBUCKET_BASE_URL\"], \"/\", $flow.repo_name, \".git</div></td></tr><tr><td style='padding:18px 28px 26px'><a href='\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $flow.repo_name, \".git' style='display:inline-block;background:#00b386;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px'>Open in Bitbucket &rarr;</a></td></tr>\", \"<tr><td style='background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 28px;color:#94a3b8;font-size:11px;line-height:1.6'>Generation ID: \", $flow.generation_id, \"<br />Automated notification from the BWCE AI Integration Generator</td></tr></table><div style='text-align:center;color:#b4c0cf;font-size:11px;padding:14px 0 2px'>adidas &middot; Core Integration Platform</div></div></body></html>\")",
+                    "message_config": "=string.concat(\"<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><meta name='color-scheme' content='light dark'><meta name='supported-color-schemes' content='light dark'></head><body style='margin:0;padding:0;background:#eef1f6'><div style='display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:#eef1f6;font-size:1px;line-height:1px'>Config-only generation complete &mdash; \", $flow.repo_name, \"</div><div style='margin:0;padding:24px 12px;background:#eef1f6;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif'><table role='presentation' align='center' width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0'><tr><td style='background:#0b1f3a;padding:22px 28px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr><td style='vertical-align:middle;width:44px'><img src='cid:email-logo.png' width='44' height='44' alt='BWCE AI' style='display:block;width:44px;height:44px;border-radius:10px' /></td><td style='vertical-align:middle;padding-left:14px'><div style='color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.2px'>BWCE AI Generator</div><div style='color:#9fb3c8;font-size:12px;margin-top:2px'>Config-only generation &middot; scaffold skipped</div></td></tr></table></td></tr><tr><td style='height:3px;background:#00e0a4;line-height:3px;font-size:0'>&nbsp;</td></tr><tr><td style='padding:22px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#e6f9f2;border:1px solid #00b386;border-radius:10px'><tr><td style='padding:13px 16px;color:#04694f;font-size:14px;font-weight:600'>&#10003;&nbsp; Configuration generated successfully (config-only).</td></tr></table></td></tr><tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em'>Repository (name reserved)</div><div style='font-family:Consolas,Menlo,monospace;font-size:20px;font-weight:700;color:#0b1f3a;margin-top:5px;word-break:break-all'>\", $flow.repo_name, \"</div></td></tr><tr><td style='padding:18px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px;border-collapse:collapse'>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Template</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.template_name, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Source &rarr; Target</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6'>\", $flow.source_system, \" &rarr; \", $flow.target_system, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Business Object</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.business_object, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Interface Type</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.interface_type, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Environment</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.env, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>CDM</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", coerce.toString($flow.cdm), \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;width:42%'>Template Match Score</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;'>\", coerce.toString($flow.match_score), \"</td></tr>\", \"</table></td></tr>\", \"<tr><td style='padding:20px 28px 26px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#fff7ed;border:1px solid #fdba74;border-radius:10px'><tr><td style='padding:13px 16px;color:#9a3412;font-size:13px;line-height:1.55'><strong>Config-only run.</strong> No Bitbucket repository was created. Generated artifacts: <strong>bitbucket-pipelines.yml</strong>, <strong>Dockerfile</strong> and the <strong>Kubernetes manifest</strong> &mdash; the pipeline file is attached.</td></tr></table></td></tr>\", \"<tr><td style='background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 28px;color:#94a3b8;font-size:11px;line-height:1.6'>Generation ID: \", $flow.generation_id, \"<br />Automated notification from the BWCE AI Integration Generator</td></tr></table><div style='text-align:center;color:#b4c0cf;font-size:11px;padding:14px 0 2px'>adidas &middot; Core Integration Platform</div></div></body></html>\")",
+                    "subject_full": "=string.concat(\"\u2705 [BWCE AI Generator] New repository: \", $flow.repo_name)",
+                    "subject_config": "=string.concat(\"\u2705 [BWCE AI Generator] Config generated: \", $flow.repo_name)",
+                    "docfile_full": "=string.concat(\"file://\", $property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $flow.repo_name, \"/manifest.json\")",
+                    "docfile_config": "=string.concat(\"file://\", $property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $flow.repo_name, \"/bitbucket-pipelines.yml\")",
+                    "docname_full": "=string.concat($flow.repo_name, \"-manifest.json\")",
+                    "docname_config": "=string.concat($flow.repo_name, \"-pipeline.yml\")"
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"message_full\": {\"type\": \"string\"}, \"message_config\": {\"type\": \"string\"}, \"subject_full\": {\"type\": \"string\"}, \"subject_config\": {\"type\": \"string\"}, \"docfile_full\": {\"type\": \"string\"}, \"docfile_config\": {\"type\": \"string\"}, \"docname_full\": {\"type\": \"string\"}, \"docname_config\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"message_full\": {\"type\": \"string\"}, \"message_config\": {\"type\": \"string\"}, \"subject_full\": {\"type\": \"string\"}, \"subject_config\": {\"type\": \"string\"}, \"docfile_full\": {\"type\": \"string\"}, \"docfile_config\": {\"type\": \"string\"}, \"docname_full\": {\"type\": \"string\"}, \"docname_config\": {\"type\": \"string\"}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "BuildEmailAttachment",
+            "name": "BuildEmailAttachment",
+            "description": "Selects the notification variant (full repo vs config-only) for subject, HTML body and the doc attachment via ref-only ternaries on config_only, and adds the inline CID brand logo attachment.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "subject": "=$flow.config_only == true ? $activity[BuildEmailParts].output.subject_config : $activity[BuildEmailParts].output.subject_full",
+                    "message": "=$flow.config_only == true ? $activity[BuildEmailParts].output.message_config : $activity[BuildEmailParts].output.message_full",
+                    "attachments": [
+                      {
+                        "file": "=string.concat(\"file://\", $property[\"BRAND_LOGO_FILE\"])",
+                        "filename": "email-logo.png",
+                        "inline": true,
+                        "base64EncodedContents": false
+                      },
+                      {
+                        "file": "=$flow.config_only == true ? $activity[BuildEmailParts].output.docfile_config : $activity[BuildEmailParts].output.docfile_full",
+                        "filename": "=$flow.config_only == true ? $activity[BuildEmailParts].output.docname_config : $activity[BuildEmailParts].output.docname_full",
+                        "inline": false,
+                        "base64EncodedContents": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"subject\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"attachments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"file\": {\"type\": \"string\"}, \"filename\": {\"type\": \"string\"}, \"inline\": {\"type\": \"boolean\"}, \"base64EncodedContents\": {\"type\": \"boolean\"}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"subject\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"attachments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"file\": {\"type\": \"string\"}, \"filename\": {\"type\": \"string\"}, \"inline\": {\"type\": \"boolean\"}, \"base64EncodedContents\": {\"type\": \"boolean\"}}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "SendNotification",
+            "name": "SendNotification",
+            "description": "Sends an email notification (via the configured SMTP server / maildev mock) to the core integration team announcing the newly scaffolded repository.",
+            "settings": {
+              "retryOnError": {
+                "count": 3,
+                "interval": 2000
+              }
+            },
+            "activity": {
+              "ref": "#sendmail",
+              "input": {
+                "Server": "=$property[\"SMTP_HOST\"]",
+                "Port": "=$property[\"SMTP_PORT\"]",
+                "authorizationType": "Basic",
+                "Username": "",
+                "Password": "",
+                "authorizationConn": "",
+                "Connection Security": "NONE",
+                "message_content_type": "text/html",
+                "sender": "=$property[\"NOTIFY_SENDER\"]",
+                "recipients": "=$property[\"NOTIFY_RECIPIENTS\"]",
+                "cc_recipients": "",
+                "bcc_recipients": "",
+                "reply_to": "",
+                "subject": "=$activity[BuildEmailAttachment].output.subject",
+                "message": "=$activity[BuildEmailAttachment].output.message",
+                "attachments": "=$activity[BuildEmailAttachment].output.attachments"
+              },
+              "schemas": {
+                "input": {
+                  "attachments": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"items\":{\"properties\":{\"file\":{\"type\":\"string\"},\"filename\":{\"type\":\"string\"},\"base64EncodedContents\":{\"type\":\"boolean\"}},\"required\":[\"file\"],\"type\":\"object\"},\"type\":\"array\"}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"items\":{\"properties\":{\"file\":{\"type\":\"string\"},\"filename\":{\"type\":\"string\"},\"base64EncodedContents\":{\"type\":\"boolean\"}},\"required\":[\"file\"],\"type\":\"object\"},\"type\":\"array\"}"
+                  },
+                  "headers": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkJ1aWxkRW1haWxQYXJ0cyI6eyJ4IjoyNTAsInkiOjQ1fSwiQnVpbGRFbWFpbEF0dGFjaG1lbnQiOnsieCI6NDUwLCJ5Ijo0NX0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6NjUwLCJ5Ijo0NX19",
+        "metadata": {
+          "input": [
+            {
+              "name": "business_object",
+              "type": "string"
+            },
+            {
+              "name": "cdm",
+              "type": "boolean"
+            },
+            {
+              "name": "config_only",
+              "type": "boolean"
+            },
+            {
+              "name": "env",
+              "type": "string"
+            },
+            {
+              "name": "generation_id",
+              "type": "string"
+            },
+            {
+              "name": "interface_type",
+              "type": "string"
+            },
+            {
+              "name": "match_score",
+              "type": "string"
+            },
+            {
+              "name": "repo_name",
+              "type": "string"
+            },
+            {
+              "name": "source_system",
+              "type": "string"
+            },
+            {
+              "name": "target_system",
+              "type": "string"
+            },
+            {
+              "name": "template_name",
               "type": "string"
             }
           ],
