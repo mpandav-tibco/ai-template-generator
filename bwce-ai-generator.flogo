@@ -11,6 +11,7 @@
     "github.com/tibco/wi-postgres/src/app/PostgreSQL/activity/query",
     "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/activity/ragQuery",
     "github.com/tibco/wi-postgres/src/app/PostgreSQL/activity/insert",
+    "github.com/tibco/wi-postgres/src/app/PostgreSQL/activity/delete",
     "github.com/tibco/flogo-files/src/app/File/activity/write",
     "github.com/tibco/flogo-general/src/app/General/activity/sendmail",
     "github.com/tibco/flogo-files/src/app/File/activity/read",
@@ -1103,28 +1104,78 @@
           {
             "id": "StoreSession",
             "name": "StoreSession",
-            "description": "Persists the new session in shared memory keyed by session id.",
+            "description": "Persists the new session in the PostgreSQL chat_session table (upsert by session_id).",
             "activity": {
-              "ref": "#shareddata",
-              "settings": {
-                "scope": "Application",
-                "operation": "SET",
-                "type": "object"
-              },
+              "ref": "#insert",
               "input": {
-                "key": "=$activity[CreateSession].output.session_id",
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "INSERT INTO public.chat_session(session_id, status, message) VALUES (?session_id, ?status, ?message) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, updated_at = NOW();",
+                "manualmode": false,
+                "Fields": [
+                  {
+                    "FieldName": "session_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "status",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "message",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  }
+                ],
+                "RuntimeQuery": "",
+                "State": "0c6546d7-ce2a-4af5-9804-bc80ac9c5594INSERT INTO public.chat_session(session_id, status, message) VALUES (?session_id, ?status, ?message) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, updated_at = NOW();",
                 "input": {
                   "mapping": {
-                    "data": "=$activity[CreateSession].output"
+                    "values": [
+                      {
+                        "session_id": "=$activity[CreateSession].output.session_id",
+                        "status": "=$activity[CreateSession].output.status",
+                        "message": "=$activity[CreateSession].output.message"
+                      }
+                    ]
                   }
                 }
               },
               "schemas": {
                 "input": {
-                  "input": "schema://SessionState"
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"values\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}}}}, \"parameters\": {\"type\": \"object\", \"properties\": {}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"values\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}}}}, \"parameters\": {\"type\": \"object\", \"properties\": {}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"records\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"records\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {}}}}}"
+                  }
                 }
               },
               "feSchemaMap": {}
+            },
+            "settings": {
+              "retryOnError": {
+                "count": 2,
+                "interval": 1000
+              }
             }
           },
           {
@@ -1267,26 +1318,48 @@
           {
             "id": "GetSession",
             "name": "GetSession",
-            "description": "Loads the current conversation session from shared memory by session id.",
+            "description": "Loads the conversation session row from the PostgreSQL chat_session table by session id.",
             "activity": {
-              "ref": "#shareddata",
-              "settings": {
-                "scope": "Application",
-                "operation": "GET",
-                "type": "object"
-              },
+              "ref": "#query",
               "input": {
-                "key": "=$flow.content.session_id",
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "SELECT session_id, status, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate FROM public.chat_session WHERE session_id = ?session_id;",
+                "manualmode": false,
+                "fetchMetadata": "false",
+                "Fields": [
+                  {
+                    "FieldName": "session_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false
+                  }
+                ],
+                "RuntimeQuery": "",
+                "State": "40479d8a-a131-49b3-931f-fbeaeb6a6db0SELECT session_id, status, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate FROM public.chat_session WHERE session_id = ?session_id;",
                 "input": {
-                  "mapping": {}
+                  "mapping": {
+                    "parameters": {
+                      "session_id": "=$flow.content.session_id"
+                    }
+                  }
                 }
               },
               "schemas": {
-                "output": {
-                  "output": {
+                "input": {
+                  "input": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}, \"missing_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}, \"ready_to_generate\": {\"type\": \"boolean\"}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}, \"missing_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}, \"ready_to_generate\": {\"type\": \"boolean\"}}}}}"
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"parameters\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"parameters\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"records\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"missing_fields\": {\"type\": \"string\"}, \"ready_to_generate\": {\"type\": \"string\"}}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"records\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"missing_fields\": {\"type\": \"string\"}, \"ready_to_generate\": {\"type\": \"string\"}}}}}}"
                   }
                 }
               }
@@ -1409,20 +1482,20 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "source_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.source_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.source_system) : (isDefined($activity[GetSession].output.data.spec.source_system) ? coerce.toString($activity[GetSession].output.data.spec.source_system) : \"\")",
-                    "target_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.target_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.target_system) : (isDefined($activity[GetSession].output.data.spec.target_system) ? coerce.toString($activity[GetSession].output.data.spec.target_system) : \"\")",
-                    "business_object": "=(coerce.toString($activity[ParseExtraction].jsonObject.business_object) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.business_object) : (isDefined($activity[GetSession].output.data.spec.business_object) ? coerce.toString($activity[GetSession].output.data.spec.business_object) : \"\")",
-                    "interface_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_type) : (isDefined($activity[GetSession].output.data.spec.interface_type) ? coerce.toString($activity[GetSession].output.data.spec.interface_type) : \"\")",
-                    "template_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.template_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.template_type) : (isDefined($activity[GetSession].output.data.spec.template_type) ? coerce.toString($activity[GetSession].output.data.spec.template_type) : \"\")",
-                    "cdm": "=(coerce.toString($activity[ParseExtraction].jsonObject.cdm) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.cdm) : (isDefined($activity[GetSession].output.data.spec.cdm) ? coerce.toString($activity[GetSession].output.data.spec.cdm) : \"\")",
-                    "interface_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_id) : (isDefined($activity[GetSession].output.data.spec.interface_id) ? coerce.toString($activity[GetSession].output.data.spec.interface_id) : \"\")",
-                    "scenario_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.scenario_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.scenario_id) : (isDefined($activity[GetSession].output.data.spec.scenario_id) ? coerce.toString($activity[GetSession].output.data.spec.scenario_id) : \"\")",
-                    "bitbucket_project": "=(coerce.toString($activity[ParseExtraction].jsonObject.bitbucket_project) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.bitbucket_project) : (isDefined($activity[GetSession].output.data.spec.bitbucket_project) ? coerce.toString($activity[GetSession].output.data.spec.bitbucket_project) : \"\")",
-                    "email": "=(coerce.toString($activity[ParseExtraction].jsonObject.email) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.email) : (isDefined($activity[GetSession].output.data.spec.email) ? coerce.toString($activity[GetSession].output.data.spec.email) : \"\")",
-                    "env": "=(coerce.toString($activity[ParseExtraction].jsonObject.env) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.env) : (isDefined($activity[GetSession].output.data.spec.env) ? coerce.toString($activity[GetSession].output.data.spec.env) : \"\")",
-                    "k8s_domain": "=(coerce.toString($activity[ParseExtraction].jsonObject.k8s_domain) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.k8s_domain) : (isDefined($activity[GetSession].output.data.spec.k8s_domain) ? coerce.toString($activity[GetSession].output.data.spec.k8s_domain) : \"\")",
-                    "country_code": "=(coerce.toString($activity[ParseExtraction].jsonObject.country_code) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.country_code) : (isDefined($activity[GetSession].output.data.spec.country_code) ? coerce.toString($activity[GetSession].output.data.spec.country_code) : \"\")",
-                    "unique_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.unique_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.unique_id) : (isDefined($activity[GetSession].output.data.spec.unique_id) ? coerce.toString($activity[GetSession].output.data.spec.unique_id) : \"\")"
+                    "source_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.source_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.source_system) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].source_system) : \"\")",
+                    "target_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.target_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.target_system) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].target_system) : \"\")",
+                    "business_object": "=(coerce.toString($activity[ParseExtraction].jsonObject.business_object) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.business_object) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].business_object) : \"\")",
+                    "interface_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_type) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].interface_type) : \"\")",
+                    "template_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.template_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.template_type) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].template_type) : \"\")",
+                    "cdm": "=(coerce.toString($activity[ParseExtraction].jsonObject.cdm) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.cdm) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].cdm) : \"\")",
+                    "interface_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_id) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].interface_id) : \"\")",
+                    "scenario_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.scenario_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.scenario_id) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].scenario_id) : \"\")",
+                    "bitbucket_project": "=(coerce.toString($activity[ParseExtraction].jsonObject.bitbucket_project) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.bitbucket_project) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].bitbucket_project) : \"\")",
+                    "email": "=(coerce.toString($activity[ParseExtraction].jsonObject.email) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.email) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].email) : \"\")",
+                    "env": "=(coerce.toString($activity[ParseExtraction].jsonObject.env) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.env) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].env) : \"\")",
+                    "k8s_domain": "=(coerce.toString($activity[ParseExtraction].jsonObject.k8s_domain) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.k8s_domain) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].k8s_domain) : \"\")",
+                    "country_code": "=(coerce.toString($activity[ParseExtraction].jsonObject.country_code) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.country_code) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].country_code) : \"\")",
+                    "unique_id": "=(coerce.toString($activity[ParseExtraction].jsonObject.unique_id) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.unique_id) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].unique_id) : \"\")"
                   }
                 }
               },
@@ -1539,28 +1612,222 @@
           {
             "id": "SaveSession",
             "name": "SaveSession",
-            "description": "Persists the updated session (merged spec + state) back to shared memory keyed by session id.",
+            "description": "Persists the updated session (merged spec + state) to the PostgreSQL chat_session table (upsert).",
             "activity": {
-              "ref": "#shareddata",
-              "settings": {
-                "scope": "Application",
-                "operation": "SET",
-                "type": "object"
-              },
+              "ref": "#insert",
               "input": {
-                "key": "=$flow.content.session_id",
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "INSERT INTO public.chat_session(session_id, status, message, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate, updated_at) VALUES (?session_id, ?status, ?message, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?email, ?env, ?k8s_domain, ?country_code, ?unique_id, ?missing_fields, ?ready_to_generate, NOW()) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, source_system = EXCLUDED.source_system, target_system = EXCLUDED.target_system, business_object = EXCLUDED.business_object, interface_type = EXCLUDED.interface_type, template_type = EXCLUDED.template_type, cdm = EXCLUDED.cdm, interface_id = EXCLUDED.interface_id, scenario_id = EXCLUDED.scenario_id, bitbucket_project = EXCLUDED.bitbucket_project, email = EXCLUDED.email, env = EXCLUDED.env, k8s_domain = EXCLUDED.k8s_domain, country_code = EXCLUDED.country_code, unique_id = EXCLUDED.unique_id, missing_fields = EXCLUDED.missing_fields, ready_to_generate = EXCLUDED.ready_to_generate, updated_at = NOW();",
+                "manualmode": false,
+                "Fields": [
+                  {
+                    "FieldName": "session_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "status",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "message",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "source_system",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "target_system",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "business_object",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "interface_type",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "template_type",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "cdm",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "interface_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "scenario_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "bitbucket_project",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "email",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "env",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "k8s_domain",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "country_code",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "unique_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "missing_fields",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  },
+                  {
+                    "FieldName": "ready_to_generate",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false,
+                    "Value": true
+                  }
+                ],
+                "RuntimeQuery": "",
+                "State": "570c2706-68da-40cf-b1dd-d737ace4ffe9INSERT INTO public.chat_session(session_id, status, message, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate, updated_at) VALUES (?session_id, ?status, ?message, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?email, ?env, ?k8s_domain, ?country_code, ?unique_id, ?missing_fields, ?ready_to_generate, NOW()) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, source_system = EXCLUDED.source_system, target_system = EXCLUDED.target_system, business_object = EXCLUDED.business_object, interface_type = EXCLUDED.interface_type, template_type = EXCLUDED.template_type, cdm = EXCLUDED.cdm, interface_id = EXCLUDED.interface_id, scenario_id = EXCLUDED.scenario_id, bitbucket_project = EXCLUDED.bitbucket_project, email = EXCLUDED.email, env = EXCLUDED.env, k8s_domain = EXCLUDED.k8s_domain, country_code = EXCLUDED.country_code, unique_id = EXCLUDED.unique_id, missing_fields = EXCLUDED.missing_fields, ready_to_generate = EXCLUDED.ready_to_generate, updated_at = NOW();",
                 "input": {
                   "mapping": {
-                    "data": "=$activity[BuildChatResponse].output"
+                    "values": [
+                      {
+                        "session_id": "=$activity[BuildChatResponse].output.session_id",
+                        "status": "=$activity[BuildChatResponse].output.status",
+                        "message": "=$activity[BuildChatResponse].output.message",
+                        "source_system": "=$activity[BuildChatResponse].output.spec.source_system",
+                        "target_system": "=$activity[BuildChatResponse].output.spec.target_system",
+                        "business_object": "=$activity[BuildChatResponse].output.spec.business_object",
+                        "interface_type": "=$activity[BuildChatResponse].output.spec.interface_type",
+                        "template_type": "=$activity[BuildChatResponse].output.spec.template_type",
+                        "cdm": "=$activity[BuildChatResponse].output.spec.cdm",
+                        "interface_id": "=$activity[BuildChatResponse].output.spec.interface_id",
+                        "scenario_id": "=$activity[BuildChatResponse].output.spec.scenario_id",
+                        "bitbucket_project": "=$activity[BuildChatResponse].output.spec.bitbucket_project",
+                        "email": "=$activity[BuildChatResponse].output.spec.email",
+                        "env": "=$activity[BuildChatResponse].output.spec.env",
+                        "k8s_domain": "=$activity[BuildChatResponse].output.spec.k8s_domain",
+                        "country_code": "=$activity[BuildChatResponse].output.spec.country_code",
+                        "unique_id": "=$activity[BuildChatResponse].output.spec.unique_id",
+                        "missing_fields": "=string.replaceAll(string.concat(\"[\", $activity[ComputeMissing].output.p_source_system, $activity[ComputeMissing].output.p_target_system, $activity[ComputeMissing].output.p_business_object, $activity[ComputeMissing].output.p_interface_type, $activity[ComputeMissing].output.p_template_type, \"]\"), \",]\", \"]\")",
+                        "ready_to_generate": "=coerce.toString($activity[BuildChatResponse].output.ready_to_generate)"
+                      }
+                    ]
                   }
                 }
               },
               "schemas": {
                 "input": {
-                  "input": "schema://SessionState"
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"values\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"missing_fields\": {\"type\": \"string\"}, \"ready_to_generate\": {\"type\": \"string\"}}}}, \"parameters\": {\"type\": \"object\", \"properties\": {}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"values\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"missing_fields\": {\"type\": \"string\"}, \"ready_to_generate\": {\"type\": \"string\"}}}}, \"parameters\": {\"type\": \"object\", \"properties\": {}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"records\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"records\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {}}}}}"
+                  }
                 }
               },
               "feSchemaMap": {}
+            },
+            "settings": {
+              "retryOnError": {
+                "count": 2,
+                "interval": 1000
+              }
             }
           },
           {
@@ -1656,30 +1923,57 @@
           {
             "id": "ClearSession",
             "name": "ClearSession",
-            "description": "Deletes the stored session from shared memory.",
+            "description": "Deletes the stored session row from the PostgreSQL chat_session table.",
             "activity": {
-              "ref": "#shareddata",
-              "settings": {
-                "scope": "Application",
-                "operation": "DELETE",
-                "type": "string"
-              },
+              "ref": "#delete",
               "input": {
-                "key": "=$flow.content.session_id",
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "DELETE FROM public.chat_session WHERE session_id = ?session_id;",
+                "manualmode": false,
+                "Fields": [
+                  {
+                    "FieldName": "session_id",
+                    "Type": "VARCHAR",
+                    "Selected": false,
+                    "Parameter": true,
+                    "isEditable": false
+                  }
+                ],
+                "RuntimeQuery": "",
+                "State": "74b11958-3f57-4003-ba87-21f7e903208dDELETE FROM public.chat_session WHERE session_id = ?session_id;",
                 "input": {
-                  "mapping": {}
+                  "mapping": {
+                    "parameters": {
+                      "session_id": "=$flow.content.session_id"
+                    }
+                  }
                 }
               },
               "schemas": {
-                "output": {
-                  "output": {
+                "input": {
+                  "input": {
                     "type": "json",
-                    "value": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"object\",\"properties\":{\"exist\":{\"type\":\"boolean\"}}}",
-                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"object\",\"properties\":{\"exist\":{\"type\":\"boolean\"}}}"
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"parameters\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"parameters\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"records\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"records\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {}}}}}"
                   }
                 }
               },
               "feSchemaMap": {}
+            },
+            "settings": {
+              "retryOnError": {
+                "count": 2,
+                "interval": 1000
+              }
             }
           },
           {
@@ -4440,9 +4734,16 @@
           {
             "id": 3,
             "from": "CreateSchema",
+            "to": "CreateSessionTable",
+            "type": "label",
+            "label": "CreateSchema to CreateSessionTable"
+          },
+          {
+            "id": 99,
+            "from": "CreateSessionTable",
             "to": "LogDbSetup",
             "type": "label",
-            "label": "CreateSchema to LogDbSetup"
+            "label": "CreateSessionTable to LogDbSetup"
           }
         ],
         "tasks": [
@@ -4530,6 +4831,47 @@
             }
           },
           {
+            "id": "CreateSessionTable",
+            "name": "CreateSessionTable",
+            "description": "Creates the chat_session table if it does not exist (idempotent), so conversational sessions persist in PostgreSQL.",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#query",
+              "input": {
+                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
+                "QueryName": "",
+                "Schema": "public",
+                "Query": "CREATE TABLE IF NOT EXISTS public.chat_session (session_id VARCHAR(64) PRIMARY KEY, status VARCHAR(20) DEFAULT 'active', message TEXT DEFAULT '', source_system VARCHAR(50) DEFAULT '', target_system VARCHAR(50) DEFAULT '', business_object VARCHAR(100) DEFAULT '', interface_type VARCHAR(20) DEFAULT '', template_type VARCHAR(200) DEFAULT '', cdm VARCHAR(10) DEFAULT '', interface_id VARCHAR(50) DEFAULT '', scenario_id VARCHAR(20) DEFAULT '', bitbucket_project VARCHAR(50) DEFAULT '', email VARCHAR(200) DEFAULT '', env VARCHAR(50) DEFAULT '', k8s_domain VARCHAR(50) DEFAULT '', country_code VARCHAR(10) DEFAULT '', unique_id VARCHAR(50) DEFAULT '', missing_fields TEXT DEFAULT '[]', ready_to_generate BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());",
+                "manualmode": false,
+                "Fields": [],
+                "RuntimeQuery": "",
+                "State": "608ca2fb-6329-4f6e-9097-c211f1d83e0dCREATE TABLE IF NOT EXISTS public.chat_session (session_id VARCHAR(64) PRIMARY KEY, status VARCHAR(20) DEFAULT 'active', message TEXT DEFAULT '', source_system VARCHAR(50) DEFAULT '', target_system VARCHAR(50) DEFAULT '', business_object VARCHAR(100) DEFAULT '', interface_type VARCHAR(20) DEFAULT '', template_type VARCHAR(200) DEFAULT '', cdm VARCHAR(10) DEFAULT '', interface_id VARCHAR(50) DEFAULT '', scenario_id VARCHAR(20) DEFAULT '', bitbucket_project VARCHAR(50) DEFAULT '', email VARCHAR(200) DEFAULT '', env VARCHAR(50) DEFAULT '', k8s_domain VARCHAR(50) DEFAULT '', country_code VARCHAR(10) DEFAULT '', unique_id VARCHAR(50) DEFAULT '', missing_fields TEXT DEFAULT '[]', ready_to_generate BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{}}}}"
+                  }
+                },
+                "output": {
+                  "Output": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "LogDbSetup",
             "name": "LogDbSetup",
             "description": "Logs that the PostgreSQL generation_log table is initialized.",
@@ -4544,7 +4886,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIlJlYWRTY2hlbWFGaWxlIjp7IngiOjI1MCwieSI6MTUwfSwiQ3JlYXRlU2NoZW1hIjp7IngiOjQ1MCwieSI6MjUwfSwiTG9nRGJTZXR1cCI6eyJ4Ijo2NTAsInkiOjM1MH19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIlJlYWRTY2hlbWFGaWxlIjp7IngiOjI1MCwieSI6MTUwfSwiQ3JlYXRlU2NoZW1hIjp7IngiOjQ1MCwieSI6MjUwfSwiQ3JlYXRlU2Vzc2lvblRhYmxlIjp7IngiOjU1MCwieSI6MzAwfSwiTG9nRGJTZXR1cCI6eyJ4Ijo2NTAsInkiOjM1MH19",
         "metadata": {
           "input": [],
           "output": [],

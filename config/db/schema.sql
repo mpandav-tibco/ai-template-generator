@@ -56,3 +56,31 @@ FROM generation_log
 WHERE status = 'GENERATED'
 GROUP BY source_system, target_system, interface_type
 ORDER BY total_generated DESC;
+
+-- Conversational session store (replaces the in-memory #shareddata session map
+-- so chat sessions survive restarts and can be shared across instances).
+CREATE TABLE IF NOT EXISTS chat_session (
+    session_id        VARCHAR(64)  PRIMARY KEY,
+    status            VARCHAR(20)  DEFAULT 'active',
+    message           TEXT         DEFAULT '',
+    source_system     VARCHAR(50)  DEFAULT '',
+    target_system     VARCHAR(50)  DEFAULT '',
+    business_object   VARCHAR(100) DEFAULT '',
+    interface_type    VARCHAR(20)  DEFAULT '',
+    template_type     VARCHAR(200) DEFAULT '',
+    cdm               VARCHAR(10)  DEFAULT '',
+    interface_id      VARCHAR(50)  DEFAULT '',
+    scenario_id       VARCHAR(20)  DEFAULT '',
+    bitbucket_project VARCHAR(50)  DEFAULT '',
+    email             VARCHAR(200) DEFAULT '',
+    env               VARCHAR(50)  DEFAULT '',
+    k8s_domain        VARCHAR(50)  DEFAULT '',
+    country_code      VARCHAR(10)  DEFAULT '',
+    unique_id         VARCHAR(50)  DEFAULT '',
+    missing_fields    TEXT         DEFAULT '[]',
+    ready_to_generate BOOLEAN      DEFAULT FALSE,
+    created_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ  DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_session_updated ON chat_session(updated_at DESC);
