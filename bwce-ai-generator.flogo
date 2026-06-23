@@ -1260,7 +1260,7 @@
             },
             "settings": {
               "retryOnError": {
-                "count": 2,
+                "count": 3,
                 "interval": 1000
               }
             }
@@ -1536,6 +1536,12 @@
                     "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"definitions\": {}, \"properties\": {\"records\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"status\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"missing_fields\": {\"type\": \"string\"}, \"ready_to_generate\": {\"type\": \"string\"}}}}}}"
                   }
                 }
+              }
+            },
+            "settings": {
+              "retryOnError": {
+                "count": 3,
+                "interval": 1000
               }
             }
           },
@@ -1999,7 +2005,7 @@
             },
             "settings": {
               "retryOnError": {
-                "count": 2,
+                "count": 3,
                 "interval": 1000
               }
             }
@@ -2232,7 +2238,7 @@
             },
             "settings": {
               "retryOnError": {
-                "count": 2,
+                "count": 3,
                 "interval": 1000
               }
             }
@@ -3206,8 +3212,8 @@
             "description": "Looks up the generation registry for an existing repository with the same derived name to enforce idempotency and prevent duplicate generation.",
             "settings": {
               "retryOnError": {
-                "count": 0,
-                "interval": 0
+                "count": 3,
+                "interval": 1000
               }
             },
             "activity": {
@@ -3327,8 +3333,8 @@
             "description": "Records the generation request in the PostgreSQL generation_log table.",
             "settings": {
               "retryOnError": {
-                "count": 0,
-                "interval": 0
+                "count": 3,
+                "interval": 1000
               }
             },
             "activity": {
@@ -4869,8 +4875,8 @@
             "description": "Looks up the generation registry for an existing repository with the same derived name to enforce idempotency and skip duplicate registration.",
             "settings": {
               "retryOnError": {
-                "count": 0,
-                "interval": 0
+                "count": 3,
+                "interval": 1000
               }
             },
             "activity": {
@@ -4926,8 +4932,8 @@
             "description": "Records the MCP-triggered generation in the PostgreSQL generation_log table.",
             "settings": {
               "retryOnError": {
-                "count": 0,
-                "interval": 0
+                "count": 3,
+                "interval": 1000
               }
             },
             "activity": {
@@ -5317,8 +5323,8 @@
             "description": "Executes the DDL to create the generation_log table if it does not exist (idempotent).",
             "settings": {
               "retryOnError": {
-                "count": 0,
-                "interval": 0
+                "count": 5,
+                "interval": 3000
               }
             },
             "activity": {
@@ -5358,8 +5364,8 @@
             "description": "Creates the chat_session table if it does not exist (idempotent), so conversational sessions persist in PostgreSQL.",
             "settings": {
               "retryOnError": {
-                "count": 0,
-                "interval": 0
+                "count": 5,
+                "interval": 3000
               }
             },
             "activity": {
