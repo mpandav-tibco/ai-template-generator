@@ -2231,12 +2231,6 @@
             "label": "NormalizeSpec to ValidateSpec"
           },
           {
-            "from": "SendNotification",
-            "to": "ReadCsvTracker",
-            "type": "label",
-            "label": "SendNotification to ReadCsvTracker"
-          },
-          {
             "from": "BuildGenerateResponse",
             "to": "Reply_to_API",
             "type": "label"
@@ -2254,18 +2248,6 @@
             "to": "RegisterGeneration",
             "type": "label",
             "label": "ResolveTemplateName to RegisterGeneration"
-          },
-          {
-            "from": "ReadCsvTracker",
-            "to": "AppendCsvAudit",
-            "type": "label",
-            "label": "ReadCsvTracker to AppendCsvAudit"
-          },
-          {
-            "from": "AppendCsvAudit",
-            "to": "BuildGenerateResponse",
-            "type": "label",
-            "label": "AppendCsvAudit to BuildGenerateResponse"
           },
           {
             "from": "RegisterGeneration",
@@ -2301,6 +2283,12 @@
             "to": "BuildEmailAttachment",
             "type": "label",
             "label": "BuildEmailParts to BuildEmailAttachment"
+          },
+          {
+            "from": "SendNotification",
+            "to": "BuildGenerateResponse",
+            "type": "label",
+            "label": "SendNotification to BuildGenerateResponse"
           }
         ],
         "tasks": [
@@ -3086,8 +3074,8 @@
             "description": "Sends an email notification (via the configured SMTP server / maildev mock) to the core integration team announcing the newly scaffolded repository.",
             "settings": {
               "retryOnError": {
-                "count": 0,
-                "interval": 0
+                "count": 3,
+                "interval": 2000
               }
             },
             "activity": {
@@ -3121,77 +3109,6 @@
                     "type": "json",
                     "value": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}",
                     "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}"
-                  }
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "ReadCsvTracker",
-            "name": "ReadCsvTracker",
-            "description": "Reads the existing Go-Live tracker CSV so the new audit row can be appended (read-modify-write; the OOTB #write activity has no append mode).",
-            "activity": {
-              "ref": "#read",
-              "input": {
-                "readAs": "Text",
-                "compress": "None",
-                "input": {
-                  "mapping": {
-                    "fileName": "=$property[\"GOLIVE_TRACKER_FILE\"]"
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "input": {
-                    "type": "json",
-                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}",
-                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}"
-                  }
-                },
-                "output": {
-                  "output": {
-                    "type": "json",
-                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}",
-                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}"
-                  }
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "AppendCsvAudit",
-            "name": "AppendCsvAudit",
-            "description": "Appends one tilde-delimited audit row (existing content + new row) to the Go-Live tracker CSV using overwrite:true (read-modify-write append).",
-            "activity": {
-              "ref": "#write",
-              "input": {
-                "writeAs": "Text",
-                "createNonExistingDir": true,
-                "compress": "None",
-                "input": {
-                  "mapping": {
-                    "fileName": "=$property[\"GOLIVE_TRACKER_FILE\"]",
-                    "overwrite": true,
-                    "textContent": "=string.concat(coerce.toString($activity[ReadCsvTracker].output.fileContent.textContent), coerce.toString(datetime.currentDatetime()), \"~\", coerce.toString($activity[NormalizeSpec].output.generation_id), \"~\", coerce.toString($activity[BuildRepoName].output.repo_name), \"~\", coerce.toString($activity[NormalizeSpec].output.source_system), \"~\", coerce.toString($activity[NormalizeSpec].output.target_system), \"~\", coerce.toString($activity[NormalizeSpec].output.business_object), \"~\", coerce.toString($activity[NormalizeSpec].output.interface_type), \"~\", coerce.toString($activity[NormalizeSpec].output.template_type), \"~\", coerce.toString($activity[ResolveTemplateName].output.template_name), \"~\", coerce.toString($activity[NormalizeSpec].output.cdm), \"~\", coerce.toString($activity[NormalizeSpec].output.need_secret), \"~\", coerce.toString($activity[NormalizeSpec].output.interface_id), \"~\", coerce.toString($activity[NormalizeSpec].output.scenario_id), \"~\", coerce.toString($activity[NormalizeSpec].output.bitbucket_project), \"~\", coerce.toString($activity[NormalizeSpec].output.env), \"~\", coerce.toString($activity[NormalizeSpec].output.k8s_domain), \"~\", coerce.toString($activity[NormalizeSpec].output.country_code), \"~\", coerce.toString($activity[NormalizeSpec].output.unique_id), \"~\", coerce.toString($activity[NormalizeSpec].output.email), \"~\", \"GENERATED\", \"\\n\")"
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "input": {
-                    "type": "json",
-                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}",
-                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"textContent\":{\"type\":\"string\"}},\"required\":[\"fileName\",\"overwrite\",\"textContent\"],\"type\":\"object\"}"
-                  }
-                },
-                "output": {
-                  "output": {
-                    "type": "json",
-                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}",
-                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"}},\"type\":\"object\"}"
                   }
                 }
               },
@@ -3429,7 +3346,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjQ1fSwiR2V0SUtESW50ZXJmYWNlcyI6eyJ4Ijo2NTAsInkiOjQ1fSwiR2V0SUtEU2NlbmFyaW9zIjp7IngiOjg1MCwieSI6NDV9LCJDcm9zc0NoZWNrSUtEIjp7IngiOjEwNTAsInkiOjQ1fSwiQnVpbGRSZXBvTmFtZSI6eyJ4Ijo4ODksInkiOjIwNH0sIkNoZWNrRHVwbGljYXRlIjp7IngiOjExMzIsInkiOjE5NH0sIlNlbGVjdFRlbXBsYXRlIjp7IngiOjEzNTAsInkiOjE4OH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxNTYxLCJ5IjoxODZ9LCJTY2FmZm9sZFJlcG8iOnsieCI6ODk1LCJ5Ijo0NDN9LCJTY2FmZm9sZFJlYWRtZSI6eyJ4Ijo4OTUsInkiOjU2MH0sIlNjYWZmb2xkUGlwZWxpbmUiOnsieCI6MTA5NSwieSI6NTYwfSwiU2NhZmZvbGREb2NrZXJmaWxlIjp7IngiOjEyOTUsInkiOjU2MH0sIlNjYWZmb2xkSzhzIjp7IngiOjE0OTUsInkiOjU2MH0sIkJ1aWxkRW1haWxQYXJ0cyI6eyJ4IjoxNDk1LCJ5Ijo2OTB9LCJCdWlsZEVtYWlsQXR0YWNobWVudCI6eyJ4IjoxMzAwLCJ5Ijo0OTh9LCJTZW5kTm90aWZpY2F0aW9uIjp7IngiOjExMDcsInkiOjQzNX0sIkJ1aWxkRHVwbGljYXRlUmVzcG9uc2UiOnsieCI6MTM1NiwieSI6MjkwfSwiUmVwbHlEdXBsaWNhdGUiOnsieCI6MTU1NiwieSI6Mjg1fSwiQnVpbGRJS0RFcnJvclJlc3BvbnNlIjp7IngiOjEyNTYsInkiOjQ0fSwiUmVwbHlJS0RFcnJvciI6eyJ4IjoxNTAyLCJ5Ijo0Nn0sIk5vcm1hbGl6ZVNwZWMiOnsieCI6MjUwLCJ5IjoxNTB9LCJCdWlsZFZhbGlkYXRpb25FcnJvciI6eyJ4Ijo0NTAsInkiOjMwMH0sIlJlcGx5VmFsaWRhdGlvbkVycm9yIjp7IngiOjY1MCwieSI6MzAwfSwiQ2hlY2tWYWxpZGF0aW9uIjp7IngiOjM1MCwieSI6MjIwfSwiUmVhZENzdlRyYWNrZXIiOnsieCI6MTA1MCwieSI6NTB9LCJBcHBlbmRDc3ZBdWRpdCI6eyJ4IjoxMjAwLCJ5Ijo1MH19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjQ1fSwiR2V0SUtESW50ZXJmYWNlcyI6eyJ4Ijo2NTAsInkiOjQ1fSwiR2V0SUtEU2NlbmFyaW9zIjp7IngiOjg1MCwieSI6NDV9LCJDcm9zc0NoZWNrSUtEIjp7IngiOjEwNTAsInkiOjQ1fSwiQnVpbGRSZXBvTmFtZSI6eyJ4Ijo4ODksInkiOjIwNH0sIkNoZWNrRHVwbGljYXRlIjp7IngiOjExMzIsInkiOjE5NH0sIlNlbGVjdFRlbXBsYXRlIjp7IngiOjEzNTAsInkiOjE4OH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxNTYxLCJ5IjoxODZ9LCJTY2FmZm9sZFJlcG8iOnsieCI6ODk1LCJ5Ijo0NDN9LCJTY2FmZm9sZFJlYWRtZSI6eyJ4Ijo4OTUsInkiOjU2MH0sIlNjYWZmb2xkUGlwZWxpbmUiOnsieCI6MTA5NSwieSI6NTYwfSwiU2NhZmZvbGREb2NrZXJmaWxlIjp7IngiOjEyOTUsInkiOjU2MH0sIlNjYWZmb2xkSzhzIjp7IngiOjE0OTUsInkiOjU2MH0sIkJ1aWxkRW1haWxQYXJ0cyI6eyJ4IjoxNDk1LCJ5Ijo2OTB9LCJCdWlsZEVtYWlsQXR0YWNobWVudCI6eyJ4IjoxMzAwLCJ5Ijo0OTh9LCJTZW5kTm90aWZpY2F0aW9uIjp7IngiOjExMDcsInkiOjQzNX0sIkJ1aWxkRHVwbGljYXRlUmVzcG9uc2UiOnsieCI6MTM1NiwieSI6MjkwfSwiUmVwbHlEdXBsaWNhdGUiOnsieCI6MTU1NiwieSI6Mjg1fSwiQnVpbGRJS0RFcnJvclJlc3BvbnNlIjp7IngiOjEyNTYsInkiOjQ0fSwiUmVwbHlJS0RFcnJvciI6eyJ4IjoxNTAyLCJ5Ijo0Nn0sIk5vcm1hbGl6ZVNwZWMiOnsieCI6MjUwLCJ5IjoxNTB9LCJCdWlsZFZhbGlkYXRpb25FcnJvciI6eyJ4Ijo0NTAsInkiOjMwMH0sIlJlcGx5VmFsaWRhdGlvbkVycm9yIjp7IngiOjY1MCwieSI6MzAwfSwiQ2hlY2tWYWxpZGF0aW9uIjp7IngiOjM1MCwieSI6MjIwfX0=",
         "metadata": {
           "input": [
             {
@@ -5286,11 +5203,6 @@
       "name": "BRAND_LOGO_FILE",
       "type": "string",
       "value": "static/email-logo.png"
-    },
-    {
-      "name": "GOLIVE_TRACKER_FILE",
-      "type": "string",
-      "value": "GoLiveTracker/CodeGenerateTracker.csv"
     },
     {
       "name": "BITBUCKET_BASE_URL",
