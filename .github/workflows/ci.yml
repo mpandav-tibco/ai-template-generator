@@ -1,0 +1,144 @@
+# =============================================================================
+# BWCE AI Generator - CI pipeline
+# =============================================================================
+# Validates, builds, and integration-tests the Flogo application.
+#
+# RUNNER REQUIREMENTS (self-hosted, label: [self-hosted, flogo])
+# -----------------------------------------------------------------------------
+# Building a Flogo app needs the TIBCO toolchain, which is not available on
+# GitHub-hosted runners, so every job targets a self-hosted runner that has:
+#   * fcli + the build context (default: flogo-studio-2264) on PATH
+#   * the flogodesign-cli binary (ships with the TIBCO Flogo VS Code extension)
+#   * the custom Flogo extensions checked out where the build context expects them
+#   * Docker, and the shared-infra containers the app talks to:
+#       - PostgreSQL  container "flogo-studio-postgres"  (:5432, db flogo_agent_studio, user flogo)
+#       - Weaviate    container "weaviate"               (:18080)
+#     (the app self-provisions its DB tables + Weaviate collection on startup)
+#   * Ollama on :11434 with the embedding + extraction models
+#     (demo/start-demo.sh pulls missing models automatically)
+#
+# CONFIGURATION (set as repository / organization Actions *Variables*)
+#   FLOGODESIGN_CLI   absolute path to flogodesign-cli on the runner
+#                     e.g. ~/.vscode/extensions/tibco.flogo-2.26.4-2681/bin/flogodesign-cli
+#   FCLI_CONTEXT      build context name           (optional, default flogo-studio-2264)
+#   GO_SHIM_DIR       dir prepended to PATH for the build (optional; the local
+#                     build uses a small Go shim at /tmp/goshim)
+# =============================================================================
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "bwce-ai-generator.flogo"
+      - "rules/**"
+      - "config/**"
+      - "static/**"
+      - "test/**"
+      - "demo/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLOGO_FILE: bwce-ai-generator.flogo
+  APP_NAME: bwce-ai-generator
+  FCLI_CONTEXT: ${{ vars.FCLI_CONTEXT || 'flogo-studio-2264' }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Read-only validation gate. No runtime dependencies — fails fast on broken
+  #    mappings / activity refs / function imports (validate-mappings rules).
+  # ---------------------------------------------------------------------------
+  validate:
+    name: Validate flow mappings
+    runs-on: [self-hosted, flogo]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve flogodesign-cli
+        run: |
+          CLI="${{ vars.FLOGODESIGN_CLI }}"
+          if [ -z "$CLI" ]; then
+            echo "::error::Repository variable FLOGODESIGN_CLI is not set (path to the flogodesign-cli binary)."
+            exit 1
+          fi
+          echo "FLOGODESIGN_CLI=$CLI" >> "$GITHUB_ENV"
+
+      - name: validate-mappings
+        run: |
+          "$FLOGODESIGN_CLI" validate-mappings -f "$FLOGO_FILE" | tee /tmp/validate.txt
+          # validate-mappings exits 0 even on findings; require the explicit
+          # "All N mapping(s) passed all M rule(s)" success marker.
+          if ! grep -qiE "All [0-9]+ mapping\(s\) passed all [0-9]+ rule\(s\)" /tmp/validate.txt; then
+            echo "::error::validate-mappings reported failures"; exit 1
+          fi
+
+  # ---------------------------------------------------------------------------
+  # 2. Compile gate. Builds the native binary (compiles every flow expression).
+  #    No runtime dependencies. Publishes the binary for the integration job.
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build executable
+    needs: validate
+    runs-on: [self-hosted, flogo]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (fcli build-exe)
+        run: |
+          # Optionally prepend the Go shim dir used by the local build.
+          if [ -n "${{ vars.GO_SHIM_DIR }}" ]; then export PATH="${{ vars.GO_SHIM_DIR }}:$PATH"; fi
+          fcli build-exe -f "$FLOGO_FILE" -c "$FCLI_CONTEXT" -n "$APP_NAME" -o .
+          test -x "./$APP_NAME"
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}
+          path: ${{ env.APP_NAME }}
+          retention-days: 3
+
+  # ---------------------------------------------------------------------------
+  # 3. Integration tests. Brings up the full stack via the proven demo script,
+  #    runs the black-box flow suite incl. the DB-down error-handler check, and
+  #    always tears the app + MailDev down afterwards.
+  # ---------------------------------------------------------------------------
+  integration-test:
+    name: Integration tests
+    needs: build
+    runs-on: [self-hosted, flogo]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}
+
+      - name: Make binary executable
+        run: chmod +x "./$APP_NAME"
+
+      - name: Start dependencies + app
+        run: ./demo/start-demo.sh # verifies pg/weaviate, starts ollama+maildev+app, waits healthy
+
+      - name: Run flow test suite (functional + resilience)
+        run: ./test/api-test.sh --with-resilience
+
+      - name: Teardown
+        if: always()
+        run: ./demo/start-demo.sh --stop || true
+
+      - name: Upload app log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-log
+          path: /tmp/bwce-ai-generator.log
+          if-no-files-found: ignore
