@@ -2189,9 +2189,9 @@
           {
             "id": 15,
             "from": "ScaffoldK8s",
-            "to": "SendNotification",
+            "to": "BuildEmailAttachment",
             "type": "label",
-            "label": "ScaffoldK8s to SendNotification"
+            "label": "ScaffoldK8s to BuildEmailAttachment"
           },
           {
             "id": 16,
@@ -2289,6 +2289,12 @@
             "type": "expression",
             "label": "Spec invalid",
             "value": "$activity[ValidateSpec].errorCount > 0"
+          },
+          {
+            "from": "BuildEmailAttachment",
+            "to": "SendNotification",
+            "type": "label",
+            "label": "BuildEmailAttachment to SendNotification"
           }
         ],
         "tasks": [
@@ -2999,6 +3005,37 @@
             }
           },
           {
+            "id": "BuildEmailAttachment",
+            "name": "BuildEmailAttachment",
+            "description": "Builds the email attachments array (the generated repo's manifest.json) so the file path is evaluated before SendNotification.",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "attachments": [
+                      {
+                        "file": "=string.concat(\"file://\", $property[\"SCAFFOLD_OUTPUT_DIR\"], \"/\", $activity[BuildRepoName].output.repo_name, \"/manifest.json\")",
+                        "filename": "=string.concat($activity[BuildRepoName].output.repo_name, \"-manifest.json\")",
+                        "inline": false,
+                        "base64EncodedContents": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"attachments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"file\": {\"type\": \"string\"}, \"filename\": {\"type\": \"string\"}, \"inline\": {\"type\": \"boolean\"}, \"base64EncodedContents\": {\"type\": \"boolean\"}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"attachments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"file\": {\"type\": \"string\"}, \"filename\": {\"type\": \"string\"}, \"inline\": {\"type\": \"boolean\"}, \"base64EncodedContents\": {\"type\": \"boolean\"}}}}}}"
+                  }
+                }
+              }
+            }
+          },
+          {
             "id": "SendNotification",
             "name": "SendNotification",
             "description": "Sends an email notification (via the configured SMTP server / maildev mock) to the core integration team announcing the newly scaffolded repository.",
@@ -3018,14 +3055,15 @@
                 "Password": "",
                 "authorizationConn": "",
                 "Connection Security": "NONE",
-                "message_content_type": "text/plain",
+                "message_content_type": "text/html",
                 "sender": "=$property[\"NOTIFY_SENDER\"]",
                 "recipients": "=$property[\"NOTIFY_RECIPIENTS\"]",
                 "cc_recipients": "",
                 "bcc_recipients": "",
                 "reply_to": "",
-                "subject": "=string.concat(\"[BWCE AI Generator] New repository scaffolded: \", $activity[BuildRepoName].output.repo_name)",
-                "message": "=string.concat(\"A new BWCE integration repository has been generated and scaffolded.\\n\\nRepository: \", $activity[BuildRepoName].output.repo_name, \"\\nBitbucket: \", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"\\nSource System: \", $activity[NormalizeSpec].output.source_system, \"\\nTarget System: \", $activity[NormalizeSpec].output.target_system, \"\\nInterface Type: \", $activity[NormalizeSpec].output.interface_type, \"\\n\\nScaffold command:\\n./GenerateCodeFromTemplate.sh --repo=\", $activity[BuildRepoName].output.repo_name)"
+                "subject": "=string.concat(\"\u2705 [BWCE AI Generator] New repository: \", $activity[BuildRepoName].output.repo_name)",
+                "message": "=string.concat(\"<div style='margin:0;padding:24px;background:#eef1f6;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif'><table role='presentation' align='center' width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0'><tr><td style='background:#0b1f3a;padding:22px 28px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr><td style='vertical-align:middle;width:36px'><span style='display:inline-block;width:36px;height:36px;line-height:36px;text-align:center;background:#00e0a4;color:#06131d;font-weight:800;border-radius:8px;font-size:15px'>AI</span></td><td style='vertical-align:middle;padding-left:12px'><div style='color:#ffffff;font-size:18px;font-weight:700'>BWCE AI Generator</div><div style='color:#9fb3c8;font-size:12px'>New integration repository scaffolded</div></td></tr></table></td></tr><tr><td style='padding:0 28px'><div style='margin-top:20px;background:#e6f9f2;border:1px solid #00b386;border-radius:8px;padding:12px 14px;color:#04694f;font-size:14px'>&#10003;&nbsp; Repository generated and registered successfully.</div></td></tr><tr><td style='padding:18px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.07em'>Repository</div><div style='font-family:Consolas,Menlo,monospace;font-size:20px;font-weight:700;color:#0b1f3a;margin-top:4px;word-break:break-all'>\", $activity[BuildRepoName].output.repo_name, \"</div></td></tr><tr><td style='padding:18px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px;border-collapse:collapse'>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Template</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[ResolveTemplateName].output.template_name, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Source &rarr; Target</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6'>\", $activity[NormalizeSpec].output.source_system, \" &rarr; \", $activity[NormalizeSpec].output.target_system, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Business Object</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[NormalizeSpec].output.business_object, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Interface Type</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[NormalizeSpec].output.interface_type, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Environment</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $activity[NormalizeSpec].output.env, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>CDM</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", coerce.toString($activity[NormalizeSpec].output.cdm), \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;width:42%'>Template Match Score</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;'>\", $activity[ResolveTemplateName].output.match_score, \"</td></tr>\", \"</table></td></tr><tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px'>Clone</div><div style='background:#0a0c10;border-radius:8px;padding:12px 14px;font-family:Consolas,Menlo,monospace;font-size:12.5px;color:#00e0a4;word-break:break-all'>git clone \", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"</div></td></tr><tr><td style='padding:18px 28px 24px'><a href='\", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\", \"' style='display:inline-block;background:#00b386;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:11px 22px;border-radius:8px'>Open in Bitbucket</a></td></tr><tr><td style='background:#f8fafc;border-top:1px solid #e2e8f0;padding:14px 28px;color:#94a3b8;font-size:11px'>Generation ID: \", $activity[NormalizeSpec].output.generation_id, \" &middot; Automated notification from the BWCE AI Integration Generator</td></tr></table></div>\")",
+                "attachments": "=$activity[BuildEmailAttachment].output.attachments"
               },
               "schemas": {
                 "input": {
