@@ -2140,8 +2140,8 @@
             "from": "CheckDuplicate",
             "to": "SelectTemplate",
             "type": "expression",
-            "label": "No duplicate",
-            "value": "array.count($activity[CheckDuplicate].Output.records) == 0"
+            "label": "No duplicate or config-only",
+            "value": "array.count($activity[CheckDuplicate].Output.records) == 0 || $activity[NormalizeSpec].output.config_only == true"
           },
           {
             "id": 9,
@@ -2154,8 +2154,9 @@
             "id": 10,
             "from": "RegisterGeneration",
             "to": "ScaffoldRepo",
-            "type": "label",
-            "label": "RegisterGeneration to ScaffoldRepo"
+            "type": "expression",
+            "label": "Full generate (scaffold repo)",
+            "value": "$activity[NormalizeSpec].output.config_only == false"
           },
           {
             "id": 11,
@@ -2197,8 +2198,8 @@
             "from": "CheckDuplicate",
             "to": "BuildDuplicateResponse",
             "type": "expression",
-            "label": "Duplicate found",
-            "value": "array.count($activity[CheckDuplicate].Output.records) > 0"
+            "label": "Duplicate (full generate only)",
+            "value": "array.count($activity[CheckDuplicate].Output.records) > 0 && $activity[NormalizeSpec].output.config_only == false"
           },
           {
             "id": 17,
@@ -2288,6 +2289,13 @@
             "to": "BuildGenerateResponse",
             "type": "label",
             "label": "AppendCsvAudit to BuildGenerateResponse"
+          },
+          {
+            "from": "RegisterGeneration",
+            "to": "ScaffoldPipeline",
+            "type": "expression",
+            "label": "Config-only (skip repo scaffold)",
+            "value": "$activity[NormalizeSpec].output.config_only == true"
           }
         ],
         "tasks": [
@@ -2340,7 +2348,8 @@
                     "unique_id": "=(coerce.toString($flow.content.spec.unique_id) != \"\") ? coerce.toString($flow.content.spec.unique_id) : \"NA\"",
                     "country_suffix": "=(string.toLower(coerce.toString($flow.content.spec.country_code)) != \"na\" && string.toLower(coerce.toString($flow.content.spec.country_code)) != \"none\" && string.toLower(coerce.toString($flow.content.spec.country_code)) != \"\") ? string.concat(\"-\", string.toLower(coerce.toString($flow.content.spec.country_code))) : \"\"",
                     "unique_suffix": "=(string.toLower(coerce.toString($flow.content.spec.unique_id)) != \"na\" && string.toLower(coerce.toString($flow.content.spec.unique_id)) != \"none\" && string.toLower(coerce.toString($flow.content.spec.unique_id)) != \"1none\" && string.toLower(coerce.toString($flow.content.spec.unique_id)) != \"\") ? string.concat(\"-\", string.toLower(coerce.toString($flow.content.spec.unique_id))) : \"\"",
-                    "generation_id": "=utils.uuid()"
+                    "generation_id": "=utils.uuid()",
+                    "config_only": "=$flow.content.config_only == true"
                   }
                 }
               },
@@ -2348,8 +2357,8 @@
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"country_suffix\": {\"type\": \"string\"}, \"unique_suffix\": {\"type\": \"string\"}, \"generation_id\": {\"type\": \"string\"}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"country_suffix\": {\"type\": \"string\"}, \"unique_suffix\": {\"type\": \"string\"}, \"generation_id\": {\"type\": \"string\"}, \"config_only\": {\"type\": \"boolean\"}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"config_only\": {\"type\": \"boolean\"}}}"
                   }
                 }
               },
@@ -3235,7 +3244,7 @@
                     "repo_name": "=$activity[BuildRepoName].output.repo_name",
                     "generation_id": "=$activity[NormalizeSpec].output.generation_id",
                     "template_name": "=$activity[ResolveTemplateName].output.template_name",
-                    "message": "Repository scaffolded successfully and registered.",
+                    "message": "=$activity[NormalizeSpec].output.config_only == true ? \"Configuration files (Dockerfile, Kubernetes, pipeline) refreshed \u2014 repository scaffold and git were left untouched.\" : \"Repository scaffolded successfully and registered.\"",
                     "shell_command": "=string.concat(\"git clone https://bitbucket.org/\", $activity[NormalizeSpec].output.bitbucket_project, \"/\", $activity[BuildRepoName].output.repo_name, \".git\")",
                     "source_system": "=$activity[NormalizeSpec].output.source_system",
                     "target_system": "=$activity[NormalizeSpec].output.target_system",
@@ -3248,7 +3257,8 @@
                     "template_match_score": "=$activity[ResolveTemplateName].output.match_score",
                     "need_secret": "=$activity[NormalizeSpec].output.need_secret",
                     "country_code": "=$activity[NormalizeSpec].output.country_code",
-                    "unique_id": "=$activity[NormalizeSpec].output.unique_id"
+                    "unique_id": "=$activity[NormalizeSpec].output.unique_id",
+                    "config_only": "=$activity[NormalizeSpec].output.config_only"
                   }
                 }
               },
