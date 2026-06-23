@@ -141,11 +141,20 @@ assert_http "turn 1 (s4hana->kafka)" 200 POST /api/chat/message \
 assert_jq  "source extracted" '.spec.source_system' S4HANA
 assert_jq  "target extracted" '.spec.target_system' KAFKA
 
-# turn 2 retains turn-1 spec read back from the DB (cross-call persistence)
-assert_http "turn 2 (add object)" 200 POST /api/chat/message \
-  "{\"session_id\":\"$SID\",\"message\":\"for invoice business object\"}"
-assert_jq  "source retained from DB" '.spec.source_system' S4HANA
-assert_jq  "target retained from DB" '.spec.target_system' KAFKA
+# Deterministic persistence proof: inject an LLM-proof sentinel into the stored
+# row, then send a neutral turn. The next response must read the sentinel back
+# from the DB (proving cross-call persistence, not re-extraction). We assert only
+# on the sentinel: a contentless turn makes the LLM parrot the prompt's few-shot
+# example (source/target), so asserting on those would be non-deterministic. The
+# example uses k8s_domain:"", so 'persistsentinel' can ONLY come from the DB row.
+if $DB_OK; then
+  psql_q "UPDATE chat_session SET k8s_domain='persistsentinel' WHERE session_id='$SID';" >/dev/null
+  assert_http "turn 2 (neutral msg)" 200 POST /api/chat/message \
+    "{\"session_id\":\"$SID\",\"message\":\"thanks\"}"
+  assert_jq  "DB sentinel read back on next turn" '.spec.k8s_domain' persistsentinel
+else
+  skip "DB persistence proof (postgres not reachable)"
+fi
 
 # unknown session is graceful (fresh spec, no 500)
 assert_http "unknown session graceful" 200 POST /api/chat/message \
