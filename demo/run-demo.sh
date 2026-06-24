@@ -7,7 +7,7 @@
 #   1. Health & template catalog           (app + VectorDB ingestion)
 #   2. One-shot NLU extraction  /extract   (Feature 7: deterministic pre-extract
 #                                            + LLM, fence-tolerant JSON parsing)
-#   3. Conversational extraction  /api/chat (multi-turn session via SharedData)
+#   3. Conversational extraction  /api/chat (multi-turn session in PostgreSQL chat_session)
 #   4. Generate repository  /generate       (happy path)
 #        ├─ Feature 4: IKD cross-check
 #        ├─ template selection via Weaviate RAG
@@ -91,7 +91,7 @@ post "/extract" "$EXTRACT_PAYLOAD" | pretty
 
 # ── 3. Conversational extraction ───────────────────────────────────────────
 title "3. Conversational extraction  →  POST /api/chat/*"
-note "Sessions are kept in Flogo SharedData; the assistant asks for missing fields."
+note "Sessions are persisted in PostgreSQL (chat_session); the assistant asks for missing fields."
 pause
 run "POST /api/chat/init"
 INIT="$(post /api/chat/init '{}')"; echo "$INIT" | pretty
