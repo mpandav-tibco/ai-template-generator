@@ -38,15 +38,14 @@ flowchart LR
             GEN["generate_POST<br/>pipeline"]
             START["StartupFlow<br/>ingestion"]
         end
-        RULES["Rule Engine<br/>YAML"]
-        PROMPT["pongo2prompt<br/>templates"]
-        AGENT["agentactivity<br/>LLM"]
+        RULES["Rule Engine #ruleengine<br/>deterministic pre-extract (YAML)"]
+        RAG["#ragQuery (vectordb-weaviate)<br/>vector search + LLM call"]
     end
 
     subgraph Deps["External services"]
         OLL["Ollama LLM<br/>:11434"]
         WV["Weaviate VectorDB<br/>:18080"]
-        PG[("PostgreSQL<br/>generation_log :5432")]
+        PG[("PostgreSQL :5432<br/>generation_log · chat_session")]
         MAIL["MailDev SMTP<br/>:1025 / UI :1080"]
         FS[["generated-repos/"]]
     end
@@ -55,7 +54,10 @@ flowchart LR
     AG --> MCP
     REST --> EX & CHAT & GEN
     MCP --> EX & GEN
-    EX & CHAT --> RULES --> PROMPT --> AGENT --> OLL
+    EX & CHAT --> RULES --> RAG
+    RAG --> WV
+    RAG --> OLL
+    CHAT --> PG
     START --> WV
     GEN --> WV
     GEN --> PG
@@ -77,21 +79,26 @@ sequenceDiagram
     participant M as MailDev
 
     C->>G: POST /generate { spec }
+    G->>G: NormalizeSpec
     G->>G: ValidateSpec
-    G->>IKD: CrossCheckIKD
-    alt IKD invalid
-        G-->>C: 200 IKD_VALIDATION_FAILED
-    else IKD valid
-        G->>G: BuildRepoName
-        G->>DB: CheckDuplicate
-        alt duplicate exists
-            G-->>C: 200 { duplicate:true, existing record }
-        else new
-            G->>WV: SelectTemplate (RAG)
-            G->>DB: RegisterGeneration → status GENERATED
-            G->>FS: ScaffoldRepo → manifest.json
-            G->>M: SendNotification email
-            G-->>C: 200 { success:true, repo_name, generation_id }
+    alt spec invalid
+        G-->>C: 400 VALIDATION_ERROR
+    else spec valid
+        G->>IKD: CrossCheckIKD
+        alt IKD invalid
+            G-->>C: 200 IKD_VALIDATION_FAILED
+        else IKD valid
+            G->>G: BuildRepoName
+            G->>DB: CheckDuplicate
+            alt duplicate exists
+                G-->>C: 200 { duplicate:true, existing record }
+            else new
+                G->>WV: SelectTemplate (RAG)
+                G->>DB: RegisterGeneration (ON CONFLICT DO NOTHING) → GENERATED
+                G->>FS: ScaffoldArtifacts → manifest.json + Dockerfile + k8s + README + pipeline
+                G->>M: SendNotification email
+                G-->>C: 200 { success:true, repo_name, generation_id }
+            end
         end
     end
 ```
@@ -102,7 +109,10 @@ sequenceDiagram
 
 | Method | Path | Description |
 |--------|------|-------------|
+| GET  | `/` | Web chat UI |
 | GET  | `/health` | Health check |
+| GET  | `/docs` | Interactive API reference |
+| GET  | `/openapi.json` | OpenAPI 3.0 spec |
 | GET  | `/api/templates` | List available BWCE templates |
 | POST | `/api/chat/init` | Initialize a chat session |
 | POST | `/api/chat/message` | Conversational spec extraction |
@@ -118,8 +128,8 @@ MCP tools (`:8081`): `extract_spec`, `generate_code`, `list_templates`.
 
 | Flow | Purpose |
 |------|---------|
-| `StartupFlow` | Loads the template registry + IKD ids, ingests templates into Weaviate, initializes the PostgreSQL `generation_log` table |
-| `api_chat/*` | Multi-turn conversational spec gathering (session state in Flogo SharedData) |
+| `StartupFlow` | Loads the template registry + IKD ids, ingests templates into Weaviate, initializes the PostgreSQL `generation_log` + `chat_session` tables |
+| `api_chat/*` | Multi-turn conversational spec gathering (session state persisted in PostgreSQL `chat_session`) |
 | `extract_POST` | One-shot NLU extraction (deterministic pre-extract + LLM) |
 | `generate_POST` | Validate → IKD cross-check → template RAG → register → scaffold → notify |
 | `MCPExtractSpecTool`, `MCPGenerateTool`, `MCPListTemplates` | MCP-exposed tools |
