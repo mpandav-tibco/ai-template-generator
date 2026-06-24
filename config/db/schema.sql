@@ -37,6 +37,10 @@ CREATE INDEX IF NOT EXISTS idx_generation_repo_name ON generation_log(repo_name)
 CREATE INDEX IF NOT EXISTS idx_generation_created_at ON generation_log(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_generation_source_target ON generation_log(source_system, target_system);
 
+-- Enforce one row per repo_name so concurrent /generate calls cannot insert duplicates
+-- (paired with INSERT ... ON CONFLICT (repo_name) DO NOTHING in the generate flows).
+CREATE UNIQUE INDEX IF NOT EXISTS ux_generation_log_repo_name ON generation_log(repo_name);
+
 -- Duplicate detection view
 CREATE OR REPLACE VIEW v_duplicate_check AS
 SELECT repo_name, COUNT(*) as count, MAX(created_at) as last_generated
