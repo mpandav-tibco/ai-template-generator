@@ -34,6 +34,10 @@ publish sales order from s4hana to kafka, scenario 1234, PROD, CDM required
 **Say:** "One sentence in plain English. The assistant extracts a structured BWCE spec, asks for
 anything missing, then generates the repo — no forms, no template knowledge required."
 
+**Step 3 — Answer the follow-up** (template + email) → spec completes → Generate unlocks.
+
+**Say:** "Multi-turn — the session is **persisted in PostgreSQL (`chat_session`)**, so it survives reloads and only unlocks Generate when the spec is valid."
+
 **Then:** open **http://localhost:9999/docs** — the live OpenAPI reference with *Try-it*.
 **Say:** "Same engine is a documented REST API — any portal or pipeline can drive it."
 
@@ -79,6 +83,16 @@ docker exec flogo-studio-postgres psql -U flogo -d flogo_agent_studio -t -c "SEL
 ```
 **Say:** "Five concurrent identical requests → **exactly one** row. A unique index + `ON CONFLICT` makes it safe under load."
 
+**3e — Config-only refresh** (re-emit pipeline/Dockerfile/k8s only, no repo, bypasses dup):
+```bash
+curl -s -X POST localhost:9999/generate -H 'Content-Type: application/json' \
+  -d '{"config_only":true,"spec":{"source_system":"s4hana","target_system":"kafka","business_object":"sales-order-demo","interface_type":"pub","template_type":"S4HANA_PUB_To_KAFKATopic","email":"d@adidas.com"}}' | python3 -m json.tool
+```
+**Say:** "Config-only mode refreshes just the 3 config files for an existing repo — no re-scaffold, no duplicate."
+
+**3f — Bad input → clean 400** (not a 500): `-d '{"spec":{"source_system":"s4hana"}}'` returns **400 VALIDATION_ERROR**.
+**Say:** "Missing fields fail fast with a 400 — the API boundary is hardened, errors don't leak."
+
 ---
 
 ## 4 · Proof of the live side-effects  *(runtime layer)*
@@ -91,10 +105,10 @@ docker exec flogo-studio-postgres psql -U flogo -d flogo_agent_studio \
 # Scaffolded repository on disk (Dockerfile, k8s, README, manifest.json, pipeline)
 find generated-repos -maxdepth 2 -type f | tail -10
 ```
-**Then:** open **http://localhost:1080** — show the notification email (HTML body + manifest attachment).
+**Then:** open **http://localhost:1080** — show the notification email: **HTML body + inline brand logo + manifest attachment + emoji subject** (config-only sends a refresh-styled variant).
 
-**Say:** "Real, verifiable outputs: a governed DB record, a production-shaped repo on disk, and a
-notification email — all driven by the one sentence we started with."
+**Say:** "Real, verifiable outputs: a governed DB record (with cdm / need_secret / country / unique_id), a
+production-shaped repo on disk, and a rich notification email — all driven by the one sentence we started with."
 
 ---
 
@@ -130,6 +144,8 @@ CI hooks/approvals · promote local Ollama to the platform LLM endpoint.
 | UI | open `http://localhost:9999/` and `…/docs` |
 | Extract | `curl -s -X POST localhost:9999/extract -d '{"message":"…"}'` |
 | Generate | `curl -s -X POST localhost:9999/generate -d '{"spec":{…}}'` |
+| Config-only | add `"config_only":true` → refreshes 3 files, no repo, dup-safe |
+| Race-safe | 6× same spec → 1 DB row · bad input → 400 (not 500) |
 | Proof | `psql … generation_log` · `find generated-repos` · `http://localhost:1080` |
 | Automated tour | `./demo/run-demo.sh` (REST + runtime, hands-free with `--auto`) |
 | Reset | `… psql … -c 'TRUNCATE generation_log;'` |

@@ -10,7 +10,7 @@ title: BWCE AI Generator — Demo
 <!-- ============================================================ -->
 
 # BWCE AI Generator
-### Plain English → production-ready TIBCO BWCE integration repos
+### Plain English →  TIBCO BWCE integration repos
 
 **The problem**
 - Creating a new BWCE integration repo is manual, repetitive, and error-prone
@@ -51,22 +51,41 @@ title: BWCE AI Generator — Demo
 
 # Live demo — what you'll see
 
-1. **Health + template catalog** — app up; templates ingested into Weaviate on startup
+1. **Web chat UI** — describe in English; the spec fills, **Generate** unlocks → repo created
 2. **/extract** — one-shot NLU turns a sentence into a structured spec
-3. **/api/chat** — multi-turn conversation fills in missing fields
-4. **/generate** — the full pipeline runs end-to-end → repo created
-5. **Re-run /generate** — duplicate detected, returns existing record *(idempotent)*
-6. **Bad IKD id** — request rejected before any side effects *(guardrail)*
+3. **/generate** — full pipeline end-to-end (validate → IKD → RAG → register → scaffold → email)
+4. **Re-run** — duplicate detected, existing record returned *(idempotent)*
+5. **Guardrails** — bad IKD id rejected before side effects · malformed input → clean **400**
+6. **Config-only + race-safe** — refresh 3 config files (no repo) · 6× concurrent → **1 row**
 
 **Proof of side effects, live:**
-- PostgreSQL `generation_log` row · scaffolded `generated-repos/…/manifest.json` · email in MailDev inbox
+- PostgreSQL `generation_log` row · scaffolded `generated-repos/…/manifest.json` · rich email in MailDev
 
-*Driven by two scripts: `./demo/start-demo.sh` then `./demo/run-demo.sh`*
+*UI-first walkthrough: `demo/DEMO_SCRIPT.md` · automated tour: `./demo/start-demo.sh` → `./demo/run-demo.sh`*
 
 ---
 
 <!-- ============================================================ -->
-<!-- SLIDE 4 — Why it matters / Engineering highlights -->
+<!-- SLIDE 4 — Built for governance -->
+<!-- ============================================================ -->
+
+# Built for governance — not just a demo
+
+| Guardrail | Behaviour |
+|-----------|-----------|
+| **IKD cross-check** | unknown interface/scenario id rejected before any side effect |
+| **Idempotent + race-safe** | unique index + `ON CONFLICT` → no duplicate repos, even 6× concurrent |
+| **Input validation** | malformed/missing spec → clean **400**, internals never leak |
+| **Naming caps** | repo names sanitized + length-capped (no DB overflow) |
+| **Config-only mode** | refresh pipeline/Dockerfile/k8s for an existing repo, no re-scaffold |
+| **Persisted state** | chat sessions + generation registry in **PostgreSQL** |
+
+*Every field (cdm · need_secret · country · scenario · template) is captured, governed, and auditable.*
+
+---
+
+<!-- ============================================================ -->
+<!-- SLIDE 5 — Why it matters / Engineering highlights -->
 <!-- ============================================================ -->
 
 # Why it matters
@@ -85,7 +104,7 @@ title: BWCE AI Generator — Demo
 ---
 
 <!-- ============================================================ -->
-<!-- SLIDE 5 — Summary / Next steps -->
+<!-- SLIDE 6 — Summary / Next steps -->
 <!-- ============================================================ -->
 
 # Summary & next steps
@@ -101,6 +120,6 @@ title: BWCE AI Generator — Demo
 - Add CI hooks and richer approval workflows
 - Promote from local Ollama to the platform LLM endpoint
 
-**Try it:** `./demo/start-demo.sh --build` → `./demo/run-demo.sh`
+**Try it:** `./demo/start-demo.sh --build` → follow `demo/DEMO_SCRIPT.md` (UI → runtime) or `./demo/run-demo.sh`
 
 ### Questions?
