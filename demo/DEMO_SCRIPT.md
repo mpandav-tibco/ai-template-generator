@@ -25,18 +25,33 @@ Open two browser tabs: **http://localhost:9999/** (chat UI) · **http://localhos
 
 ## 1 · The Web UI — conversational generation  *(UI layer)*
 
-**Show:** open **http://localhost:9999/** and type into the chat:
+Open **http://localhost:9999/** — the chat greets you with *"Hello! Describe the integration you need."*
+The page has: a message box, **Send**, a live **spec card**, a **Generate Repository** button (greyed out until the spec is valid), and **↻ New conversation**.
 
+Drive it with one of the two paths below (type the line **verbatim**, press **Send**):
+
+**▶ Path A — one sentence (fastest).** Type:
 ```
-publish sales order from s4hana to kafka, scenario 1234, PROD, CDM required
+publish sales order from s4hana to kafka using template S4HANA_PUB_To_KAFKATopic, email core-integration@adidas.com, scenario 1234, PROD
 ```
+→ the spec card fills (S4HANA→KAFKA, sales order, pub, scenario 1234, PROD), the bot replies
+*"All required fields collected — ready to generate!"*, and **Generate Repository** turns active.
+**Say:** "One plain-English sentence → a complete, valid spec. No forms, no template lookup."
 
-**Say:** "One sentence in plain English. The assistant extracts a structured BWCE spec, asks for
-anything missing, then generates the repo — no forms, no template knowledge required."
+**▶ Path B — multi-turn (shows the intelligence).**
+1. Type: `publish sales order from s4hana to kafka, scenario 1234, PROD, CDM required`
+   → bot asks *"Which template should we use? (e.g. S4HANA_PUB_To_KAFKATopic_CDM)"* — **Generate stays greyed out** (missing `template_type`).
+2. Type: `use template S4HANA_PUB_To_KAFKATopic and email core-integration@adidas.com`
+   → bot: *"All required fields collected — ready to generate!"* — **Generate Repository** unlocks.
+**Say:** "Multi-turn — it remembers the session (**persisted in PostgreSQL `chat_session`**, survives a reload) and only unlocks Generate when the spec is valid."
 
-**Step 3 — Answer the follow-up** (template + email) → spec completes → Generate unlocks.
+**Step — Click `Generate Repository`.** The result box shows **✓ Repository generated**, the `repo_name`
+(`s4hana-sales-order-kafka-pub`), the generation id, and the git clone command.
+**Say:** "That one click ran the whole pipeline — IKD check, template RAG, registry insert, scaffold, email."
 
-**Say:** "Multi-turn — the session is **persisted in PostgreSQL (`chat_session`)**, so it survives reloads and only unlocks Generate when the spec is valid."
+**Step — Show idempotency in the UI.** Click **↻ New conversation**, repeat the same description, click
+**Generate Repository** again → the result turns amber: *"This repository already exists."*
+**Say:** "Re-submitting the same request is caught — no duplicate repo."
 
 **Then:** open **http://localhost:9999/docs** — the live OpenAPI reference with *Try-it*.
 **Say:** "Same engine is a documented REST API — any portal or pipeline can drive it."
