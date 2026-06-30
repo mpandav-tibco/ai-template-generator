@@ -294,7 +294,16 @@
     resultBox.innerHTML = "";
     try {
       const data = await api("/generate", { spec: lastSpec });
-      if (data.success) {
+      if (data.duplicate) {
+        resultBox.innerHTML =
+          '<div class="result" style="border-color:var(--accent-2)">' +
+          '<div>⚠️ This repository already exists — not regenerated.</div>' +
+          '<div class="repo">' + (data.repo_name || "") + '</div>' +
+          (data.existing_status ? '<div class="hint" style="margin-top:6px">status: ' + data.existing_status + (data.existing_generation_id ? ' · id: ' + data.existing_generation_id : '') + '</div>' : '') +
+          (data.shell_command ? '<pre>' + data.shell_command + '</pre>' : '') +
+          '</div>';
+        addMessage("That repository already exists: " + data.repo_name + " — returning the existing one (no new repo created).", "bot");
+      } else if (data.success) {
         resultBox.innerHTML =
           '<div class="result"><div>✓ Repository generated</div>' +
           '<div class="repo">' + (data.repo_name || "") + '</div>' +
@@ -302,9 +311,6 @@
           (data.shell_command ? '<pre>' + data.shell_command + '</pre>' : '') +
           '</div>';
         addMessage("Done! I generated the repository '" + data.repo_name + "'.", "bot");
-      } else if (data.duplicate) {
-        resultBox.innerHTML = '<div class="result" style="border-color:var(--accent-2)"><div>This repository already exists.</div><div class="repo">' + (data.repo_name || "") + '</div></div>';
-        addMessage("That repository already exists: " + data.repo_name, "bot");
       } else {
         resultBox.innerHTML = '<div class="result" style="border-color:var(--danger)"><div>' + (data.message || data.error || "Generation failed") + '</div></div>';
       }
