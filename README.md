@@ -43,10 +43,10 @@ flowchart LR
     end
 
     subgraph Deps["External services"]
-        OLL["Ollama LLM<br/>:11434"]
+        LLM["LLM provider<br/>(OpenAI-compatible:<br/>Ollama · vLLM · cloud)"]
         WV["Weaviate VectorDB<br/>:18080"]
         PG[("PostgreSQL :5432<br/>generation_log · chat_session")]
-        MAIL["MailDev SMTP<br/>:1025 / UI :1080"]
+        SMTP["SMTP server<br/>(any relay; MailDev for dev)"]
         FS[["generated-repos/"]]
     end
 
@@ -56,13 +56,13 @@ flowchart LR
     MCP --> EX & GEN
     EX & CHAT --> RULES --> RAG
     RAG --> WV
-    RAG --> OLL
+    RAG --> LLM
     CHAT --> PG
     START --> WV
     GEN --> WV
     GEN --> PG
     GEN --> FS
-    GEN --> MAIL
+    GEN --> SMTP
 ```
 
 ### `generate_POST` pipeline (the headline flow)
@@ -76,7 +76,7 @@ sequenceDiagram
     participant DB as PostgreSQL
     participant WV as Weaviate
     participant FS as Filesystem
-    participant M as MailDev
+    participant M as SMTP server
 
     C->>G: POST /generate { spec }
     G->>G: NormalizeSpec
@@ -102,6 +102,32 @@ sequenceDiagram
         end
     end
 ```
+
+#### Governance gates (decision flow)
+
+The pipeline is a chain of conditional gates — each either lets the request proceed or short-circuits to a reply, so **no side effect happens until every gate passes**:
+
+```mermaid
+flowchart TD
+    N["NormalizeSpec<br/>alias canon · length cap · defaults"] --> V["ValidateSpec (#ruleengine)"]
+    V -- "errorCount &gt; 0" --> R400["HTTP 400<br/>VALIDATION_ERROR"]
+    V -- "errorCount == 0" --> IKD["CrossCheckIKD"]
+    IKD -- "ikd_valid == false" --> R2A["HTTP 200<br/>IKD_VALIDATION_FAILED"]
+    IKD -- "ikd_valid == true" --> DUP["CheckDuplicate (#query)"]
+    DUP -- "rows &gt; 0 AND not config_only" --> R2B["HTTP 200<br/>duplicate · existing record"]
+    DUP -- "rows == 0 OR config_only" --> RAG["SelectTemplate (RAG)"]
+    RAG --> REG["RegisterGeneration<br/>#insert · ON CONFLICT (repo_name)"]
+    REG --> SC["ScaffoldArtifacts"] --> NT["NotifyTeam"] --> OK["HTTP 200<br/>success"]
+```
+
+| Gate | Check | On fail |
+|------|-------|---------|
+| **Validation** | `ValidateSpec.errorCount == 0` (rule pack) | **400** `VALIDATION_ERROR` — fail fast, no writes |
+| **IKD cross-check** | `ikd_valid == true` | **200** `IKD_VALIDATION_FAILED` |
+| **Idempotency** | no existing `repo_name` *(unless `config_only`)* | **200** returns the existing record |
+| **Race-safety** | `UNIQUE(repo_name)` + `ON CONFLICT DO NOTHING` | concurrent duplicates collapse to 1 row |
+
+> Any runtime fault (e.g. PostgreSQL down) is caught by a flow-level error handler → structured **500** `{error, activity, code}`.
 
 ---
 
@@ -143,8 +169,12 @@ MCP tools (`:8081`): `extract_spec`, `generate_code`, `list_templates`.
 | TIBCO Flogo CLI (`fcli`) | host | — | build context `flogo-studio-2264` (2.26.4) |
 | PostgreSQL | container `flogo-studio-postgres` | 5432 | db `flogo_agent_studio`, user `flogo` |
 | Weaviate | container `weaviate` | 18080 | template RAG collection `BWCETemplates768` |
-| MailDev | `docker-compose.maildev.yml` | 1025 / 1080 | mock SMTP relay + web inbox |
-| Ollama | host | 11434 | models `llama3.1:8b`, `nomic-embed-text` |
+| **SMTP server** | any relay | 1025 | **MailDev** is the local-dev default (mock SMTP + web inbox at :1080); point `SMTP_HOST`/`SMTP_PORT` at any relay |
+| **LLM provider** | any OpenAI-compatible API | 11434 | **Ollama** is the local-dev default (`llama3.1:8b`, `nomic-embed-text`); swap in vLLM, LM Studio, or a cloud LLM |
+
+> **Pluggable backends:** the LLM and the SMTP relay are *not* hard-wired — Ollama and MailDev are only the
+> local-dev defaults. Point `LLM_Base_URL` at any OpenAI-compatible endpoint and `SMTP_HOST`/`SMTP_PORT` at any
+> SMTP server; nothing else changes.
 
 ---
 
@@ -194,8 +224,8 @@ App properties (set via Flogo app properties or environment overrides):
 
 | Property | Description | Default |
 |----------|-------------|---------|
-| `AgenticAI.LLMProvider.LLM_Base_URL` | LLM endpoint | `http://localhost:11434` |
-| `LLM_MODEL` | LLM model name | `llama3.1:8b` |
+| `AgenticAI.LLMProvider.LLM_Base_URL` | LLM endpoint — any OpenAI-compatible API (Ollama / vLLM / cloud) | `http://localhost:11434` |
+| `LLM_MODEL` | LLM model name (provider-specific) | `llama3.1:8b` |
 | `LLM_EMBEDDING_MODEL` | Embedding model | `nomic-embed-text` |
 | `VECTOR_COLLECTION` | Weaviate collection | `BWCETemplates768` |
 | `RULES_PATH` | Rules directory | `rules/` |
