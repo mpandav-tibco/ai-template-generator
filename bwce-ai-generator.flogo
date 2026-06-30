@@ -3765,7 +3765,7 @@
                     "generation_id": "=$activity[NormalizeSpec].output.generation_id",
                     "template_name": "=$activity[ResolveTemplateName].output.template_name",
                     "message": "=$activity[NormalizeSpec].output.config_only == true ? \"Configuration files (Dockerfile, Kubernetes, pipeline) refreshed — repository scaffold and git were left untouched.\" : \"Repository scaffolded successfully and registered.\"",
-                    "shell_command": "=string.concat(\"git clone https://bitbucket.org/\", $activity[NormalizeSpec].output.bitbucket_project, \"/\", $activity[BuildRepoName].output.repo_name, \".git\")",
+                    "shell_command": "=string.concat(\"git clone \", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\")",
                     "source_system": "=$activity[NormalizeSpec].output.source_system",
                     "target_system": "=$activity[NormalizeSpec].output.target_system",
                     "business_object": "=$activity[NormalizeSpec].output.business_object",
@@ -3832,7 +3832,8 @@
                     "repo_name": "=$activity[BuildRepoName].output.repo_name",
                     "message": "Repository already exists in the generation registry; returning the existing registration (idempotent, no new repository was scaffolded).",
                     "existing_status": "=$activity[CheckDuplicate].Output.records[0].status",
-                    "existing_generation_id": "=$activity[CheckDuplicate].Output.records[0].generation_id"
+                    "existing_generation_id": "=$activity[CheckDuplicate].Output.records[0].generation_id",
+                    "shell_command": "=string.concat(\"git clone \", $property[\"BITBUCKET_BASE_URL\"], \"/\", $activity[BuildRepoName].output.repo_name, \".git\")"
                   }
                 }
               },
