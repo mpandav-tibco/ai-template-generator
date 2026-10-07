@@ -6,33 +6,31 @@
     "github.com/tibco/flogo-general/src/app/General/activity/actreply",
     "github.com/tibco/flogo-general/src/app/General/activity/shareddata",
     "github.com/tibco/flogo-general/src/app/General/activity/mapper",
-    "github.com/mpandav-tibco/flogo-custom-extensions/activity/ruleengine",
-    "github.com/mpandav-tibco/flogo-custom-extensions/activity/pongo2prompt",
-    "github.com/tibco/wi-postgres/src/app/PostgreSQL/activity/query",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/activity/ragQuery",
     "github.com/tibco/wi-postgres/src/app/PostgreSQL/activity/insert",
+    "github.com/tibco/wi-postgres/src/app/PostgreSQL/activity/query",
+    "github.com/mpandav-tibco/flogo-custom-extensions/activity/ruleengine",
+    "github.com/mpandav-tibco/flogo-extensions/connectors/VectorDB/weaviate/activity/ragQuery",
+    "github.com/tibco/flogo-general/src/app/General/activity/parsejson",
     "github.com/tibco/wi-postgres/src/app/PostgreSQL/activity/delete",
+    "github.com/project-flogo/contrib/activity/actreturn",
+    "github.com/project-flogo/flow/activity/subflow",
     "github.com/tibco/flogo-files/src/app/File/activity/write",
     "github.com/tibco/flogo-general/src/app/General/activity/sendmail",
     "github.com/tibco/flogo-files/src/app/File/activity/read",
-    "github.com/tibco/flogo-general/src/app/General/activity/parsejson",
-    "github.com/project-flogo/flow/activity/subflow",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/activity/listCollections",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/activity/createCollection",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/activity/ingestDocuments",
+    "github.com/mpandav-tibco/flogo-extensions/connectors/VectorDB/weaviate/activity/listCollections",
+    "github.com/mpandav-tibco/flogo-extensions/connectors/VectorDB/weaviate/activity/createCollection",
+    "github.com/mpandav-tibco/flogo-extensions/connectors/VectorDB/weaviate/activity/ingestDocuments",
     "github.com/tibco/flogo-general/src/app/General/trigger/rest",
     "github.com/tibco/flogo-general/src/app/General/trigger/startuphook",
     "github.com/tibco/flogo-mcp/src/app/MCP/trigger/mcpserver",
+    "github.com/project-flogo/contrib/function/coerce",
+    "github.com/project-flogo/contrib/function/string",
     "github.com/project-flogo/contrib/function/utils",
     "github.com/project-flogo/contrib/function/array",
-    "github.com/project-flogo/contrib/function/string",
     "github.com/project-flogo/contrib/function/number",
-    "github.com/project-flogo/contrib/function/coerce",
     "github.com/tibco/wi-postgres/src/app/PostgreSQL/connector/connection",
-    "github.com/mpandav-tibco/flogo-extensions/vectordb-weaviate/connector",
-    "github.com/tibco/flogo-ai-agent/src/app/AgenticAI/connector/llmprovider",
-    "github.com/project-flogo/contrib/activity/actreturn",
-    "github.com/project-flogo/contrib/function/datetime"
+    "github.com/mpandav-tibco/flogo-extensions/connectors/VectorDB/weaviate/connector",
+    "github.com/tibco/flogo-ai-agent/src/app/AgenticAI/connector/llmprovider"
   ],
   "name": "bwce-ai-generator",
   "description": "AI-powered accelerator that generates TIBCO BusinessWorks Container Edition (BWCE) integration repositories from natural-language requirements. Exposes a REST API and an MCP server; uses an LLM to extract a structured integration spec through conversation, selects the best-matching template via Weaviate vector search, and records each generation in PostgreSQL.",
@@ -60,165 +58,6 @@
       },
       "id": "BWCEAIIntegrationGenerator",
       "handlers": [
-        {
-          "description": "Serves the Web Chat UI (GET /).",
-          "settings": {
-            "APISpecPath": "/",
-            "Method": "GET",
-            "reqType": "application/json",
-            "Path": "/",
-            "OutputValidation": false
-          },
-          "action": {
-            "ref": "github.com/project-flogo/flow",
-            "settings": {
-              "flowURI": "res://flow:root_GET"
-            }
-          },
-          "reply": {
-            "code": 200,
-            "configureResponseCodes": false,
-            "message": ""
-          },
-          "schemas": {
-            "reply": {
-              "responseBody": {
-                "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}",
-                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}"
-              },
-              "responseCodesSchema": {
-                "type": "json",
-                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"number\"},\"responseType\":{\"type\":\"string\"},\"responseSchema\":{\"type\":\"string\"}}}}",
-                "fe_metadata": "[{\"code\":200,\"responseType\":\"object\",\"responseSchema\":\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"status\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"ok\\\"},\\\"version\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"1.0.0\\\"},\\\"timestamp\\\":{\\\"type\\\":\\\"string\\\",\\\"format\\\":\\\"date-time\\\"}}}\"}]"
-              }
-            },
-            "output": {
-              "headers": {
-                "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]}",
-                "fe_metadata": "[{\"parameterName\":\"Accept\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Charset\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Encoding\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Authorization\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Connection\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Length\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Type\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Cookie\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Pragma\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false}]"
-              },
-              "multipartFormData": {
-                "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{}}",
-                "fe_metadata": "{\"type\":\"object\",\"properties\":{}}"
-              },
-              "multipartForm": {
-                "type": "json",
-                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{}}",
-                "fe_metadata": "[]"
-              }
-            }
-          },
-          "name": "root_GET"
-        },
-        {
-          "description": "Serves the API reference page (GET /docs).",
-          "settings": {
-            "APISpecPath": "/docs",
-            "Method": "GET",
-            "reqType": "application/json",
-            "Path": "/docs",
-            "OutputValidation": false
-          },
-          "action": {
-            "ref": "github.com/project-flogo/flow",
-            "settings": {
-              "flowURI": "res://flow:docs_GET"
-            }
-          },
-          "reply": {
-            "code": 200,
-            "configureResponseCodes": false,
-            "message": ""
-          },
-          "schemas": {
-            "reply": {
-              "responseBody": {
-                "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}",
-                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}"
-              },
-              "responseCodesSchema": {
-                "type": "json",
-                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"number\"},\"responseType\":{\"type\":\"string\"},\"responseSchema\":{\"type\":\"string\"}}}}",
-                "fe_metadata": "[{\"code\":200,\"responseType\":\"object\",\"responseSchema\":\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"status\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"ok\\\"},\\\"version\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"1.0.0\\\"},\\\"timestamp\\\":{\\\"type\\\":\\\"string\\\",\\\"format\\\":\\\"date-time\\\"}}}\"}]"
-              }
-            },
-            "output": {
-              "headers": {
-                "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]}",
-                "fe_metadata": "[{\"parameterName\":\"Accept\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Charset\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Encoding\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Authorization\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Connection\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Length\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Type\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Cookie\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Pragma\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false}]"
-              },
-              "multipartFormData": {
-                "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{}}",
-                "fe_metadata": "{\"type\":\"object\",\"properties\":{}}"
-              },
-              "multipartForm": {
-                "type": "json",
-                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{}}",
-                "fe_metadata": "[]"
-              }
-            }
-          },
-          "name": "docs_GET"
-        },
-        {
-          "description": "Serves the OpenAPI spec (GET /openapi.json).",
-          "settings": {
-            "APISpecPath": "/openapi.json",
-            "Method": "GET",
-            "reqType": "application/json",
-            "Path": "/openapi.json",
-            "OutputValidation": false
-          },
-          "action": {
-            "ref": "github.com/project-flogo/flow",
-            "settings": {
-              "flowURI": "res://flow:openapi_GET"
-            }
-          },
-          "reply": {
-            "code": 200,
-            "configureResponseCodes": false,
-            "message": ""
-          },
-          "schemas": {
-            "reply": {
-              "responseBody": {
-                "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}",
-                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}"
-              },
-              "responseCodesSchema": {
-                "type": "json",
-                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"number\"},\"responseType\":{\"type\":\"string\"},\"responseSchema\":{\"type\":\"string\"}}}}",
-                "fe_metadata": "[{\"code\":200,\"responseType\":\"object\",\"responseSchema\":\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"status\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"ok\\\"},\\\"version\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"1.0.0\\\"},\\\"timestamp\\\":{\\\"type\\\":\\\"string\\\",\\\"format\\\":\\\"date-time\\\"}}}\"}]"
-              }
-            },
-            "output": {
-              "headers": {
-                "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]}",
-                "fe_metadata": "[{\"parameterName\":\"Accept\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Charset\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Encoding\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Authorization\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Connection\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Length\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Type\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Cookie\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Pragma\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false}]"
-              },
-              "multipartFormData": {
-                "type": "json",
-                "value": "{\"type\":\"object\",\"properties\":{}}",
-                "fe_metadata": "{\"type\":\"object\",\"properties\":{}}"
-              },
-              "multipartForm": {
-                "type": "json",
-                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{}}",
-                "fe_metadata": "[]"
-              }
-            }
-          },
-          "name": "openapi_GET"
-        },
         {
           "description": "Health-check endpoint (GET /health). Returns service status so load balancers and monitoring probes can verify the generator is running.",
           "settings": {
@@ -636,6 +475,165 @@
             }
           },
           "name": "generate_POST"
+        },
+        {
+          "description": "Serves the conversational Web Chat UI (GET /). Reads static/chat.html from disk and returns it as text/html via an implicit reply.",
+          "settings": {
+            "APISpecPath": "",
+            "Method": "",
+            "reqType": "application/json",
+            "Path": "/",
+            "OutputValidation": false
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:root_GET"
+            }
+          },
+          "reply": {
+            "code": 200,
+            "configureResponseCodes": false,
+            "message": ""
+          },
+          "schemas": {
+            "reply": {
+              "responseBody": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}"
+              },
+              "responseCodesSchema": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"number\"},\"responseType\":{\"type\":\"string\"},\"responseSchema\":{\"type\":\"string\"}}}}",
+                "fe_metadata": "[{\"code\":200,\"responseType\":\"object\",\"responseSchema\":\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"status\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"ok\\\"},\\\"version\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"1.0.0\\\"},\\\"timestamp\\\":{\\\"type\\\":\\\"string\\\",\\\"format\\\":\\\"date-time\\\"}}}\"}]"
+              }
+            },
+            "output": {
+              "headers": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]}",
+                "fe_metadata": "[{\"parameterName\":\"Accept\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Charset\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Encoding\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Authorization\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Connection\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Length\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Type\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Cookie\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Pragma\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false}]"
+              },
+              "multipartFormData": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{}}"
+              },
+              "multipartForm": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{}}",
+                "fe_metadata": "[]"
+              }
+            }
+          },
+          "name": "root_GET"
+        },
+        {
+          "description": "Serves the API reference page (GET /docs). Reads static/docs.html and returns it as text/html via implicit reply.",
+          "settings": {
+            "APISpecPath": "",
+            "Method": "",
+            "reqType": "application/json",
+            "Path": "/docs",
+            "OutputValidation": false
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:docs_GET"
+            }
+          },
+          "reply": {
+            "code": 200,
+            "configureResponseCodes": false,
+            "message": ""
+          },
+          "schemas": {
+            "reply": {
+              "responseBody": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}"
+              },
+              "responseCodesSchema": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"number\"},\"responseType\":{\"type\":\"string\"},\"responseSchema\":{\"type\":\"string\"}}}}",
+                "fe_metadata": "[{\"code\":200,\"responseType\":\"object\",\"responseSchema\":\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"status\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"ok\\\"},\\\"version\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"1.0.0\\\"},\\\"timestamp\\\":{\\\"type\\\":\\\"string\\\",\\\"format\\\":\\\"date-time\\\"}}}\"}]"
+              }
+            },
+            "output": {
+              "headers": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]}",
+                "fe_metadata": "[{\"parameterName\":\"Accept\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Charset\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Encoding\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Authorization\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Connection\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Length\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Type\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Cookie\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Pragma\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false}]"
+              },
+              "multipartFormData": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{}}"
+              },
+              "multipartForm": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{}}",
+                "fe_metadata": "[]"
+              }
+            }
+          },
+          "name": "docs_GET"
+        },
+        {
+          "description": "Serves the OpenAPI 3.0 specification (GET /openapi.json) as application/json via implicit reply.",
+          "settings": {
+            "APISpecPath": "",
+            "Method": "",
+            "reqType": "application/json",
+            "Path": "/openapi.json",
+            "OutputValidation": false
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:openapi_GET"
+            }
+          },
+          "reply": {
+            "code": 200,
+            "configureResponseCodes": false,
+            "message": ""
+          },
+          "schemas": {
+            "reply": {
+              "responseBody": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{\"body\":{\"type\":\"any\"},\"headers\":{\"type\":\"object\"}}}"
+              },
+              "responseCodesSchema": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"number\"},\"responseType\":{\"type\":\"string\"},\"responseSchema\":{\"type\":\"string\"}}}}",
+                "fe_metadata": "[{\"code\":200,\"responseType\":\"object\",\"responseSchema\":\"{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"status\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"ok\\\"},\\\"version\\\":{\\\"type\\\":\\\"string\\\",\\\"example\\\":\\\"1.0.0\\\"},\\\"timestamp\\\":{\\\"type\\\":\\\"string\\\",\\\"format\\\":\\\"date-time\\\"}}}\"}]"
+              }
+            },
+            "output": {
+              "headers": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]}",
+                "fe_metadata": "[{\"parameterName\":\"Accept\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Charset\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Accept-Encoding\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Authorization\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Connection\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Length\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Content-Type\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Cookie\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false},{\"parameterName\":\"Pragma\",\"type\":\"string\",\"repeating\":\"false\",\"required\":\"false\",\"visible\":false}]"
+              },
+              "multipartFormData": {
+                "type": "json",
+                "value": "{\"type\":\"object\",\"properties\":{}}",
+                "fe_metadata": "{\"type\":\"object\",\"properties\":{}}"
+              },
+              "multipartForm": {
+                "type": "json",
+                "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"array\",\"items\":{}}",
+                "fe_metadata": "[]"
+              }
+            }
+          },
+          "name": "openapi_GET"
         }
       ]
     },
@@ -684,10 +682,12 @@
             "resourceUri": "",
             "handlerName": "extract_spec",
             "handlerDescription": "Extract BWCE integration spec from natural language description",
+            "toolTitle": "",
             "readOnlyToolHint": false,
             "destructiveToolHint": false,
             "idempotentToolHint": false,
-            "openWorldToolHint": true
+            "openWorldToolHint": true,
+            "scope": ""
           },
           "action": {
             "ref": "github.com/project-flogo/flow",
@@ -701,12 +701,15 @@
               "response": "=$.response"
             }
           },
+          "reply": {
+            "outputSchema": ""
+          },
           "schemas": {
             "reply": {
               "response": {
                 "type": "json",
-                "value": "{\r\n    \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n }\r\n}",
-                "fe_metadata": "{\r\n    \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n }\r\n}"
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
               }
             },
             "output": {
@@ -726,10 +729,12 @@
             "resourceUri": "",
             "handlerName": "generate_code",
             "handlerDescription": "Generate BWCE integration code from extracted spec",
+            "toolTitle": "",
             "readOnlyToolHint": false,
             "destructiveToolHint": false,
             "idempotentToolHint": false,
-            "openWorldToolHint": true
+            "openWorldToolHint": true,
+            "scope": ""
           },
           "action": {
             "ref": "github.com/project-flogo/flow",
@@ -743,12 +748,15 @@
               "response": "=$.response"
             }
           },
+          "reply": {
+            "outputSchema": ""
+          },
           "schemas": {
             "reply": {
               "response": {
                 "type": "json",
-                "value": "{\r\n    \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n }\r\n}",
-                "fe_metadata": "{\r\n    \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n }\r\n}"
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
               }
             },
             "output": {
@@ -768,10 +776,12 @@
             "resourceUri": "",
             "handlerName": "list_templates",
             "handlerDescription": "List all available BWCE integration templates",
+            "toolTitle": "",
             "readOnlyToolHint": false,
             "destructiveToolHint": false,
             "idempotentToolHint": false,
-            "openWorldToolHint": true
+            "openWorldToolHint": true,
+            "scope": ""
           },
           "action": {
             "ref": "github.com/project-flogo/flow",
@@ -785,12 +795,15 @@
               "response": "=$.response"
             }
           },
+          "reply": {
+            "outputSchema": ""
+          },
           "schemas": {
             "reply": {
               "response": {
                 "type": "json",
-                "value": "{\r\n    \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n }\r\n}",
-                "fe_metadata": "{\r\n    \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n }\r\n}"
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
               }
             },
             "output": {
@@ -1235,7 +1248,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "c0474726-adac-4ecf-b8f9-53f67fee431dINSERT INTO public.chat_session(session_id, status, message) VALUES (?session_id, ?status, ?message) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, updated_at = NOW();",
+                "State": "7d49bc1d-0c1a-4fe5-870e-1819abd2aad1INSERT INTO public.chat_session(session_id, status, message) VALUES (?session_id, ?status, ?message) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, updated_at = NOW();",
                 "input": {
                   "mapping": {
                     "values": [
@@ -1650,7 +1663,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "a30c1b9b-b1a1-4502-94ed-8f9cee968532SELECT session_id, status, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate FROM public.chat_session WHERE session_id = ?session_id;",
+                "State": "31176624-cf06-4f0d-98e4-9e455f85ffd1SELECT session_id, status, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate FROM public.chat_session WHERE session_id = ?session_id;",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -1710,7 +1723,7 @@
                 "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:jB0SFBx3H99F6Egxoi96RlvJHWX/1g==",
+                "embeddingAPIKey": "SECRET:WSEfzGs7ynjN6p5iWOtcCUhNevyPeg==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
@@ -2096,7 +2109,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "c20cd560-cc3b-4950-bf1a-a7f331a462e7INSERT INTO public.chat_session(session_id, status, message, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate, updated_at) VALUES (?session_id, ?status, ?message, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?email, ?env, ?k8s_domain, ?country_code, ?unique_id, ?missing_fields, ?ready_to_generate, NOW()) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, source_system = EXCLUDED.source_system, target_system = EXCLUDED.target_system, business_object = EXCLUDED.business_object, interface_type = EXCLUDED.interface_type, template_type = EXCLUDED.template_type, cdm = EXCLUDED.cdm, interface_id = EXCLUDED.interface_id, scenario_id = EXCLUDED.scenario_id, bitbucket_project = EXCLUDED.bitbucket_project, email = EXCLUDED.email, env = EXCLUDED.env, k8s_domain = EXCLUDED.k8s_domain, country_code = EXCLUDED.country_code, unique_id = EXCLUDED.unique_id, missing_fields = EXCLUDED.missing_fields, ready_to_generate = EXCLUDED.ready_to_generate, updated_at = NOW();",
+                "State": "4afe8614-0ccf-44dd-b352-44cb7b53cdeaINSERT INTO public.chat_session(session_id, status, message, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id, missing_fields, ready_to_generate, updated_at) VALUES (?session_id, ?status, ?message, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?email, ?env, ?k8s_domain, ?country_code, ?unique_id, ?missing_fields, ?ready_to_generate, NOW()) ON CONFLICT (session_id) DO UPDATE SET status = EXCLUDED.status, message = EXCLUDED.message, source_system = EXCLUDED.source_system, target_system = EXCLUDED.target_system, business_object = EXCLUDED.business_object, interface_type = EXCLUDED.interface_type, template_type = EXCLUDED.template_type, cdm = EXCLUDED.cdm, interface_id = EXCLUDED.interface_id, scenario_id = EXCLUDED.scenario_id, bitbucket_project = EXCLUDED.bitbucket_project, email = EXCLUDED.email, env = EXCLUDED.env, k8s_domain = EXCLUDED.k8s_domain, country_code = EXCLUDED.country_code, unique_id = EXCLUDED.unique_id, missing_fields = EXCLUDED.missing_fields, ready_to_generate = EXCLUDED.ready_to_generate, updated_at = NOW();",
                 "input": {
                   "mapping": {
                     "values": [
@@ -2351,7 +2364,7 @@
                     "isEditable": false
                   }
                 ],
-                "State": "d40fffb9-3b56-41c6-a970-8f39edb758b4DELETE FROM public.chat_session WHERE session_id = ?session_id;",
+                "State": "b2652a57-000f-46ae-8708-b7405e729563DELETE FROM public.chat_session WHERE session_id = ?session_id;",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -2598,13 +2611,16 @@
           {
             "id": 9,
             "from": "BuildExtractResponse",
+            "to": "ReturnSpec",
+            "type": "label",
+            "label": "BuildExtractResponse to ReturnSpec"
+          },
+          {
+            "id": 10,
+            "from": "BuildExtractResponse",
             "to": "ReplyExtract",
             "type": "label",
             "label": "BuildExtractResponse to ReplyExtract"
-          },
-          {
-            "from": "BuildExtractResponse",
-            "to": "ReturnSpec"
           }
         ],
         "tasks": [
@@ -2681,7 +2697,7 @@
                 "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:tro+3WNqx1jB2Q7ycp3EWElqm4PvaA==",
+                "embeddingAPIKey": "SECRET:qX2c6EXhswJ8Rv92pEfkUd8Xzo9XMg==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
@@ -2847,6 +2863,19 @@
             }
           },
           {
+            "id": "ReturnSpec",
+            "name": "ReturnSpec",
+            "description": "Exposes the extracted spec to subflow callers (e.g. the MCP extract_spec tool).",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "result": "=$activity[BuildExtractResponse].output"
+                }
+              }
+            }
+          },
+          {
             "id": "ReplyExtract",
             "name": "ReplyExtract",
             "description": "Returns the extracted spec and readiness to the caller.",
@@ -2863,31 +2892,16 @@
                 "input": {
                   "reply": {
                     "type": "json",
-                    "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
-                    "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"object\",\"properties\":{\"success\":{\"type\":\"boolean\"},\"spec\":{\"type\":\"object\",\"properties\":{}},\"ready_to_generate\":{\"type\":\"boolean\"},\"missing_fields\":{\"type\":\"array\",\"items\":{}},\"message\":{\"type\":\"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"object\",\"properties\":{\"success\":{\"type\":\"boolean\"},\"spec\":{\"type\":\"object\",\"properties\":{}},\"ready_to_generate\":{\"type\":\"boolean\"},\"missing_fields\":{\"type\":\"array\",\"items\":{}},\"message\":{\"type\":\"string\"}}}}}"
                   }
                 }
               },
               "feSchemaMap": {}
             }
-          },
-          {
-            "id": "ReturnSpec",
-            "name": "ReturnSpec",
-            "description": "Exposes the extracted spec to subflow callers (e.g. the MCP extract_spec tool).",
-            "activity": {
-              "ref": "#actreturn",
-              "settings": {
-                "mappings": {
-                  "result": "=$activity[BuildExtractResponse].output"
-                }
-              },
-              "input": {},
-              "schemas": {}
-            }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5Ijo0NX0sIkdldEFwcENvbmZpZyI6eyJ4Ijo0NTAsInkiOjQ1fSwiUmVnZXhQcmVFeHRyYWN0Ijp7IngiOjY5NiwieSI6NDV9LCJFeHRyYWN0V2l0aExMTSI6eyJ4Ijo5MDAsInkiOjQ1fSwiQ2xlYW5KU09OIjp7IngiOjExMDAsInkiOjQ1fSwiUGFyc2VFeHRyYWN0aW9uIjp7IngiOjEzMDAsInkiOjQ1fSwiTWVyZ2VTcGVjIjp7IngiOjE1MDAsInkiOjQ1fSwiQnVpbGRFeHRyYWN0UmVzcG9uc2UiOnsieCI6MTcwMCwieSI6NDV9LCJSZXBseUV4dHJhY3QiOnsieCI6MTkwMCwieSI6NDV9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkxvZ19BUEkiOnsieCI6MjUwLCJ5IjoxNTB9LCJHZXRBcHBDb25maWciOnsieCI6NDUwLCJ5IjoyNTB9LCJSZWdleFByZUV4dHJhY3QiOnsieCI6NjUwLCJ5IjozNTB9LCJFeHRyYWN0V2l0aExMTSI6eyJ4Ijo4NTAsInkiOjQ1MH0sIkNsZWFuSlNPTiI6eyJ4IjoxMDUwLCJ5Ijo1NTB9LCJQYXJzZUV4dHJhY3Rpb24iOnsieCI6MTI1MCwieSI6NjUwfSwiTWVyZ2VTcGVjIjp7IngiOjE0NTAsInkiOjc1MH0sIkJ1aWxkRXh0cmFjdFJlc3BvbnNlIjp7IngiOjE2NTAsInkiOjg1MH0sIlJldHVyblNwZWMiOnsieCI6MTg1MCwieSI6ODUwfSwiUmVwbHlFeHRyYWN0Ijp7IngiOjE4NTAsInkiOjk1MH19",
         "errorHandler": {
           "tasks": [
             {
@@ -2951,8 +2965,8 @@
                   "input": {
                     "reply": {
                       "type": "json",
-                      "value": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}",
-                      "fe_metadata": "{\"type\":\"object\",\"title\":\"Inputs\",\"properties\":{\"code\":{\"type\":\"integer\"},\"message\":{\"type\":\"string\"}},\"required\":[]}"
+                      "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"object\",\"properties\":{\"success\":{\"type\":\"boolean\"},\"spec\":{\"type\":\"object\",\"properties\":{}},\"ready_to_generate\":{\"type\":\"boolean\"},\"missing_fields\":{\"type\":\"array\",\"items\":{}},\"message\":{\"type\":\"string\"}}}}}",
+                      "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"object\",\"properties\":{\"success\":{\"type\":\"boolean\"},\"spec\":{\"type\":\"object\",\"properties\":{}},\"ready_to_generate\":{\"type\":\"boolean\"},\"missing_fields\":{\"type\":\"array\",\"items\":{}},\"message\":{\"type\":\"string\"}}}}}"
                     }
                   }
                 },
@@ -2962,20 +2976,21 @@
           ],
           "links": [
             {
-              "id": 10,
+              "id": 11,
               "from": "LogError",
               "to": "BuildError",
               "type": "label",
               "label": "LogError to BuildError"
             },
             {
-              "id": 11,
+              "id": 12,
               "from": "BuildError",
               "to": "ReplyError",
               "type": "label",
               "label": "BuildError to ReplyError"
             }
-          ]
+          ],
+          "fe_metadata": "eyJMb2dFcnJvciI6eyJ4IjoyNTAsInkiOjE1MH0sIkJ1aWxkRXJyb3IiOnsieCI6NDUwLCJ5IjoyNTB9LCJSZXBseUVycm9yIjp7IngiOjY1MCwieSI6MzUwfX0="
         },
         "metadata": {
           "input": [
@@ -2990,12 +3005,13 @@
               "type": "object",
               "schema": {
                 "type": "json",
-                "value": "{\"success\": {\"type\": \"boolean\"}, \"spec\": {\"type\": \"object\"}, \"ready_to_generate\": {\"type\": \"boolean\"}, \"missing_fields\": {\"type\": \"array\"}, \"message\": {\"type\": \"string\"}}"
+                "value": "{\"success\":{\"type\":\"boolean\"},\"spec\":{\"type\":\"object\",\"properties\":{}},\"ready_to_generate\":{\"type\":\"boolean\"},\"missing_fields\":{\"type\":\"array\",\"items\":{}},\"message\":{\"type\":\"string\"}}"
               }
             }
           ],
           "fe_metadata": {
-            "input": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"content\":{\"type\":\"object\",\"properties\":{}}}}"
+            "input": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"content\":{\"type\":\"object\",\"properties\":{}}}}",
+            "output": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"object\",\"properties\":{\"success\":{\"type\":\"boolean\"},\"spec\":{\"type\":\"object\",\"properties\":{}},\"ready_to_generate\":{\"type\":\"boolean\"},\"missing_fields\":{\"type\":\"array\",\"items\":{}},\"message\":{\"type\":\"string\"}}}}}"
           }
         },
         "explicitReply": true
@@ -3038,35 +3054,20 @@
           },
           {
             "id": 5,
-            "from": "ValidateSpec",
-            "to": "BuildValidationError",
-            "type": "expression",
-            "label": "Spec invalid",
-            "value": "$activity[ValidateSpec].errorCount > 0"
-          },
-          {
-            "id": 6,
             "from": "GetIKDInterfaces",
             "to": "GetIKDScenarios",
             "type": "label",
             "label": "GetIKDInterfaces to GetIKDScenarios"
           },
           {
-            "id": 7,
-            "from": "BuildValidationError",
-            "to": "ReplyValidationError",
-            "type": "label",
-            "label": "BuildValidationError to ReplyValidationError"
-          },
-          {
-            "id": 8,
+            "id": 6,
             "from": "GetIKDScenarios",
             "to": "CrossCheckIKD",
             "type": "label",
             "label": "GetIKDScenarios to CrossCheckIKD"
           },
           {
-            "id": 9,
+            "id": 7,
             "from": "CrossCheckIKD",
             "to": "BuildRepoName",
             "type": "expression",
@@ -3074,29 +3075,14 @@
             "value": "$activity[CrossCheckIKD].output.ikd_valid == true"
           },
           {
-            "id": 10,
-            "from": "CrossCheckIKD",
-            "to": "BuildIKDErrorResponse",
-            "type": "expression",
-            "label": "IKD invalid",
-            "value": "$activity[CrossCheckIKD].output.ikd_valid == false"
-          },
-          {
-            "id": 11,
+            "id": 8,
             "from": "BuildRepoName",
             "to": "CheckDuplicate",
             "type": "label",
             "label": "BuildRepoName to CheckDuplicate"
           },
           {
-            "id": 12,
-            "from": "BuildIKDErrorResponse",
-            "to": "ReplyIKDError",
-            "type": "label",
-            "label": "BuildIKDErrorResponse to ReplyIKDError"
-          },
-          {
-            "id": 13,
+            "id": 9,
             "from": "CheckDuplicate",
             "to": "SelectTemplate",
             "type": "expression",
@@ -3104,7 +3090,49 @@
             "value": "array.count($activity[CheckDuplicate].Output.records) == 0 || $activity[NormalizeSpec].output.config_only == true"
           },
           {
+            "id": 10,
+            "from": "SelectTemplate",
+            "to": "ResolveTemplateName",
+            "type": "label",
+            "label": "SelectTemplate to ResolveTemplateName"
+          },
+          {
+            "id": 11,
+            "from": "ResolveTemplateName",
+            "to": "RegisterGeneration",
+            "type": "label",
+            "label": "ResolveTemplateName to RegisterGeneration"
+          },
+          {
+            "id": 12,
+            "from": "RegisterGeneration",
+            "to": "ScaffoldArtifacts",
+            "type": "label",
+            "label": "RegisterGeneration to ScaffoldArtifacts"
+          },
+          {
+            "id": 13,
+            "from": "ScaffoldArtifacts",
+            "to": "NotifyTeam",
+            "type": "label",
+            "label": "ScaffoldArtifacts to NotifyTeam"
+          },
+          {
             "id": 14,
+            "from": "NotifyTeam",
+            "to": "BuildGenerateResponse",
+            "type": "label",
+            "label": "NotifyTeam to BuildGenerateResponse"
+          },
+          {
+            "id": 15,
+            "from": "BuildGenerateResponse",
+            "to": "Reply_to_API",
+            "type": "label",
+            "label": "BuildGenerateResponse to Reply_to_API"
+          },
+          {
+            "id": 16,
             "from": "CheckDuplicate",
             "to": "BuildDuplicateResponse",
             "type": "expression",
@@ -3112,53 +3140,41 @@
             "value": "array.count($activity[CheckDuplicate].Output.records) > 0 && $activity[NormalizeSpec].output.config_only == false"
           },
           {
-            "id": 15,
-            "from": "SelectTemplate",
-            "to": "ResolveTemplateName",
-            "type": "label",
-            "label": "SelectTemplate to ResolveTemplateName"
-          },
-          {
-            "id": 16,
+            "id": 17,
             "from": "BuildDuplicateResponse",
             "to": "ReplyDuplicate",
             "type": "label",
             "label": "BuildDuplicateResponse to ReplyDuplicate"
           },
           {
-            "id": 17,
-            "from": "ResolveTemplateName",
-            "to": "RegisterGeneration",
-            "type": "label",
-            "label": "ResolveTemplateName to RegisterGeneration"
+            "id": 18,
+            "from": "CrossCheckIKD",
+            "to": "BuildIKDErrorResponse",
+            "type": "expression",
+            "label": "IKD invalid",
+            "value": "$activity[CrossCheckIKD].output.ikd_valid == false"
           },
           {
-            "from": "RegisterGeneration",
-            "to": "ScaffoldArtifacts",
+            "id": 19,
+            "from": "BuildIKDErrorResponse",
+            "to": "ReplyIKDError",
             "type": "label",
-            "label": "RegisterGeneration to ScaffoldArtifacts",
-            "id": 18
+            "label": "BuildIKDErrorResponse to ReplyIKDError"
           },
           {
-            "from": "ScaffoldArtifacts",
-            "to": "NotifyTeam",
-            "type": "label",
-            "label": "ScaffoldArtifacts to NotifyTeam",
-            "id": 19
-          },
-          {
-            "from": "NotifyTeam",
-            "to": "BuildGenerateResponse",
-            "type": "label",
-            "label": "NotifyTeam to BuildGenerateResponse",
-            "id": 20
+            "id": 20,
+            "from": "ValidateSpec",
+            "to": "BuildValidationError",
+            "type": "expression",
+            "label": "Spec invalid",
+            "value": "$activity[ValidateSpec].errorCount > 0"
           },
           {
             "id": 21,
-            "from": "BuildGenerateResponse",
-            "to": "Reply_to_API",
+            "from": "BuildValidationError",
+            "to": "ReplyValidationError",
             "type": "label",
-            "label": "BuildGenerateResponse to Reply_to_API"
+            "label": "BuildValidationError to ReplyValidationError"
           }
         ],
         "tasks": [
@@ -3297,9 +3313,9 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "interface_id_valid": "=(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id))",
-                    "scenario_id_valid": "=(!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))",
-                    "ikd_valid": "=(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id)) && (!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))"
+                    "interface_id_valid": "(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id))",
+                    "scenario_id_valid": "(!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))",
+                    "ikd_valid": "(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id)) && (!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))"
                   }
                 }
               },
@@ -3372,7 +3388,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "8da74599-f3a2-4f86-acf3-baa251dc542dSELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "State": "4393c388-b080-452c-b464-1364c439cafdSELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -3410,7 +3426,7 @@
                 "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:KKt8q/1TlP5/Ub1QNSxvJFtvDKmgKw==",
+                "embeddingAPIKey": "SECRET:P1PSaOKsv2tWeKymdaotN92DcLbXgw==",
                 "embeddingBaseURL": "http://localhost:11434/v1",
                 "embeddingModel": "nomic-embed-text",
                 "embeddingDimensions": 768,
@@ -3638,7 +3654,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "7a00b015-7c8e-4bf4-b584-d670eb03f528INSERT INTO public.generation_log(generation_id, repo_name, source_system, target_system, business_object, interface_type, template_type, template_name, cdm, need_secret, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, country_code, unique_id, status)\n\tVALUES (?generation_id, ?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?template_name, ?cdm, ?need_secret, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?country_code, ?unique_id, ?status) ON CONFLICT (repo_name) DO NOTHING;",
+                "State": "899d8e03-5d9a-4b09-bf97-308838332f28INSERT INTO public.generation_log(generation_id, repo_name, source_system, target_system, business_object, interface_type, template_type, template_name, cdm, need_secret, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, country_code, unique_id, status)\n\tVALUES (?generation_id, ?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?template_name, ?cdm, ?need_secret, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?country_code, ?unique_id, ?status) ON CONFLICT (repo_name) DO NOTHING;",
                 "input": {
                   "mapping": {
                     "values": [
@@ -3716,6 +3732,15 @@
                 "target_system": "=$activity[NormalizeSpec].output.target_system",
                 "unique_id": "=$activity[NormalizeSpec].output.unique_id"
               },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"template_name\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"config_only\":{\"type\":\"boolean\"},\"country_code\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"need_secret\":{\"type\":\"boolean\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"unique_id\":{\"type\":\"string\"}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"template_name\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"config_only\":{\"type\":\"boolean\"},\"country_code\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"need_secret\":{\"type\":\"boolean\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"unique_id\":{\"type\":\"string\"}}}"
+                  }
+                }
+              },
               "feSchemaMap": {}
             }
           },
@@ -3748,7 +3773,17 @@
                 "source_system": "=$activity[NormalizeSpec].output.source_system",
                 "target_system": "=$activity[NormalizeSpec].output.target_system",
                 "template_name": "=$activity[ResolveTemplateName].output.template_name"
-              }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"business_object\":{\"type\":\"string\"},\"cdm\":{\"type\":\"boolean\"},\"config_only\":{\"type\":\"boolean\"},\"env\":{\"type\":\"string\"},\"generation_id\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"match_score\":{\"type\":\"string\"},\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"template_name\":{\"type\":\"string\"}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"business_object\":{\"type\":\"string\"},\"cdm\":{\"type\":\"boolean\"},\"config_only\":{\"type\":\"boolean\"},\"env\":{\"type\":\"string\"},\"generation_id\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"match_score\":{\"type\":\"string\"},\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"template_name\":{\"type\":\"string\"}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
             }
           },
           {
@@ -4058,14 +4093,14 @@
           ],
           "links": [
             {
-              "id": 29,
+              "id": 22,
               "from": "LogError",
               "to": "BuildError",
               "type": "label",
               "label": "LogError to BuildError"
             },
             {
-              "id": 30,
+              "id": 23,
               "from": "BuildError",
               "to": "ReplyError",
               "type": "label",
@@ -4107,48 +4142,48 @@
         "description": "Scaffolds the mock BWCE repository artifacts (manifest, README, CI pipeline, Dockerfile, Kubernetes manifest). For config_only runs it skips the repo+README scaffold and writes only the config files.",
         "links": [
           {
+            "id": 1,
             "from": "StartActivity",
             "to": "ScaffoldRepo",
             "type": "expression",
             "label": "Full generate (scaffold repo)",
-            "value": "$flow.config_only == false",
-            "id": 1
+            "value": "$flow.config_only == false"
           },
           {
+            "id": 2,
+            "from": "ScaffoldRepo",
+            "to": "ScaffoldReadme",
+            "type": "label",
+            "label": "ScaffoldRepo to ScaffoldReadme"
+          },
+          {
+            "id": 3,
+            "from": "ScaffoldReadme",
+            "to": "ScaffoldPipeline",
+            "type": "label",
+            "label": "ScaffoldReadme to ScaffoldPipeline"
+          },
+          {
+            "id": 4,
+            "from": "ScaffoldPipeline",
+            "to": "ScaffoldDockerfile",
+            "type": "label",
+            "label": "ScaffoldPipeline to ScaffoldDockerfile"
+          },
+          {
+            "id": 5,
+            "from": "ScaffoldDockerfile",
+            "to": "ScaffoldK8s",
+            "type": "label",
+            "label": "ScaffoldDockerfile to ScaffoldK8s"
+          },
+          {
+            "id": 6,
             "from": "StartActivity",
             "to": "ScaffoldPipeline",
             "type": "expression",
             "label": "Config-only (skip repo scaffold)",
-            "value": "$flow.config_only == true",
-            "id": 2
-          },
-          {
-            "from": "ScaffoldRepo",
-            "to": "ScaffoldReadme",
-            "type": "label",
-            "label": "ScaffoldRepo to ScaffoldReadme",
-            "id": 3
-          },
-          {
-            "from": "ScaffoldPipeline",
-            "to": "ScaffoldDockerfile",
-            "type": "label",
-            "label": "ScaffoldPipeline to ScaffoldDockerfile",
-            "id": 4
-          },
-          {
-            "from": "ScaffoldReadme",
-            "to": "ScaffoldPipeline",
-            "type": "label",
-            "label": "ScaffoldReadme to ScaffoldPipeline",
-            "id": 5
-          },
-          {
-            "from": "ScaffoldDockerfile",
-            "to": "ScaffoldK8s",
-            "type": "label",
-            "label": "ScaffoldDockerfile to ScaffoldK8s",
-            "id": 6
+            "value": "$flow.config_only == true"
           }
         ],
         "tasks": [
@@ -4395,7 +4430,9 @@
             }
           ],
           "output": [],
-          "fe_metadata": {}
+          "fe_metadata": {
+            "input": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"template_name\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"config_only\":{\"type\":\"boolean\"},\"country_code\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"need_secret\":{\"type\":\"boolean\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"unique_id\":{\"type\":\"string\"}}}"
+          }
         }
       }
     },
@@ -4406,25 +4443,25 @@
         "description": "Builds the rich HTML email (full-repo vs config-only variant) with the inline brand logo and doc attachment, and sends it via SMTP to the core integration team.",
         "links": [
           {
+            "id": 1,
             "from": "StartActivity",
             "to": "BuildEmailParts",
             "type": "label",
-            "label": "StartActivity to BuildEmailParts",
-            "id": 1
+            "label": "StartActivity to BuildEmailParts"
           },
           {
+            "id": 2,
             "from": "BuildEmailParts",
             "to": "BuildEmailAttachment",
             "type": "label",
-            "label": "BuildEmailParts to BuildEmailAttachment",
-            "id": 2
+            "label": "BuildEmailParts to BuildEmailAttachment"
           },
           {
+            "id": 3,
             "from": "BuildEmailAttachment",
             "to": "SendNotification",
             "type": "label",
-            "label": "BuildEmailAttachment to SendNotification",
-            "id": 3
+            "label": "BuildEmailAttachment to SendNotification"
           }
         ],
         "tasks": [
@@ -4526,7 +4563,6 @@
                 "authorizationType": "Basic",
                 "Username": "",
                 "Password": "",
-                "authorizationConn": "",
                 "Connection Security": "NONE",
                 "message_content_type": "text/html",
                 "sender": "=$property[\"NOTIFY_SENDER\"]",
@@ -4605,7 +4641,9 @@
             }
           ],
           "output": [],
-          "fe_metadata": {}
+          "fe_metadata": {
+            "input": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"business_object\":{\"type\":\"string\"},\"cdm\":{\"type\":\"boolean\"},\"config_only\":{\"type\":\"boolean\"},\"env\":{\"type\":\"string\"},\"generation_id\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"match_score\":{\"type\":\"string\"},\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"template_name\":{\"type\":\"string\"}}}"
+          }
         }
       }
     },
@@ -5059,18 +5097,10 @@
           },
           {
             "id": 2,
-            "from": "ExtractSpecSubflow",
-            "to": "BuildExtractResult",
-            "type": "label",
-            "label": "ExtractSpecSubflow to ReturnResult"
-          },
-          {
-            "from": "BuildExtractResult",
-            "to": "ReturnResult"
-          },
-          {
             "from": "BuildExtractArgs",
-            "to": "ExtractSpecSubflow"
+            "to": "ExtractSpecSubflow",
+            "type": "label",
+            "label": "BuildExtractArgs to ExtractSpecSubflow"
           }
         ],
         "tasks": [
@@ -5106,7 +5136,8 @@
                     "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"current_spec\": {\"type\": \"object\", \"properties\": {}}}}}}"
                   }
                 }
-              }
+              },
+              "feSchemaMap": {}
             }
           },
           {
@@ -5129,46 +5160,27 @@
               "input": {
                 "content": "=$activity[BuildExtractArgs].output.content"
               },
-              "schemas": {},
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "ReturnResult",
-            "name": "ReturnResult",
-            "description": "Wraps the extracted spec as an MCP ToolResult and returns it to the agent.",
-            "activity": {
-              "ref": "#actreturn",
-              "settings": {
-                "mappings": {
-                  "response": "=$activity[BuildExtractResult].output.response"
-                }
-              },
-              "input": {},
-              "schemas": {}
-            }
-          },
-          {
-            "id": "BuildExtractResult",
-            "name": "BuildExtractResult",
-            "description": "Builds the MCP response from the extracted spec.",
-            "activity": {
-              "ref": "#mapper",
-              "input": {
+              "schemas": {
                 "input": {
-                  "mapping": {
-                    "response": {
-                      "data": "=coerce.toString($activity[ExtractSpecSubflow].result)",
-                      "error": "=\"\""
-                    }
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"content\":{\"type\":\"object\",\"properties\":{}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"content\":{\"type\":\"object\",\"properties\":{}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"object\",\"properties\":{\"success\":{\"type\":\"boolean\"},\"spec\":{\"type\":\"object\",\"properties\":{}},\"ready_to_generate\":{\"type\":\"boolean\"},\"missing_fields\":{\"type\":\"array\",\"items\":{}},\"message\":{\"type\":\"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"object\",\"properties\":{\"success\":{\"type\":\"boolean\"},\"spec\":{\"type\":\"object\",\"properties\":{}},\"ready_to_generate\":{\"type\":\"boolean\"},\"missing_fields\":{\"type\":\"array\",\"items\":{}},\"message\":{\"type\":\"string\"}}}}}"
                   }
                 }
               },
-              "schemas": {}
+              "feSchemaMap": {}
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkV4dHJhY3RTcGVjU3ViZmxvdyI6eyJ4IjoyNTAsInkiOjQ1fSwiUmV0dXJuUmVzdWx0Ijp7IngiOjQ1MCwieSI6NDV9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkJ1aWxkRXh0cmFjdEFyZ3MiOnsieCI6MjUwLCJ5IjoxNTB9LCJFeHRyYWN0U3BlY1N1YmZsb3ciOnsieCI6NDUwLCJ5IjoxNTB9fQ==",
         "metadata": {
           "input": [
             {
@@ -5237,6 +5249,20 @@
           },
           {
             "id": 6,
+            "from": "RegisterGeneration",
+            "to": "BuildGenResultNew",
+            "type": "label",
+            "label": "RegisterGeneration to BuildGenResultNew"
+          },
+          {
+            "id": 7,
+            "from": "BuildGenResultNew",
+            "to": "ReturnGenNew",
+            "type": "label",
+            "label": "BuildGenResultNew to ReturnGenNew"
+          },
+          {
+            "id": 8,
             "from": "CheckDuplicate",
             "to": "BuildGenResultDup",
             "type": "expression",
@@ -5244,16 +5270,11 @@
             "value": "array.count($activity[CheckDuplicate].Output.records) > 0"
           },
           {
-            "from": "RegisterGeneration",
-            "to": "BuildGenResultNew"
-          },
-          {
-            "from": "BuildGenResultNew",
-            "to": "ReturnGenNew"
-          },
-          {
+            "id": 9,
             "from": "BuildGenResultDup",
-            "to": "ReturnResult"
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "BuildGenResultDup to ReturnResult"
           }
         ],
         "tasks": [
@@ -5361,7 +5382,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "9e8cf44b-dc3b-42fc-b673-e22e4938014aSELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
+                "State": "89e3c675-54a0-41f7-affa-2f2171324726SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
                 "input": {
                   "mapping": {
                     "parameters": {
@@ -5522,7 +5543,7 @@
                   }
                 ],
                 "RuntimeQuery": "",
-                "State": "70a2c232-cc61-4c20-bdf7-dcc541758566INSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status) ON CONFLICT (repo_name) DO NOTHING;",
+                "State": "c1d082ed-c81b-4c05-8a91-f961361c833dINSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status) ON CONFLICT (repo_name) DO NOTHING;",
                 "input": {
                   "mapping": {
                     "values": [
@@ -5566,21 +5587,6 @@
             }
           },
           {
-            "id": "ReturnResult",
-            "name": "ReturnResult",
-            "description": "Wraps the generation result as an MCP ToolResult and returns it to the agent.",
-            "activity": {
-              "ref": "#actreturn",
-              "settings": {
-                "mappings": {
-                  "response": "=$activity[BuildGenResultDup].output.response"
-                }
-              },
-              "input": {},
-              "schemas": {}
-            }
-          },
-          {
             "id": "BuildGenResultNew",
             "name": "BuildGenResultNew",
             "description": "Builds MCP response for a newly registered generation.",
@@ -5595,8 +5601,7 @@
                     }
                   }
                 }
-              },
-              "schemas": {}
+              }
             }
           },
           {
@@ -5609,9 +5614,7 @@
                 "mappings": {
                   "response": "=$activity[BuildGenResultNew].output.response"
                 }
-              },
-              "input": {},
-              "schemas": {}
+              }
             }
           },
           {
@@ -5629,12 +5632,24 @@
                     }
                   }
                 }
-              },
-              "schemas": {}
+              }
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Wraps the generation result as an MCP ToolResult and returns it to the agent.",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": "=$activity[BuildGenResultDup].output.response"
+                }
+              }
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkdldEFwcENvbmZpZyI6eyJ4IjoyNTAsInkiOjE1MH0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjI1MH0sIkJ1aWxkUmVwb05hbWUiOnsieCI6NjUwLCJ5IjozNTB9LCJDaGVja0R1cGxpY2F0ZSI6eyJ4Ijo3NTAsInkiOjM1MH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4Ijo4NTAsInkiOjQ1MH0sIlJldHVyblJlc3VsdCI6eyJ4IjoxMDUwLCJ5Ijo1NTB9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkdldEFwcENvbmZpZyI6eyJ4IjoyNTAsInkiOjE1MH0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo0NTAsInkiOjI1MH0sIkJ1aWxkUmVwb05hbWUiOnsieCI6NjUwLCJ5IjozNTB9LCJDaGVja0R1cGxpY2F0ZSI6eyJ4Ijo4NTAsInkiOjQ1MH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoxMDUwLCJ5Ijo1NTB9LCJCdWlsZEdlblJlc3VsdE5ldyI6eyJ4IjoxMjUwLCJ5Ijo1NTB9LCJSZXR1cm5HZW5OZXciOnsieCI6MTQ1MCwieSI6NTUwfSwiQnVpbGRHZW5SZXN1bHREdXAiOnsieCI6MTA1MCwieSI6NjUwfSwiUmV0dXJuUmVzdWx0Ijp7IngiOjEyNTAsInkiOjY1MH19",
         "metadata": {
           "input": [
             {
@@ -5666,25 +5681,25 @@
         "description": "MCP tool 'list_templates'. Returns all available BWCE integration templates from shared memory.",
         "links": [
           {
+            "id": 1,
             "from": "StartActivity",
             "to": "GetTemplates",
             "type": "label",
-            "label": "StartActivity to GetTemplates",
-            "id": 1
+            "label": "StartActivity to GetTemplates"
           },
           {
+            "id": 2,
             "from": "GetTemplates",
             "to": "BuildListResult",
             "type": "label",
-            "label": "GetTemplates to BuildListResult",
-            "id": 2
+            "label": "GetTemplates to BuildListResult"
           },
           {
+            "id": 3,
             "from": "BuildListResult",
             "to": "ReturnTemplates",
             "type": "label",
-            "label": "BuildListResult to ReturnTemplates",
-            "id": 3
+            "label": "BuildListResult to ReturnTemplates"
           }
         ],
         "tasks": [
@@ -5747,7 +5762,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkdldFRlbXBsYXRlcyI6eyJ4IjoyNTAsInkiOjQ1fSwiUmV0dXJuVGVtcGxhdGVzIjp7IngiOjQ1MCwieSI6NDl9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkdldFRlbXBsYXRlcyI6eyJ4IjoyNTAsInkiOjE1MH0sIkJ1aWxkTGlzdFJlc3VsdCI6eyJ4Ijo0NTAsInkiOjI1MH0sIlJldHVyblRlbXBsYXRlcyI6eyJ4Ijo2NTAsInkiOjM1MH19",
         "metadata": {
           "input": [
             {
@@ -5801,14 +5816,10 @@
           },
           {
             "id": 4,
-            "from": "CreateSessionTable",
-            "to": "LogDbSetup",
-            "type": "label",
-            "label": "CreateSessionTable to LogDbSetup"
-          },
-          {
             "from": "CreateRepoIndex",
-            "to": "CreateSessionTable"
+            "to": "CreateSessionTable",
+            "type": "label",
+            "label": "CreateRepoIndex to CreateSessionTable"
           }
         ],
         "tasks": [
@@ -5874,7 +5885,7 @@
                 "manualmode": false,
                 "Fields": [],
                 "RuntimeQuery": "",
-                "State": "d1c73d33-a38c-4f3d-9732-335612c486a5CREATE TABLE IF NOT EXISTS generation_log (id SERIAL PRIMARY KEY, generation_id VARCHAR(36) NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, repo_name VARCHAR(100) NOT NULL, source_system VARCHAR(50) NOT NULL, target_system VARCHAR(50) NOT NULL, business_object VARCHAR(100) NOT NULL, interface_type VARCHAR(10) NOT NULL CHECK (interface_type IN ('pub','sub','service')), template_type VARCHAR(200), cdm BOOLEAN DEFAULT FALSE, interface_id VARCHAR(50) DEFAULT 'NA', scenario_id VARCHAR(20) DEFAULT '1234', bitbucket_project VARCHAR(50), env VARCHAR(50) DEFAULT 'DEV', email VARCHAR(200), k8s_domain VARCHAR(50) DEFAULT 'cite', status VARCHAR(20) DEFAULT 'GENERATED' CHECK (status IN ('GENERATED','FAILED','DUPLICATE')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
+                "State": "3e3818f3-efe2-406a-bd18-8d1aad91e938CREATE TABLE IF NOT EXISTS generation_log (id SERIAL PRIMARY KEY, generation_id VARCHAR(36) NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, repo_name VARCHAR(100) NOT NULL, source_system VARCHAR(50) NOT NULL, target_system VARCHAR(50) NOT NULL, business_object VARCHAR(100) NOT NULL, interface_type VARCHAR(10) NOT NULL CHECK (interface_type IN ('pub','sub','service')), template_type VARCHAR(200), cdm BOOLEAN DEFAULT FALSE, interface_id VARCHAR(50) DEFAULT 'NA', scenario_id VARCHAR(20) DEFAULT '1234', bitbucket_project VARCHAR(50), env VARCHAR(50) DEFAULT 'DEV', email VARCHAR(200), k8s_domain VARCHAR(50) DEFAULT 'cite', status VARCHAR(20) DEFAULT 'GENERATED' CHECK (status IN ('GENERATED','FAILED','DUPLICATE')), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
               },
               "schemas": {
                 "input": {
@@ -5915,7 +5926,7 @@
                 "manualmode": false,
                 "Fields": [],
                 "RuntimeQuery": "",
-                "State": "969d4acf-9a9c-4aa5-9b93-fe59477570feCREATE UNIQUE INDEX IF NOT EXISTS ux_generation_log_repo_name ON generation_log (repo_name);"
+                "State": "f002d2d4-0875-4720-b367-9a9dfe3419f4CREATE UNIQUE INDEX IF NOT EXISTS ux_generation_log_repo_name ON generation_log (repo_name);"
               },
               "schemas": {
                 "input": {
@@ -5956,7 +5967,7 @@
                 "manualmode": false,
                 "Fields": [],
                 "RuntimeQuery": "",
-                "State": "016474a3-2739-4d23-a4ca-0dd3e30d20e6CREATE TABLE IF NOT EXISTS public.chat_session (session_id VARCHAR(64) PRIMARY KEY, status VARCHAR(20) DEFAULT 'active', message TEXT DEFAULT '', source_system VARCHAR(50) DEFAULT '', target_system VARCHAR(50) DEFAULT '', business_object VARCHAR(100) DEFAULT '', interface_type VARCHAR(20) DEFAULT '', template_type VARCHAR(200) DEFAULT '', cdm VARCHAR(10) DEFAULT '', interface_id VARCHAR(50) DEFAULT '', scenario_id VARCHAR(20) DEFAULT '', bitbucket_project VARCHAR(50) DEFAULT '', email VARCHAR(200) DEFAULT '', env VARCHAR(50) DEFAULT '', k8s_domain VARCHAR(50) DEFAULT '', country_code VARCHAR(10) DEFAULT '', unique_id VARCHAR(50) DEFAULT '', missing_fields TEXT DEFAULT '[]', ready_to_generate BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
+                "State": "ab3cbbba-9a16-44c4-aefc-0aaa4ed5e22eCREATE TABLE IF NOT EXISTS public.chat_session (session_id VARCHAR(64) PRIMARY KEY, status VARCHAR(20) DEFAULT 'active', message TEXT DEFAULT '', source_system VARCHAR(50) DEFAULT '', target_system VARCHAR(50) DEFAULT '', business_object VARCHAR(100) DEFAULT '', interface_type VARCHAR(20) DEFAULT '', template_type VARCHAR(200) DEFAULT '', cdm VARCHAR(10) DEFAULT '', interface_id VARCHAR(50) DEFAULT '', scenario_id VARCHAR(20) DEFAULT '', bitbucket_project VARCHAR(50) DEFAULT '', email VARCHAR(200) DEFAULT '', env VARCHAR(50) DEFAULT '', k8s_domain VARCHAR(50) DEFAULT '', country_code VARCHAR(10) DEFAULT '', unique_id VARCHAR(50) DEFAULT '', missing_fields TEXT DEFAULT '[]', ready_to_generate BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());"
               },
               "schemas": {
                 "input": {
@@ -5976,174 +5987,9 @@
               },
               "feSchemaMap": {}
             }
-          },
-          {
-            "id": "LogDbSetup",
-            "name": "LogDbSetup",
-            "description": "Logs that the PostgreSQL generation_log table is initialized.",
-            "activity": {
-              "ref": "#log",
-              "input": {
-                "Log Level": "INFO",
-                "flowInfo": false,
-                "message": "\"[DB-SETUP] PostgreSQL generation_log table initialized\"",
-                "logLevel": ""
-              }
-            }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIlJlYWRTY2hlbWFGaWxlIjp7IngiOjI1MCwieSI6MTUwfSwiQ3JlYXRlU2NoZW1hIjp7IngiOjQ1MCwieSI6MjUwfSwiQ3JlYXRlU2Vzc2lvblRhYmxlIjp7IngiOjU1MCwieSI6MzAwfSwiTG9nRGJTZXR1cCI6eyJ4Ijo2NTAsInkiOjM1MH19",
-        "metadata": {
-          "input": [],
-          "output": [],
-          "fe_metadata": {}
-        }
-      }
-    },
-    {
-      "id": "flow:TemplateIngestionFlow",
-      "data": {
-        "name": "TemplateIngestionFlow",
-        "description": "Loads BWCE templates into the Weaviate vector database. Ensures the target collection exists, then ingests template documents with embeddings to power semantic template selection.",
-        "links": [
-          {
-            "id": 1,
-            "from": "StartActivity",
-            "to": "GetTemplates",
-            "type": "label",
-            "label": "StartActivity to GetTemplates"
-          },
-          {
-            "id": 2,
-            "from": "GetTemplates",
-            "to": "CheckCollection",
-            "type": "label",
-            "label": "GetTemplates to CheckCollection"
-          },
-          {
-            "id": 3,
-            "from": "CheckCollection",
-            "to": "CreateCollection",
-            "type": "label",
-            "label": "CheckCollection to CreateCollection"
-          },
-          {
-            "id": 4,
-            "from": "CreateCollection",
-            "to": "IngestTemplates",
-            "type": "label",
-            "label": "CreateCollection to IngestTemplates"
-          },
-          {
-            "id": 5,
-            "from": "IngestTemplates",
-            "to": "LogIngestionComplete",
-            "type": "label",
-            "label": "IngestTemplates to LogIngestionComplete"
-          }
-        ],
-        "tasks": [
-          {
-            "id": "StartActivity",
-            "name": "StartActivity",
-            "description": "Flow entry point.",
-            "activity": {
-              "ref": "#noop"
-            }
-          },
-          {
-            "id": "GetTemplates",
-            "name": "GetTemplates",
-            "description": "Reads the template registry (APP_CONFIG) from shared memory.",
-            "activity": {
-              "ref": "#shareddata",
-              "settings": {
-                "scope": "Application",
-                "operation": "GET",
-                "type": "object"
-              },
-              "input": {
-                "key": "\"APP_CONFIG\"",
-                "input": {
-                  "mapping": {}
-                }
-              }
-            }
-          },
-          {
-            "id": "CheckCollection",
-            "name": "CheckCollection",
-            "description": "Lists existing Weaviate collections to check whether the template collection already exists.",
-            "activity": {
-              "ref": "#listCollections",
-              "settings": {
-                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924"
-              }
-            }
-          },
-          {
-            "id": "CreateCollection",
-            "name": "CreateCollection",
-            "description": "Creates the Weaviate template collection with the correct vector schema if it is missing.",
-            "activity": {
-              "ref": "#createCollection",
-              "settings": {
-                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924"
-              },
-              "input": {
-                "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
-                "dimensions": 768,
-                "distanceMetric": "cosine",
-                "onDisk": false,
-                "replicationFactor": 1
-              }
-            }
-          },
-          {
-            "id": "IngestTemplates",
-            "name": "IngestTemplates",
-            "description": "Ingests template documents into the Weaviate collection, generating embeddings for semantic search.",
-            "activity": {
-              "ref": "#ingestDocuments",
-              "settings": {
-                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
-                "enableChunking": false,
-                "chunkStrategy": "heading",
-                "chunkSize": 1000,
-                "chunkOverlap": 200,
-                "useConnectorEmbedding": false,
-                "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:yJ4kvCQdM+1FQBh/1dW8bFpoGCNx+w==",
-                "embeddingBaseURL": "http://localhost:11434/v1",
-                "embeddingModel": "nomic-embed-text",
-                "embeddingDimensions": 768,
-                "defaultCollection": "",
-                "contentField": "text",
-                "timeoutSeconds": 60,
-                "embeddingBatchSize": 100
-              },
-              "input": {
-                "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
-                "documents": "=$activity[GetTemplates].output.data.templates"
-              }
-            }
-          },
-          {
-            "id": "LogIngestionComplete",
-            "name": "LogIngestionComplete",
-            "description": "Logs that templates have been ingested into the vector database.",
-            "activity": {
-              "ref": "#log",
-              "input": {
-                "Log Level": "INFO",
-                "flowInfo": false,
-                "message": "\"[INGESTION] Templates ingested into VectorDB collection.\"",
-                "logLevel": ""
-              }
-            }
-          }
-        ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkdldFRlbXBsYXRlcyI6eyJ4IjoyNTAsInkiOjQ1fSwiQ2hlY2tDb2xsZWN0aW9uIjp7IngiOjQ1MCwieSI6NDV9LCJDcmVhdGVDb2xsZWN0aW9uIjp7IngiOjY1MCwieSI6NDV9LCJJbmdlc3RUZW1wbGF0ZXMiOnsieCI6MjUwLCJ5IjoxOTV9LCJMb2dJbmdlc3Rpb25Db21wbGV0ZSI6eyJ4Ijo0NTAsInkiOjE5NX19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIlJlYWRTY2hlbWFGaWxlIjp7IngiOjI1MCwieSI6MTUwfSwiQ3JlYXRlU2NoZW1hIjp7IngiOjQ1MCwieSI6MjUwfSwiQ3JlYXRlUmVwb0luZGV4Ijp7IngiOjY1MCwieSI6MzUwfSwiQ3JlYXRlU2Vzc2lvblRhYmxlIjp7IngiOjkxMiwieSI6MzUyfX0=",
         "metadata": {
           "input": [],
           "output": [],
@@ -6525,6 +6371,157 @@
         },
         "explicitReply": true
       }
+    },
+    {
+      "id": "flow:TemplateIngestionFlow",
+      "data": {
+        "name": "TemplateIngestionFlow",
+        "description": "Loads BWCE templates into the Weaviate vector database. Ensures the target collection exists, then ingests template documents with embeddings to power semantic template selection.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "GetTemplates",
+            "type": "label",
+            "label": "StartActivity to GetTemplates"
+          },
+          {
+            "id": 2,
+            "from": "GetTemplates",
+            "to": "CheckCollection",
+            "type": "label",
+            "label": "GetTemplates to CheckCollection"
+          },
+          {
+            "id": 3,
+            "from": "CheckCollection",
+            "to": "CreateCollection",
+            "type": "label",
+            "label": "CheckCollection to CreateCollection"
+          },
+          {
+            "id": 4,
+            "from": "CreateCollection",
+            "to": "IngestTemplates",
+            "type": "label",
+            "label": "CreateCollection to IngestTemplates"
+          },
+          {
+            "id": 5,
+            "from": "IngestTemplates",
+            "to": "LogIngestionComplete",
+            "type": "label",
+            "label": "IngestTemplates to LogIngestionComplete"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "GetTemplates",
+            "name": "GetTemplates",
+            "description": "Reads the template registry (APP_CONFIG) from shared memory.",
+            "activity": {
+              "ref": "#shareddata",
+              "settings": {
+                "scope": "Application",
+                "operation": "GET",
+                "type": "object"
+              },
+              "input": {
+                "key": "\"APP_CONFIG\"",
+                "input": {
+                  "mapping": {}
+                }
+              }
+            }
+          },
+          {
+            "id": "CheckCollection",
+            "name": "CheckCollection",
+            "description": "Lists existing Weaviate collections to check whether the template collection already exists.",
+            "activity": {
+              "ref": "#listCollections",
+              "settings": {
+                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924"
+              }
+            }
+          },
+          {
+            "id": "CreateCollection",
+            "name": "CreateCollection",
+            "description": "Creates the Weaviate template collection with the correct vector schema if it is missing.",
+            "activity": {
+              "ref": "#createCollection",
+              "settings": {
+                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924"
+              },
+              "input": {
+                "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
+                "dimensions": 768,
+                "distanceMetric": "cosine",
+                "onDisk": false,
+                "replicationFactor": 1
+              }
+            }
+          },
+          {
+            "id": "IngestTemplates",
+            "name": "IngestTemplates",
+            "description": "Ingests template documents into the Weaviate collection, generating embeddings for semantic search.",
+            "activity": {
+              "ref": "#ingestDocuments",
+              "settings": {
+                "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
+                "enableChunking": false,
+                "chunkStrategy": "heading",
+                "chunkSize": 1000,
+                "chunkOverlap": 200,
+                "useConnectorEmbedding": false,
+                "embeddingProvider": "OpenAI",
+                "embeddingAPIKey": "SECRET:wukaPGIllUhjTMG/HRxNq/0skMlRNg==",
+                "embeddingBaseURL": "http://localhost:11434/v1",
+                "embeddingModel": "nomic-embed-text",
+                "embeddingDimensions": 768,
+                "defaultCollection": "",
+                "contentField": "text",
+                "timeoutSeconds": 60,
+                "embeddingBatchSize": 100
+              },
+              "input": {
+                "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
+                "documents": "=$activity[GetTemplates].output.data.templates"
+              }
+            }
+          },
+          {
+            "id": "LogIngestionComplete",
+            "name": "LogIngestionComplete",
+            "description": "Logs that templates have been ingested into the vector database.",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": false,
+                "message": "\"[INGESTION] Templates ingested into VectorDB collection.\"",
+                "logLevel": ""
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkdldFRlbXBsYXRlcyI6eyJ4IjoyNTAsInkiOjQ1fSwiQ2hlY2tDb2xsZWN0aW9uIjp7IngiOjQ1MCwieSI6NDV9LCJDcmVhdGVDb2xsZWN0aW9uIjp7IngiOjY1MCwieSI6NDV9LCJJbmdlc3RUZW1wbGF0ZXMiOnsieCI6MjUwLCJ5IjoxOTV9LCJMb2dJbmdlc3Rpb25Db21wbGV0ZSI6eyJ4Ijo0NTAsInkiOjE5NX19",
+        "metadata": {
+          "input": [],
+          "output": [],
+          "fe_metadata": {}
+        }
+      }
     }
   ],
   "properties": [
@@ -6551,7 +6548,7 @@
     {
       "name": "PostgreSQL.GenerationRegistry.Password",
       "type": "string",
-      "value": "SECRET:/bhW90Dc5kf43TfRce7x2cz+owhk5R7k"
+      "value": "SECRET:mJ3K/NJT3zPpOlw4FrM+Bh39IkM8ba6a"
     },
     {
       "name": "PostgreSQL.GenerationRegistry.Maximum_Open_Connections",
@@ -6674,47 +6671,42 @@
       "value": "config/ikd/ikd-interface-ids.json"
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Connection_Name",
-      "type": "string",
-      "value": "WeaviateTemplateKB"
-    },
-    {
-      "name": "VectorDB.WeaviateTemplateKB.Host",
+      "name": "weaviate.WeaviateTemplateKB.Host",
       "type": "string",
       "value": "localhost"
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Port",
+      "name": "weaviate.WeaviateTemplateKB.Port",
       "type": "float64",
       "value": 18080
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.API_Key",
+      "name": "weaviate.WeaviateTemplateKB.API_Key",
       "type": "string",
       "value": ""
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Secure_Connection",
+      "name": "weaviate.WeaviateTemplateKB.Secure_Connection",
       "type": "boolean",
       "value": false
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Timeout_(seconds)",
+      "name": "weaviate.WeaviateTemplateKB.Timeout_(seconds)",
       "type": "float64",
       "value": 30
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Max_Retries",
+      "name": "weaviate.WeaviateTemplateKB.Max_Retries",
       "type": "float64",
       "value": 3
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Retry_Backoff_(ms)",
+      "name": "weaviate.WeaviateTemplateKB.Retry_Backoff_(ms)",
       "type": "float64",
       "value": 500
     },
     {
-      "name": "VectorDB.WeaviateTemplateKB.Configure_Embedding_Provider",
+      "name": "weaviate.WeaviateTemplateKB.Configure_Embedding_Provider",
       "type": "boolean",
       "value": false
     }
@@ -6820,17 +6812,17 @@
       "ref": "#connector",
       "isGlobal": false,
       "settings": {
-        "name": "=$property[\"VectorDB.WeaviateTemplateKB.Connection_Name\"]",
-        "host": "=$property[\"VectorDB.WeaviateTemplateKB.Host\"]",
-        "port": "=$property[\"VectorDB.WeaviateTemplateKB.Port\"]",
-        "apiKey": "=$property[\"VectorDB.WeaviateTemplateKB.API_Key\"]",
-        "useTLS": "=$property[\"VectorDB.WeaviateTemplateKB.Secure_Connection\"]",
+        "name": "WeaviateTemplateKB",
+        "host": "=$property[\"weaviate.WeaviateTemplateKB.Host\"]",
+        "port": "=$property[\"weaviate.WeaviateTemplateKB.Port\"]",
+        "apiKey": "=$property[\"weaviate.WeaviateTemplateKB.API_Key\"]",
+        "useTLS": "=$property[\"weaviate.WeaviateTemplateKB.Secure_Connection\"]",
         "tlsInsecureSkipVerify": false,
-        "timeoutSeconds": "=$property[\"VectorDB.WeaviateTemplateKB.Timeout_(seconds)\"]",
-        "maxRetries": "=$property[\"VectorDB.WeaviateTemplateKB.Max_Retries\"]",
-        "retryBackoffMs": "=$property[\"VectorDB.WeaviateTemplateKB.Retry_Backoff_(ms)\"]",
+        "timeoutSeconds": "=$property[\"weaviate.WeaviateTemplateKB.Timeout_(seconds)\"]",
+        "maxRetries": "=$property[\"weaviate.WeaviateTemplateKB.Max_Retries\"]",
+        "retryBackoffMs": "=$property[\"weaviate.WeaviateTemplateKB.Retry_Backoff_(ms)\"]",
         "scheme": "http",
-        "enableEmbedding": "=$property[\"VectorDB.WeaviateTemplateKB.Configure_Embedding_Provider\"]",
+        "enableEmbedding": "=$property[\"weaviate.WeaviateTemplateKB.Configure_Embedding_Provider\"]",
         "embeddingProvider": "OpenAI"
       }
     },
@@ -6844,11 +6836,15 @@
         "llmProvider": "Ollama",
         "anthropicProvider": "Default",
         "apiKey": "",
-        "llmProviderUrl": "http://localhost:11434"
+        "llmProviderUrl": "http://localhost:11434",
+        "azureDeployment": "",
+        "azureRegion": "",
+        "azureResourceName": "",
+        "azureApiVersion": ""
       }
     }
   },
-  "contrib": "W3sicmVmIjoiZ2l0aHViLmNvbS90aWJjby9mbG9nby1nZW5lcmFsL3NyYy9hcHAvR2VuZXJhbCIsImlkIjoiR2VuZXJhbCIsInZlcnNpb24iOiIxLjYuMTIiLCJ0YWciOiIxLjYuMTItYjA2IiwibmFtZSI6IlRJQkNPIEZsb2dvIENvbm5lY3RvciBmb3IgR2VuZXJhbCIsInMzbG9jYXRpb24iOiJUaWJjby9HZW5lcmFsIiwiaXNVc2VyRXh0ZW5zaW9uIjpmYWxzZX0seyJyZWYiOiJnaXRodWIuY29tL3RpYmNvL3dpLXBvc3RncmVzL3NyYy9hcHAvUG9zdGdyZVNRTCIsImlkIjoiUG9zdGdyZVNRTCIsInZlcnNpb24iOiIyLjcuMSIsInRhZyI6IjIuNy4xLWIwMSIsIm5hbWUiOiJUSUJDTyBGbG9nbyBjb25uZWN0b3IgZm9yIFBvc3RncmVTUUwiLCJzM2xvY2F0aW9uIjoiVGliY28vUG9zdGdyZVNRTCIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmMiLCJpZCI6IlZlY3RvckRCIiwidmVyc2lvbiI6IjEuMC4wIiwidGFnIjoiMS4wLjAiLCJuYW1lIjoiVmVjdG9yREIgUkFHIENvbm5lY3RvciIsInMzbG9jYXRpb24iOiJ7VVNFUklEfS9WZWN0b3JEQiIsImlzVXNlckV4dGVuc2lvbiI6dHJ1ZX0seyJyZWYiOiJnaXRodWIuY29tL3RpYmNvL2Zsb2dvLWFpLWFnZW50L3NyYy9hcHAvQWdlbnRpY0FJIiwiaWQiOiJBZ2VudGljQUkiLCJ2ZXJzaW9uIjoiMC45LjAiLCJ0YWciOiIwLjkuMC1iMDMiLCJuYW1lIjoiVElCQ08gRmxvZ29cdTAwYWUgQ29ubmVjdG9yIGZvciBBZ2VudGljIEFJIChUZWNoIFByZXZpZXcpIiwiczNsb2NhdGlvbiI6IlRpYmNvL0FnZW50aWNBSSIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmNvbS9tcGFuZGF2LXRpYmNvL2Zsb2dvLWN1c3RvbS1leHRlbnNpb25zL2FjdGl2aXR5L3J1bGVlbmdpbmUiLCJpZCI6IkRlZmF1bHQiLCJ2ZXJzaW9uIjoiMS4wLjAiLCJ0YWciOiIxLjAuMCIsIm5hbWUiOiJSdWxlIEVuZ2luZSIsInMzbG9jYXRpb24iOiJ7VVNFUklEfS9ydWxlZW5naW5lIiwiaXNVc2VyRXh0ZW5zaW9uIjp0cnVlfSx7InJlZiI6ImdpdGh1Yi5jb20vdGliY28vZmxvZ28tZmlsZXMvc3JjL2FwcC9GaWxlIiwiaWQiOiJGaWxlIiwidmVyc2lvbiI6IjEuMC4wIiwidGFnIjoiMS4wLjAtYjE0IiwibmFtZSI6IlRJQkNPIEZsb2dvIENvbm5lY3RvciBmb3IgRmlsZSIsInMzbG9jYXRpb24iOiJUaWJjby9GaWxlIiwiaXNVc2VyRXh0ZW5zaW9uIjpmYWxzZX0seyJyZWYiOiJnaXRodWIuY29tL3RpYmNvL2Zsb2dvLW1jcC9zcmMvYXBwL01DUCIsImlkIjoiTUNQIiwidmVyc2lvbiI6IjEuMC4xIiwidGFnIjoiMS4wLjEtYjAyIiwibmFtZSI6IlRJQkNPIEZsb2dvXHUwMGFlIENvbm5lY3RvciBmb3IgTW9kZWwgQ29udGV4dCBQcm90b2NvbCAoTUNQKSIsInMzbG9jYXRpb24iOiJUaWJjby9NQ1AiLCJpc1VzZXJFeHRlbnNpb24iOmZhbHNlfSx7InJlZiI6ImdpdGh1Yi5jb20vbXBhbmRhdi10aWJjby9mbG9nby1leHRlbnNpb25zL3ZlY3RvcmRiLXdlYXZpYXRlIiwiaWQiOiJWZWN0b3JEQldlYXZpYXRlIiwidmVyc2lvbiI6IjEuMC4wIiwidGFnIjoiMS4wLjAiLCJuYW1lIjoiV2VhdmlhdGUgVmVjdG9yREIgQ29ubmVjdG9yIiwiczNsb2NhdGlvbiI6IntVU0VSSUR9L3dlYXZpYXRlIiwiaXNVc2VyRXh0ZW5zaW9uIjp0cnVlfV0=",
+  "contrib": "W3sicmVmIjoiZ2l0aHViLmNvbS90aWJjby9mbG9nby1nZW5lcmFsL3NyYy9hcHAvR2VuZXJhbCIsImlkIjoiR2VuZXJhbCIsInZlcnNpb24iOiIxLjYuMTQiLCJ0YWciOiIxLjYuMTQtYjA0IiwibmFtZSI6IkdlbmVyYWwiLCJzM2xvY2F0aW9uIjoiVGliY28vR2VuZXJhbCIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmNvbS90aWJjby93aS1wb3N0Z3Jlcy9zcmMvYXBwL1Bvc3RncmVTUUwiLCJpZCI6IlBvc3RncmVTUUwiLCJ2ZXJzaW9uIjoiMi43LjEiLCJ0YWciOiIyLjcuMS1iMDEiLCJuYW1lIjoiUG9zdGdyZVNRTCIsInMzbG9jYXRpb24iOiJUaWJjby9Qb3N0Z3JlU1FMIiwiaXNVc2VyRXh0ZW5zaW9uIjpmYWxzZX0seyJyZWYiOiJnaXRodWIuY29tL21wYW5kYXYtdGliY28vZmxvZ28tZXh0ZW5zaW9ucy9jb25uZWN0b3JzL1ZlY3RvckRCL3dlYXZpYXRlIiwiaWQiOiJ3ZWF2aWF0ZSIsInZlcnNpb24iOiIxLjAuMCIsInRhZyI6IjEuMC4wIiwibmFtZSI6IldlYXZpYXRlIFZlY3RvckRCIENvbm5lY3RvciIsInMzbG9jYXRpb24iOiJ7VVNFUklEfS93ZWF2aWF0ZSIsImlzVXNlckV4dGVuc2lvbiI6dHJ1ZX0seyJyZWYiOiJnaXRodWIuY29tL3RpYmNvL2Zsb2dvLWFpLWFnZW50L3NyYy9hcHAvQWdlbnRpY0FJIiwiaWQiOiJBZ2VudGljQUkiLCJ2ZXJzaW9uIjoiMC45LjMiLCJ0YWciOiIwLjkuMy1iMDIiLCJuYW1lIjoiQWdlbnRpYyBBSSAoVGVjaCBQcmV2aWV3KSIsInMzbG9jYXRpb24iOiJUaWJjby9BZ2VudGljQUkiLCJpc1VzZXJFeHRlbnNpb24iOmZhbHNlfSx7InJlZiI6ImdpdGh1Yi5jb20iLCJpZCI6InJ1bGVlbmdpbmUiLCJ2ZXJzaW9uIjoiMS4wLjAiLCJ0YWciOiIxLjAuMCIsIm5hbWUiOiJSdWxlIEVuZ2luZSIsInMzbG9jYXRpb24iOiJ7VVNFUklEfS9ydWxlZW5naW5lIiwiaXNVc2VyRXh0ZW5zaW9uIjp0cnVlfSx7InJlZiI6ImdpdGh1Yi5jb20vdGliY28vZmxvZ28tZmlsZXMvc3JjL2FwcC9GaWxlIiwiaWQiOiJGaWxlIiwidmVyc2lvbiI6IjEuMC4wIiwidGFnIjoiMS4wLjAtYjE0IiwibmFtZSI6IkZpbGUiLCJzM2xvY2F0aW9uIjoiVGliY28vRmlsZSIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9LHsicmVmIjoiZ2l0aHViLmNvbS90aWJjby9mbG9nby1tY3Avc3JjL2FwcC9NQ1AiLCJpZCI6Ik1DUCIsInZlcnNpb24iOiIxLjAuMyIsInRhZyI6IjEuMC4zLWIwMiIsIm5hbWUiOiJNb2RlbCBDb250ZXh0IFByb3RvY29sIChNQ1ApIiwiczNsb2NhdGlvbiI6IlRpYmNvL01DUCIsImlzVXNlckV4dGVuc2lvbiI6ZmFsc2V9XQ==",
   "metadata": {
     "endpoints": [
       {
@@ -6916,9 +6912,9 @@
                   "200": {
                     "description": "",
                     "content": {
-                      "text/plain": {
+                      "application/json": {
                         "schema": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/schema1"
                         }
                       }
                     }
@@ -6946,9 +6942,9 @@
                   "200": {
                     "description": "",
                     "content": {
-                      "text/plain": {
+                      "application/json": {
                         "schema": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/schema2"
                         }
                       }
                     }
@@ -6961,7 +6957,7 @@
                   "content": {
                     "application/json": {
                       "schema": {
-                        "$ref": "#/components/schemas/schema1"
+                        "$ref": "#/components/schemas/schema3"
                       }
                     }
                   }
@@ -6987,9 +6983,19 @@
                   "200": {
                     "description": "",
                     "content": {
-                      "text/plain": {
+                      "application/json": {
                         "schema": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/schema4"
+                        }
+                      }
+                    }
+                  },
+                  "400": {
+                    "description": "",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/schema5"
                         }
                       }
                     }
@@ -7002,7 +7008,7 @@
                   "content": {
                     "application/json": {
                       "schema": {
-                        "$ref": "#/components/schemas/schema2"
+                        "$ref": "#/components/schemas/schema6"
                       }
                     }
                   }
@@ -7028,9 +7034,9 @@
                   "200": {
                     "description": "",
                     "content": {
-                      "text/plain": {
+                      "application/json": {
                         "schema": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/schema7"
                         }
                       }
                     }
@@ -7043,7 +7049,7 @@
                   "content": {
                     "application/json": {
                       "schema": {
-                        "$ref": "#/components/schemas/schema3"
+                        "$ref": "#/components/schemas/schema8"
                       }
                     }
                   }
@@ -7069,9 +7075,9 @@
                   "200": {
                     "description": "",
                     "content": {
-                      "text/plain": {
+                      "application/json": {
                         "schema": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/schema9"
                         }
                       }
                     }
@@ -7084,7 +7090,7 @@
                   "content": {
                     "application/json": {
                       "schema": {
-                        "$ref": "#/components/schemas/schema4"
+                        "$ref": "#/components/schemas/schema10"
                       }
                     }
                   }
@@ -7110,9 +7116,29 @@
                   "200": {
                     "description": "",
                     "content": {
-                      "text/plain": {
+                      "application/json": {
                         "schema": {
-                          "type": "string"
+                          "$ref": "#/components/schemas/schema11"
+                        }
+                      }
+                    }
+                  },
+                  "400": {
+                    "description": "",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/schema5"
+                        }
+                      }
+                    }
+                  },
+                  "409": {
+                    "description": "",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/schema11"
                         }
                       }
                     }
@@ -7125,11 +7151,101 @@
                   "content": {
                     "application/json": {
                       "schema": {
-                        "$ref": "#/components/schemas/schema5"
+                        "$ref": "#/components/schemas/schema12"
                       }
                     }
                   }
                 }
+              }
+            },
+            "/": {
+              "": {
+                "summary": "root_GET",
+                "operationId": "_",
+                "parameters": [
+                  {
+                    "name": "Authorization",
+                    "in": "header",
+                    "description": "Request parameter",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "",
+                    "content": {
+                      "text/plain": {
+                        "schema": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "Serves the conversational Web Chat UI (GET /). Reads static/chat.html from disk and returns it as text/html via an implicit reply."
+              }
+            },
+            "/docs": {
+              "": {
+                "summary": "docs_GET",
+                "operationId": "_docs",
+                "parameters": [
+                  {
+                    "name": "Authorization",
+                    "in": "header",
+                    "description": "Request parameter",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "",
+                    "content": {
+                      "text/plain": {
+                        "schema": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "Serves the API reference page (GET /docs). Reads static/docs.html and returns it as text/html via implicit reply."
+              }
+            },
+            "/openapi.json": {
+              "": {
+                "summary": "openapi_GET",
+                "operationId": "_openapi.json",
+                "parameters": [
+                  {
+                    "name": "Authorization",
+                    "in": "header",
+                    "description": "Request parameter",
+                    "required": false,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "",
+                    "content": {
+                      "text/plain": {
+                        "schema": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "Serves the OpenAPI 3.0 specification (GET /openapi.json) as application/json via implicit reply."
               }
             }
           },
@@ -7138,13 +7254,239 @@
               "schema1": {
                 "type": "object",
                 "properties": {
+                  "templates": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "interface_types": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "cdm": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "schema2": {
+                "type": "object",
+                "properties": {
+                  "session_id": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "Hello! I can help you generate a BWCE integration repository. Describe your integration requirement in plain English."
+                  },
+                  "spec": {
+                    "type": "object",
+                    "properties": {
+                      "source_system": {
+                        "type": "string",
+                        "example": "s4hana"
+                      },
+                      "target_system": {
+                        "type": "string",
+                        "example": "kafka"
+                      },
+                      "business_object": {
+                        "type": "string",
+                        "example": "article"
+                      },
+                      "interface_type": {
+                        "type": "string",
+                        "enum": [
+                          "pub",
+                          "sub",
+                          "service"
+                        ]
+                      },
+                      "template_type": {
+                        "type": "string",
+                        "example": "REST_SERVICE_To_KAFKATopic"
+                      },
+                      "cdm": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "interface_id": {
+                        "type": "string",
+                        "default": "NA"
+                      },
+                      "scenario_id": {
+                        "type": "string",
+                        "default": "1234"
+                      },
+                      "bitbucket_project": {
+                        "type": "string"
+                      },
+                      "env": {
+                        "type": "string",
+                        "default": "DEV"
+                      },
+                      "bw_profile": {
+                        "type": "string",
+                        "default": "default"
+                      },
+                      "email": {
+                        "type": "string",
+                        "format": "email"
+                      },
+                      "k8s_domain": {
+                        "type": "string",
+                        "default": "cite"
+                      },
+                      "need_secret": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "country_code": {
+                        "type": "string",
+                        "default": "NA"
+                      },
+                      "unique_id": {
+                        "type": "string",
+                        "default": "NA"
+                      }
+                    }
+                  }
+                }
+              },
+              "schema3": {
+                "type": "object",
+                "properties": {
                   "session_id": {
                     "type": "string",
                     "description": "Optional â provide to resume an existing session"
                   }
                 }
               },
-              "schema2": {
+              "schema4": {
+                "type": "object",
+                "properties": {
+                  "session_id": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "Bot response or follow-up question"
+                  },
+                  "spec": {
+                    "type": "object",
+                    "properties": {
+                      "source_system": {
+                        "type": "string",
+                        "example": "s4hana"
+                      },
+                      "target_system": {
+                        "type": "string",
+                        "example": "kafka"
+                      },
+                      "business_object": {
+                        "type": "string",
+                        "example": "article"
+                      },
+                      "interface_type": {
+                        "type": "string",
+                        "enum": [
+                          "pub",
+                          "sub",
+                          "service"
+                        ]
+                      },
+                      "template_type": {
+                        "type": "string",
+                        "example": "REST_SERVICE_To_KAFKATopic"
+                      },
+                      "cdm": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "interface_id": {
+                        "type": "string",
+                        "default": "NA"
+                      },
+                      "scenario_id": {
+                        "type": "string",
+                        "default": "1234"
+                      },
+                      "bitbucket_project": {
+                        "type": "string"
+                      },
+                      "env": {
+                        "type": "string",
+                        "default": "DEV"
+                      },
+                      "bw_profile": {
+                        "type": "string",
+                        "default": "default"
+                      },
+                      "email": {
+                        "type": "string",
+                        "format": "email"
+                      },
+                      "k8s_domain": {
+                        "type": "string",
+                        "default": "cite"
+                      },
+                      "need_secret": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "country_code": {
+                        "type": "string",
+                        "default": "NA"
+                      },
+                      "unique_id": {
+                        "type": "string",
+                        "default": "NA"
+                      }
+                    }
+                  },
+                  "missing_fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "ready_to_generate": {
+                    "type": "boolean"
+                  },
+                  "shell_command": {
+                    "type": "string",
+                    "description": "Pre-filled GenerateCodeFromTemplate.sh command (when all fields complete)"
+                  }
+                }
+              },
+              "schema5": {
+                "type": "object",
+                "properties": {
+                  "error": {
+                    "type": "string"
+                  },
+                  "details": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "schema6": {
                 "type": "object",
                 "required": [
                   "session_id",
@@ -7160,7 +7502,18 @@
                   }
                 }
               },
-              "schema3": {
+              "schema7": {
+                "type": "object",
+                "properties": {
+                  "session_id": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                }
+              },
+              "schema8": {
                 "type": "object",
                 "required": [
                   "session_id"
@@ -7171,7 +7524,94 @@
                   }
                 }
               },
-              "schema4": {
+              "schema9": {
+                "type": "object",
+                "properties": {
+                  "extracted_fields": {
+                    "type": "object",
+                    "properties": {
+                      "source_system": {
+                        "type": "string",
+                        "example": "s4hana"
+                      },
+                      "target_system": {
+                        "type": "string",
+                        "example": "kafka"
+                      },
+                      "business_object": {
+                        "type": "string",
+                        "example": "article"
+                      },
+                      "interface_type": {
+                        "type": "string",
+                        "enum": [
+                          "pub",
+                          "sub",
+                          "service"
+                        ]
+                      },
+                      "template_type": {
+                        "type": "string",
+                        "example": "REST_SERVICE_To_KAFKATopic"
+                      },
+                      "cdm": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "interface_id": {
+                        "type": "string",
+                        "default": "NA"
+                      },
+                      "scenario_id": {
+                        "type": "string",
+                        "default": "1234"
+                      },
+                      "bitbucket_project": {
+                        "type": "string"
+                      },
+                      "env": {
+                        "type": "string",
+                        "default": "DEV"
+                      },
+                      "bw_profile": {
+                        "type": "string",
+                        "default": "default"
+                      },
+                      "email": {
+                        "type": "string",
+                        "format": "email"
+                      },
+                      "k8s_domain": {
+                        "type": "string",
+                        "default": "cite"
+                      },
+                      "need_secret": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "country_code": {
+                        "type": "string",
+                        "default": "NA"
+                      },
+                      "unique_id": {
+                        "type": "string",
+                        "default": "NA"
+                      }
+                    }
+                  },
+                  "missing_fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "confidence": {
+                    "type": "number",
+                    "format": "float"
+                  }
+                }
+              },
+              "schema10": {
                 "type": "object",
                 "required": [
                   "message"
@@ -7255,7 +7695,40 @@
                   }
                 }
               },
-              "schema5": {
+              "schema11": {
+                "type": "object",
+                "properties": {
+                  "success": {
+                    "type": "boolean"
+                  },
+                  "duplicate": {
+                    "type": "boolean"
+                  },
+                  "repo_name": {
+                    "type": "string",
+                    "example": "s4hana-article-kafka-pub"
+                  },
+                  "repo_url": {
+                    "type": "string"
+                  },
+                  "shell_command": {
+                    "type": "string"
+                  },
+                  "workspace_path": {
+                    "type": "string"
+                  },
+                  "generation_id": {
+                    "type": "string"
+                  },
+                  "errors": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "schema12": {
                 "type": "object",
                 "required": [
                   "spec"
@@ -7351,6 +7824,6 @@
         "type": "public"
       }
     ],
-    "flogoVersion": "2.26.4"
+    "flogoVersion": "2.26.5"
   }
 }
