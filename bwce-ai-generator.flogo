@@ -479,8 +479,8 @@
         {
           "description": "Serves the conversational Web Chat UI (GET /). Reads static/chat.html from disk and returns it as text/html via an implicit reply.",
           "settings": {
-            "APISpecPath": "",
-            "Method": "",
+            "APISpecPath": "/",
+            "Method": "GET",
             "reqType": "application/json",
             "Path": "/",
             "OutputValidation": false
@@ -532,8 +532,8 @@
         {
           "description": "Serves the API reference page (GET /docs). Reads static/docs.html and returns it as text/html via implicit reply.",
           "settings": {
-            "APISpecPath": "",
-            "Method": "",
+            "APISpecPath": "/docs",
+            "Method": "GET",
             "reqType": "application/json",
             "Path": "/docs",
             "OutputValidation": false
@@ -585,8 +585,8 @@
         {
           "description": "Serves the OpenAPI 3.0 specification (GET /openapi.json) as application/json via implicit reply.",
           "settings": {
-            "APISpecPath": "",
-            "Method": "",
+            "APISpecPath": "/openapi.json",
+            "Method": "GET",
             "reqType": "application/json",
             "Path": "/openapi.json",
             "OutputValidation": false
