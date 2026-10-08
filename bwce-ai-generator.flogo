@@ -3313,9 +3313,9 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "interface_id_valid": "(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id))",
-                    "scenario_id_valid": "(!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))",
-                    "ikd_valid": "(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id)) && (!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))"
+                    "interface_id_valid": "=(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id))",
+                    "scenario_id_valid": "=(!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))",
+                    "ikd_valid": "=(!isDefined($activity[NormalizeSpec].output.interface_id) || $activity[NormalizeSpec].output.interface_id == \"\" || array.contains($activity[GetIKDInterfaces].output.data, $activity[NormalizeSpec].output.interface_id)) && (!isDefined($activity[NormalizeSpec].output.scenario_id) || $activity[NormalizeSpec].output.scenario_id == \"\" || array.contains($activity[GetIKDScenarios].output.data, $activity[NormalizeSpec].output.scenario_id))"
                   }
                 }
               },
@@ -5101,6 +5101,20 @@
             "to": "ExtractSpecSubflow",
             "type": "label",
             "label": "BuildExtractArgs to ExtractSpecSubflow"
+          },
+          {
+            "id": 3,
+            "from": "ExtractSpecSubflow",
+            "to": "BuildExtractResult",
+            "type": "label",
+            "label": "ExtractSpecSubflow to BuildExtractResult"
+          },
+          {
+            "id": 4,
+            "from": "BuildExtractResult",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "BuildExtractResult to ReturnResult"
           }
         ],
         "tasks": [
@@ -5178,9 +5192,43 @@
               },
               "feSchemaMap": {}
             }
+          },
+          {
+            "activity": {
+              "input": {
+                "input": {
+                  "mapping": {
+                    "response": {
+                      "data": "=coerce.toString($activity[ExtractSpecSubflow].result)",
+                      "error": "=\"\""
+                    }
+                  }
+                }
+              },
+              "ref": "#mapper"
+            },
+            "id": "BuildExtractResult",
+            "name": "BuildExtractResult",
+            "description": "Builds the MCP response from the extracted spec."
+          },
+          {
+            "activity": {
+              "input": {
+                "mappings": []
+              },
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": "=$activity[BuildExtractResult].output.response"
+                }
+              }
+            },
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Wraps the extracted spec as an MCP ToolResult and returns it to the agent."
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkJ1aWxkRXh0cmFjdEFyZ3MiOnsieCI6MjUwLCJ5IjoxNTB9LCJFeHRyYWN0U3BlY1N1YmZsb3ciOnsieCI6NDUwLCJ5IjoxNTB9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkJ1aWxkRXh0cmFjdEFyZ3MiOnsieCI6MjUwLCJ5Ijo0NX0sIkV4dHJhY3RTcGVjU3ViZmxvdyI6eyJ4Ijo0NTAsInkiOjQ1fSwiQnVpbGRFeHRyYWN0UmVzdWx0Ijp7IngiOjY1MCwieSI6NDV9LCJSZXR1cm5SZXN1bHQiOnsieCI6MjUwLCJ5IjoxOTV9fQ==",
         "metadata": {
           "input": [
             {
@@ -5820,6 +5868,13 @@
             "to": "CreateSessionTable",
             "type": "label",
             "label": "CreateRepoIndex to CreateSessionTable"
+          },
+          {
+            "id": 5,
+            "from": "CreateSessionTable",
+            "to": "LogDbSetup",
+            "type": "label",
+            "label": "CreateSessionTable to LogDbSetup"
           }
         ],
         "tasks": [
@@ -5987,9 +6042,23 @@
               },
               "feSchemaMap": {}
             }
+          },
+          {
+            "activity": {
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": false,
+                "message": "\"[DB-SETUP] PostgreSQL generation_log table initialized\"",
+                "logLevel": ""
+              },
+              "ref": "#log"
+            },
+            "id": "LogDbSetup",
+            "name": "LogDbSetup",
+            "description": "Logs that the PostgreSQL generation_log table is initialized."
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIlJlYWRTY2hlbWFGaWxlIjp7IngiOjI1MCwieSI6MTUwfSwiQ3JlYXRlU2NoZW1hIjp7IngiOjQ1MCwieSI6MjUwfSwiQ3JlYXRlUmVwb0luZGV4Ijp7IngiOjY1MCwieSI6MzUwfSwiQ3JlYXRlU2Vzc2lvblRhYmxlIjp7IngiOjkxMiwieSI6MzUyfX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlYWRTY2hlbWFGaWxlIjp7IngiOjI1MCwieSI6NDV9LCJDcmVhdGVTY2hlbWEiOnsieCI6NDUwLCJ5Ijo0NX0sIkNyZWF0ZVJlcG9JbmRleCI6eyJ4Ijo2NTAsInkiOjQ1fSwiQ3JlYXRlU2Vzc2lvblRhYmxlIjp7IngiOjI1MCwieSI6MTk1fSwiTG9nRGJTZXR1cCI6eyJ4Ijo0NTAsInkiOjE5NX19",
         "metadata": {
           "input": [],
           "output": [],
