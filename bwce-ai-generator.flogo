@@ -3262,7 +3262,8 @@
                   "mapping": [
                     "validation"
                   ]
-                }
+                },
+                "strict": true
               }
             }
           },
