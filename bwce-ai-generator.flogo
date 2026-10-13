@@ -3464,7 +3464,7 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "template_name": "=(coerce.toString($activity[SelectTemplate].sourceDocuments[0].id) != \"\") ? coerce.toString($activity[SelectTemplate].sourceDocuments[0].id) : coerce.toString($activity[NormalizeSpec].output.template_type)",
+                    "template_name": "=(coerce.toString($activity[NormalizeSpec].output.template_type) != \"\") ? coerce.toString($activity[NormalizeSpec].output.template_type) : coerce.toString($activity[SelectTemplate].sourceDocuments[0].id)",
                     "requested_template": "=coerce.toString($activity[NormalizeSpec].output.template_type)",
                     "match_score": "=coerce.toString($activity[SelectTemplate].sourceDocuments[0].score)"
                   }
