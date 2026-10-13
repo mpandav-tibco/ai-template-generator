@@ -1761,7 +1761,7 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "cleaned": "=string.replaceAll(string.replaceAll(coerce.toString($activity[ExtractWithLLM].answer), \"```json\", \"\"), \"```\", \"\")"
+                    "cleaned": "=(string.trim(coerce.toString($flow.content.message), \" \") == \"\") ? \"{}\" : string.replaceAll(string.replaceAll(coerce.toString($activity[ExtractWithLLM].answer), \"```json\", \"\"), \"```\", \"\")"
                   }
                 }
               },
@@ -2735,7 +2735,7 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "cleaned": "=string.replaceAll(string.replaceAll(coerce.toString($activity[ExtractWithLLM].answer), \"```json\", \"\"), \"```\", \"\")"
+                    "cleaned": "=(string.trim(coerce.toString($flow.content.message), \" \") == \"\") ? \"{}\" : string.replaceAll(string.replaceAll(coerce.toString($activity[ExtractWithLLM].answer), \"```json\", \"\"), \"```\", \"\")"
                   }
                 }
               },
