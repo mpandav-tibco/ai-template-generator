@@ -1724,8 +1724,8 @@
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
                 "embeddingAPIKey": "SECRET:WSEfzGs7ynjN6p5iWOtcCUhNevyPeg==",
-                "embeddingBaseURL": "http://localhost:11434/v1",
-                "embeddingModel": "nomic-embed-text",
+                "embeddingBaseURL": "=$property[\"LLM_EMBEDDING_BASE_URL\"]",
+                "embeddingModel": "=$property[\"LLM_EMBEDDING_MODEL\"]",
                 "embeddingDimensions": 768,
                 "defaultCollection": "",
                 "defaultTopK": 5,
@@ -1737,10 +1737,10 @@
                 "hybridAlpha": 0.5,
                 "enableLLMGenerate": true,
                 "llmProvider": "Ollama",
-                "llmBaseURL": "http://localhost:11434",
+                "llmBaseURL": "=$property[\"LLM_BASE_URL\"]",
                 "llmAPIKey": "",
-                "llmModel": "qwen2.5:7b",
-                "systemPrompt": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}",
+                "llmModel": "=$property[\"LLM_MODEL\"]",
+                "systemPrompt": "=$property[\"EXTRACTION_SYSTEM_PROMPT\"]",
                 "maxTokens": 1024,
                 "temperature": 0
               },
@@ -1748,7 +1748,7 @@
                 "queryText": "=string.concat(coerce.toString($flow.content.message), \" \", coerce.toString($activity[RegexPreExtract].markdown))",
                 "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
                 "topK": 2,
-                "systemPrompt": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}"
+                "systemPrompt": "=$property[\"EXTRACTION_SYSTEM_PROMPT\"]"
               }
             }
           },
@@ -2698,8 +2698,8 @@
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
                 "embeddingAPIKey": "SECRET:qX2c6EXhswJ8Rv92pEfkUd8Xzo9XMg==",
-                "embeddingBaseURL": "http://localhost:11434/v1",
-                "embeddingModel": "nomic-embed-text",
+                "embeddingBaseURL": "=$property[\"LLM_EMBEDDING_BASE_URL\"]",
+                "embeddingModel": "=$property[\"LLM_EMBEDDING_MODEL\"]",
                 "embeddingDimensions": 768,
                 "defaultCollection": "",
                 "defaultTopK": 5,
@@ -2711,10 +2711,10 @@
                 "hybridAlpha": 0.5,
                 "enableLLMGenerate": true,
                 "llmProvider": "Ollama",
-                "llmBaseURL": "http://localhost:11434",
+                "llmBaseURL": "=$property[\"LLM_BASE_URL\"]",
                 "llmAPIKey": "",
-                "llmModel": "qwen2.5:7b",
-                "systemPrompt": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}",
+                "llmModel": "=$property[\"LLM_MODEL\"]",
+                "systemPrompt": "=$property[\"EXTRACTION_SYSTEM_PROMPT\"]",
                 "maxTokens": 1024,
                 "temperature": 0
               },
@@ -2722,7 +2722,7 @@
                 "queryText": "=string.concat(coerce.toString($flow.content.message), \" \", coerce.toString($activity[RegexPreExtract].markdown))",
                 "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
                 "topK": 2,
-                "systemPrompt": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}"
+                "systemPrompt": "=$property[\"EXTRACTION_SYSTEM_PROMPT\"]"
               }
             }
           },
@@ -3428,8 +3428,8 @@
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
                 "embeddingAPIKey": "SECRET:P1PSaOKsv2tWeKymdaotN92DcLbXgw==",
-                "embeddingBaseURL": "http://localhost:11434/v1",
-                "embeddingModel": "nomic-embed-text",
+                "embeddingBaseURL": "=$property[\"LLM_EMBEDDING_BASE_URL\"]",
+                "embeddingModel": "=$property[\"LLM_EMBEDDING_MODEL\"]",
                 "embeddingDimensions": 768,
                 "defaultCollection": "",
                 "defaultTopK": 5,
@@ -3441,9 +3441,9 @@
                 "hybridAlpha": 0.5,
                 "enableLLMGenerate": false,
                 "llmProvider": "Ollama",
-                "llmBaseURL": "http://localhost:11434",
+                "llmBaseURL": "=$property[\"LLM_BASE_URL\"]",
                 "llmAPIKey": "",
-                "llmModel": "llama3.1:8b",
+                "llmModel": "=$property[\"LLM_MODEL\"]",
                 "systemPrompt": "You are a helpful assistant. Answer the question using only the provided context. If the context does not contain enough information, say so.",
                 "maxTokens": 1024,
                 "temperature": 0.1
@@ -6556,8 +6556,8 @@
                 "useConnectorEmbedding": false,
                 "embeddingProvider": "OpenAI",
                 "embeddingAPIKey": "SECRET:wukaPGIllUhjTMG/HRxNq/0skMlRNg==",
-                "embeddingBaseURL": "http://localhost:11434/v1",
-                "embeddingModel": "nomic-embed-text",
+                "embeddingBaseURL": "=$property[\"LLM_EMBEDDING_BASE_URL\"]",
+                "embeddingModel": "=$property[\"LLM_EMBEDDING_MODEL\"]",
                 "embeddingDimensions": 768,
                 "defaultCollection": "",
                 "contentField": "text",
@@ -6653,12 +6653,27 @@
     {
       "name": "LLM_MODEL",
       "type": "string",
-      "value": "llama3.1:8b"
+      "value": "qwen2.5:7b"
     },
     {
       "name": "LLM_EMBEDDING_MODEL",
       "type": "string",
       "value": "nomic-embed-text"
+    },
+    {
+      "name": "LLM_BASE_URL",
+      "type": "string",
+      "value": "http://localhost:11434"
+    },
+    {
+      "name": "LLM_EMBEDDING_BASE_URL",
+      "type": "string",
+      "value": "http://localhost:11434/v1"
+    },
+    {
+      "name": "EXTRACTION_SYSTEM_PROMPT",
+      "type": "string",
+      "value": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}"
     },
     {
       "name": "VECTOR_COLLECTION",
