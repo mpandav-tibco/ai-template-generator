@@ -1739,7 +1739,7 @@
                 "llmProvider": "Ollama",
                 "llmBaseURL": "http://localhost:11434",
                 "llmAPIKey": "",
-                "llmModel": "qwen2.5:14b",
+                "llmModel": "qwen2.5:7b",
                 "systemPrompt": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}",
                 "maxTokens": 1024,
                 "temperature": 0
@@ -2713,7 +2713,7 @@
                 "llmProvider": "Ollama",
                 "llmBaseURL": "http://localhost:11434",
                 "llmAPIKey": "",
-                "llmModel": "qwen2.5:14b",
+                "llmModel": "qwen2.5:7b",
                 "systemPrompt": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}",
                 "maxTokens": 1024,
                 "temperature": 0
