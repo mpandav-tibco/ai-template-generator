@@ -3125,6 +3125,13 @@
             "label": "NotifyTeam to BuildGenerateResponse"
           },
           {
+            "id": 22,
+            "from": "BuildGenerateResponse",
+            "to": "ReturnGenerate",
+            "type": "label",
+            "label": "BuildGenerateResponse to ReturnGenerate"
+          },
+          {
             "id": 15,
             "from": "BuildGenerateResponse",
             "to": "Reply_to_API",
@@ -3138,6 +3145,13 @@
             "type": "expression",
             "label": "Duplicate (full generate only)",
             "value": "array.count($activity[CheckDuplicate].Output.records) > 0 && $activity[NormalizeSpec].output.config_only == false"
+          },
+          {
+            "id": 23,
+            "from": "BuildDuplicateResponse",
+            "to": "ReturnDuplicate",
+            "type": "label",
+            "label": "BuildDuplicateResponse to ReturnDuplicate"
           },
           {
             "id": 17,
@@ -3155,6 +3169,13 @@
             "value": "$activity[CrossCheckIKD].output.ikd_valid == false"
           },
           {
+            "id": 24,
+            "from": "BuildIKDErrorResponse",
+            "to": "ReturnIKDError",
+            "type": "label",
+            "label": "BuildIKDErrorResponse to ReturnIKDError"
+          },
+          {
             "id": 19,
             "from": "BuildIKDErrorResponse",
             "to": "ReplyIKDError",
@@ -3168,6 +3189,13 @@
             "type": "expression",
             "label": "Spec invalid",
             "value": "$activity[ValidateSpec].errorCount > 0"
+          },
+          {
+            "id": 25,
+            "from": "BuildValidationError",
+            "to": "ReturnValidationError",
+            "type": "label",
+            "label": "BuildValidationError to ReturnValidationError"
           },
           {
             "id": 21,
@@ -3830,6 +3858,19 @@
             }
           },
           {
+            "id": "ReturnGenerate",
+            "name": "ReturnGenerate",
+            "description": "Exposes the generate result to subflow callers (e.g. the MCP generate_code tool).",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "result": "=$activity[BuildGenerateResponse].output"
+                }
+              }
+            }
+          },
+          {
             "id": "Reply_to_API",
             "name": "Reply_to_API",
             "description": "Returns the idempotent duplicate-detection result to the caller without creating a new repository.",
@@ -3882,6 +3923,19 @@
                 }
               },
               "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnDuplicate",
+            "name": "ReturnDuplicate",
+            "description": "Exposes the generate result to subflow callers (e.g. the MCP generate_code tool).",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "result": "=$activity[BuildDuplicateResponse].output"
+                }
+              }
             }
           },
           {
@@ -3940,6 +3994,19 @@
             }
           },
           {
+            "id": "ReturnIKDError",
+            "name": "ReturnIKDError",
+            "description": "Exposes the generate result to subflow callers (e.g. the MCP generate_code tool).",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "result": "=$activity[BuildIKDErrorResponse].output"
+                }
+              }
+            }
+          },
+          {
             "id": "ReplyIKDError",
             "name": "ReplyIKDError",
             "description": "Returns the IKD validation error to the caller without registering or scaffolding a repository.",
@@ -3990,6 +4057,19 @@
                 }
               },
               "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnValidationError",
+            "name": "ReturnValidationError",
+            "description": "Exposes the generate result to subflow callers (e.g. the MCP generate_code tool).",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "result": "=$activity[BuildValidationError].output"
+                }
+              }
             }
           },
           {
@@ -4112,23 +4192,20 @@
         "metadata": {
           "input": [
             {
-              "name": "headers",
+              "name": "content",
+              "type": "object"
+            }
+          ],
+          "output": [
+            {
+              "name": "result",
               "type": "object",
               "schema": {
                 "type": "json",
-                "value": "{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}}"
+                "value": "{\"success\": {\"type\": \"boolean\"}, \"repo_name\": {\"type\": \"string\"}, \"template_name\": {\"type\": \"string\"}, \"generation_id\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}, \"duplicate\": {\"type\": \"boolean\"}, \"shell_command\": {\"type\": \"string\"}}"
               }
-            },
-            {
-              "name": "requestURI",
-              "type": "string"
-            },
-            {
-              "name": "method",
-              "type": "string"
             }
           ],
-          "output": [],
           "fe_metadata": {
             "input": "{\"type\":\"object\",\"title\":\"BWCEAIIntegrationGenerator\",\"properties\":{\"headers\":{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\",\"visible\":false},\"Accept-Charset\":{\"type\":\"string\",\"visible\":false},\"Accept-Encoding\":{\"type\":\"string\",\"visible\":false},\"Authorization\":{\"type\":\"string\",\"visible\":false},\"Connection\":{\"type\":\"string\",\"visible\":false},\"Content-Length\":{\"type\":\"string\",\"visible\":false},\"Content-Type\":{\"type\":\"string\",\"visible\":false},\"Cookie\":{\"type\":\"string\",\"visible\":false},\"Pragma\":{\"type\":\"string\",\"visible\":false}},\"required\":[]},\"requestURI\":{\"type\":\"string\",\"required\":false},\"method\":{\"type\":\"string\",\"required\":false}}}"
           }
@@ -5263,67 +5340,30 @@
           {
             "id": 1,
             "from": "StartActivity",
-            "to": "GetAppConfig",
+            "to": "BuildGenerateArgs",
             "type": "label",
-            "label": "StartActivity to GetAppConfig"
+            "label": "StartActivity to BuildGenerateArgs"
           },
           {
             "id": 2,
-            "from": "GetAppConfig",
-            "to": "ValidateSpec",
+            "from": "BuildGenerateArgs",
+            "to": "GenerateSubflow",
             "type": "label",
-            "label": "GetAppConfig to ValidateSpec"
+            "label": "BuildGenerateArgs to GenerateSubflow"
           },
           {
             "id": 3,
-            "from": "ValidateSpec",
-            "to": "BuildRepoName",
+            "from": "GenerateSubflow",
+            "to": "BuildGenResult",
             "type": "label",
-            "label": "ValidateSpec to BuildRepoName"
+            "label": "GenerateSubflow to BuildGenResult"
           },
           {
             "id": 4,
-            "from": "BuildRepoName",
-            "to": "CheckDuplicate",
-            "type": "label",
-            "label": "BuildRepoName to CheckDuplicate"
-          },
-          {
-            "id": 5,
-            "from": "CheckDuplicate",
-            "to": "RegisterGeneration",
-            "type": "expression",
-            "label": "No duplicate",
-            "value": "array.count($activity[CheckDuplicate].Output.records) == 0"
-          },
-          {
-            "id": 6,
-            "from": "RegisterGeneration",
-            "to": "BuildGenResultNew",
-            "type": "label",
-            "label": "RegisterGeneration to BuildGenResultNew"
-          },
-          {
-            "id": 7,
-            "from": "BuildGenResultNew",
-            "to": "ReturnGenNew",
-            "type": "label",
-            "label": "BuildGenResultNew to ReturnGenNew"
-          },
-          {
-            "id": 8,
-            "from": "CheckDuplicate",
-            "to": "BuildGenResultDup",
-            "type": "expression",
-            "label": "Duplicate found",
-            "value": "array.count($activity[CheckDuplicate].Output.records) > 0"
-          },
-          {
-            "id": 9,
-            "from": "BuildGenResultDup",
+            "from": "BuildGenResult",
             "to": "ReturnResult",
             "type": "label",
-            "label": "BuildGenResultDup to ReturnResult"
+            "label": "BuildGenResult to ReturnResult"
           }
         ],
         "tasks": [
@@ -5336,123 +5376,27 @@
             }
           },
           {
-            "id": "GetAppConfig",
-            "name": "GetAppConfig",
-            "description": "Loads alias mappings (APP_ALIASES) from shared memory.",
-            "activity": {
-              "ref": "#shareddata",
-              "settings": {
-                "scope": "Application",
-                "operation": "GET",
-                "type": "object"
-              },
-              "input": {
-                "key": "\"APP_ALIASES\"",
-                "input": {
-                  "mapping": {}
-                }
-              }
-            }
-          },
-          {
-            "id": "ValidateSpec",
-            "name": "ValidateSpec",
-            "description": "Validates the spec against required-field rules.",
-            "activity": {
-              "ref": "#ruleengine",
-              "input": {
-                "content": "=$flow.arguments.spec",
-                "fileName": "\"rules/spec-validation.yaml\"",
-                "rulesPath": "=$property[\"RULES_PATH\"]",
-                "parserOverride": "",
-                "disabledRules": {
-                  "mapping": []
-                },
-                "tags": {
-                  "mapping": []
-                }
-              }
-            }
-          },
-          {
-            "id": "BuildRepoName",
-            "name": "BuildRepoName",
-            "description": "Derives the target repository name from the spec.",
+            "id": "BuildGenerateArgs",
+            "name": "BuildGenerateArgs",
+            "description": "Builds the content object passed to the generate subflow (mirrors the /generate body).",
             "activity": {
               "ref": "#mapper",
               "input": {
                 "input": {
                   "mapping": {
-                    "source_system": "=$flow.arguments.spec.source_system",
-                    "target_system": "=$flow.arguments.spec.target_system",
-                    "business_object": "=$flow.arguments.spec.business_object",
-                    "interface_type": "=$flow.arguments.spec.interface_type",
-                    "repo_name": "=(number.len(string.concat($flow.arguments.spec.source_system, \"-\", $flow.arguments.spec.business_object, \"-\", $flow.arguments.spec.target_system, \"-\", $flow.arguments.spec.interface_type)) > 50) ? string.substring(string.concat($flow.arguments.spec.source_system, \"-\", $flow.arguments.spec.business_object, \"-\", $flow.arguments.spec.target_system, \"-\", $flow.arguments.spec.interface_type), 0, 50) : string.concat($flow.arguments.spec.source_system, \"-\", $flow.arguments.spec.business_object, \"-\", $flow.arguments.spec.target_system, \"-\", $flow.arguments.spec.interface_type)"
-                  }
-                }
-              },
-              "schemas": {
-                "input": {
-                  "input": "schema://RepoBuild"
-                },
-                "output": {
-                  "output": "schema://RepoBuild"
-                }
-              },
-              "feSchemaMap": {}
-            }
-          },
-          {
-            "id": "CheckDuplicate",
-            "name": "CheckDuplicate",
-            "description": "Looks up the generation registry for an existing repository with the same derived name to enforce idempotency and skip duplicate registration.",
-            "settings": {
-              "retryOnError": {
-                "count": 3,
-                "interval": 1000
-              }
-            },
-            "activity": {
-              "ref": "#query",
-              "input": {
-                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
-                "QueryName": "",
-                "Schema": "public",
-                "Query": "SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
-                "manualmode": false,
-                "fetchMetadata": "false",
-                "Fields": [
-                  {
-                    "FieldName": "repo_name",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false
-                  }
-                ],
-                "RuntimeQuery": "",
-                "State": "89e3c675-54a0-41f7-affa-2f2171324726SELECT generation_id, repo_name, template_type, status, created_at FROM public.generation_log WHERE repo_name = ?repo_name",
-                "input": {
-                  "mapping": {
-                    "parameters": {
-                      "repo_name": "=$activity[BuildRepoName].output.repo_name"
+                    "content": {
+                      "spec": "=$flow.arguments.spec",
+                      "config_only": "=$flow.arguments.config_only"
                     }
                   }
                 }
               },
               "schemas": {
-                "input": {
-                  "input": {
-                    "type": "json",
-                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"}}}}}",
-                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"parameters\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"}}}}}"
-                  }
-                },
                 "output": {
-                  "Output": {
+                  "output": {
                     "type": "json",
-                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}",
-                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}"
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}}}}}"
                   }
                 }
               },
@@ -5460,175 +5404,38 @@
             }
           },
           {
-            "id": "RegisterGeneration",
-            "name": "RegisterGeneration",
-            "description": "Records the MCP-triggered generation in the PostgreSQL generation_log table.",
+            "id": "GenerateSubflow",
+            "name": "GenerateSubflow",
+            "description": "Runs the full generate flow (validate, IKD cross-check, template select, register, scaffold, notify).",
             "settings": {
               "retryOnError": {
-                "count": 3,
-                "interval": 1000
+                "count": 0,
+                "interval": 0
               }
             },
             "activity": {
-              "ref": "#insert",
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:generate_POST",
+                "detached": false,
+                "execTimeout": 0
+              },
               "input": {
-                "Connection": "conn://1291b51d-31ef-4b7c-80c2-59344a2fc4e3",
-                "QueryName": "",
-                "Schema": "public",
-                "Query": "INSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status) ON CONFLICT (repo_name) DO NOTHING;",
-                "manualmode": false,
-                "Fields": [
-                  {
-                    "FieldName": "repo_name",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "source_system",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "target_system",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "business_object",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "interface_type",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "template_type",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "cdm",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "interface_id",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "scenario_id",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "bitbucket_project",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "env",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "email",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "k8s_domain",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  },
-                  {
-                    "FieldName": "status",
-                    "Type": "VARCHAR",
-                    "Selected": false,
-                    "Parameter": true,
-                    "isEditable": false,
-                    "Value": true
-                  }
-                ],
-                "RuntimeQuery": "",
-                "State": "c1d082ed-c81b-4c05-8a91-f961361c833dINSERT INTO public.generation_log(repo_name, source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, env, email, k8s_domain, status)\n\tVALUES (?repo_name, ?source_system, ?target_system, ?business_object, ?interface_type, ?template_type, ?cdm, ?interface_id, ?scenario_id, ?bitbucket_project, ?env, ?email, ?k8s_domain, ?status) ON CONFLICT (repo_name) DO NOTHING;",
-                "input": {
-                  "mapping": {
-                    "values": [
-                      {
-                        "repo_name": "=$activity[BuildRepoName].output.repo_name",
-                        "source_system": "=$flow.arguments.spec.source_system",
-                        "target_system": "=$flow.arguments.spec.target_system",
-                        "business_object": "=$flow.arguments.spec.business_object",
-                        "interface_type": "=$flow.arguments.spec.interface_type",
-                        "template_type": "=$flow.arguments.spec.template_type",
-                        "cdm": "=$flow.arguments.spec.cdm",
-                        "interface_id": "=$flow.arguments.spec.interface_id",
-                        "scenario_id": "=$flow.arguments.spec.scenario_id",
-                        "bitbucket_project": "=$flow.arguments.spec.bitbucket_project",
-                        "env": "=$flow.arguments.spec.env",
-                        "email": "=$flow.arguments.spec.email",
-                        "k8s_domain": "=$flow.arguments.spec.k8s_domain",
-                        "status": "GENERATED"
-                      }
-                    ]
-                  }
-                }
+                "content": "=$activity[BuildGenerateArgs].output.content"
               },
               "schemas": {
                 "input": {
                   "input": {
                     "type": "json",
-                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"values\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"string\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}}},\"parameters\":{\"type\":\"object\",\"properties\":{}}}}",
-                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"values\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"string\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"status\":{\"type\":\"string\"}}}},\"parameters\":{\"type\":\"object\",\"properties\":{}}}}"
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {}}}}"
                   }
                 },
                 "output": {
-                  "Output": {
+                  "output": {
                     "type": "json",
-                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}",
-                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{}}}}}"
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"result\": {\"type\": \"object\", \"properties\": {}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"result\": {\"type\": \"object\", \"properties\": {}}}}"
                   }
                 }
               },
@@ -5636,47 +5443,16 @@
             }
           },
           {
-            "id": "BuildGenResultNew",
-            "name": "BuildGenResultNew",
-            "description": "Builds MCP response for a newly registered generation.",
+            "id": "BuildGenResult",
+            "name": "BuildGenResult",
+            "description": "Builds the MCP response from the generate result.",
             "activity": {
               "ref": "#mapper",
               "input": {
                 "input": {
                   "mapping": {
                     "response": {
-                      "data": "=string.concat(\"Generation registered. Repository: \", $activity[BuildRepoName].output.repo_name, \" | template_type: \", coerce.toString($flow.arguments.spec.template_type))",
-                      "error": "=\"\""
-                    }
-                  }
-                }
-              }
-            }
-          },
-          {
-            "id": "ReturnGenNew",
-            "name": "ReturnGenNew",
-            "description": "Returns MCP response for a new generation.",
-            "activity": {
-              "ref": "#actreturn",
-              "settings": {
-                "mappings": {
-                  "response": "=$activity[BuildGenResultNew].output.response"
-                }
-              }
-            }
-          },
-          {
-            "id": "BuildGenResultDup",
-            "name": "BuildGenResultDup",
-            "description": "Builds MCP response when the repository already exists.",
-            "activity": {
-              "ref": "#mapper",
-              "input": {
-                "input": {
-                  "mapping": {
-                    "response": {
-                      "data": "=string.concat(\"Repository already exists: \", $activity[BuildRepoName].output.repo_name, \" (duplicate - not regenerated).\")",
+                      "data": "=coerce.toString($activity[GenerateSubflow].result)",
                       "error": "=\"\""
                     }
                   }
@@ -5687,12 +5463,15 @@
           {
             "id": "ReturnResult",
             "name": "ReturnResult",
-            "description": "Wraps the generation result as an MCP ToolResult and returns it to the agent.",
+            "description": "Wraps the generate result as an MCP ToolResult and returns it to the agent.",
             "activity": {
+              "input": {
+                "mappings": []
+              },
               "ref": "#actreturn",
               "settings": {
                 "mappings": {
-                  "response": "=$activity[BuildGenResultDup].output.response"
+                  "response": "=$activity[BuildGenResult].output.response"
                 }
               }
             }
