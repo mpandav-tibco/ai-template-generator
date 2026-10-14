@@ -114,6 +114,53 @@
   .typing span:nth-child(2) { animation-delay: 0.2s; }
   .typing span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+  /* example-prompt chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 14px; }
+  .chip {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--muted);
+    border-radius: 16px; padding: 7px 13px; font-size: 12.5px; cursor: pointer; transition: all .15s;
+  }
+  .chip:hover { color: var(--txt); border-color: var(--accent-2); background: var(--panel); }
+
+  /* required-fields progress */
+  .progress { margin: 0 0 14px; }
+  .progress .track { height: 6px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .progress .fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-2), var(--accent)); transition: width .3s ease; }
+  .progress .label { font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+  /* config-only toggle */
+  .config-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 14px; cursor: pointer; user-select: none; line-height: 1.35; }
+  .config-toggle input { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+
+  /* copy button */
+  .pre-wrap { position: relative; }
+  .copy-btn {
+    position: absolute; top: 7px; right: 7px; background: var(--panel-2); color: var(--muted);
+    border: 1px solid var(--border); border-radius: 6px; padding: 3px 9px; font-size: 11px; cursor: pointer;
+  }
+  .copy-btn:hover { color: var(--txt); border-color: var(--accent-2); }
+
+  /* scaffolded artifacts */
+  .artifacts { margin-top: 12px; }
+  .artifacts .a-title { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
+  .artifacts .a-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .artifacts .a-item { background: #0a0c10; border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; font-size: 11.5px; font-family: ui-monospace, monospace; color: var(--muted); }
+
+  /* textarea composer */
+  .composer textarea {
+    flex: 1; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; color: var(--txt); font-size: 14px; outline: none; resize: none;
+    font-family: inherit; line-height: 1.4; max-height: 120px; min-height: 46px;
+  }
+  .composer textarea:focus { border-color: var(--accent-2); }
+
+  /* responsive */
+  @media (max-width: 820px) {
+    main { flex-direction: column; }
+    .chat { border-right: none; border-bottom: 1px solid var(--border); flex: 1 1 55%; }
+    .side { width: auto; flex: 1 1 45%; }
+  }
 </style>
 </head>
 <body>
@@ -130,16 +177,22 @@
   <main>
     <section class="chat">
       <div class="messages" id="messages"></div>
+      <div id="chips" class="chips"></div>
       <div class="composer">
-        <input id="input" type="text" placeholder="e.g. publish article data from S4HANA to Kafka" autocomplete="off" />
-        <button id="sendBtn">Send</button>
+        <textarea id="input" rows="1" placeholder="e.g. publish article data from S4HANA to Kafka (Enter to send, Shift+Enter for newline)" autocomplete="off" aria-label="Describe your integration"></textarea>
+        <button id="sendBtn" aria-label="Send message">Send</button>
       </div>
     </section>
 
     <aside class="side">
       <h2>Integration Spec</h2>
       <div id="status" class="status waiting">Collecting requirements…</div>
-      <button id="generateBtn" class="gen-btn" disabled>Generate Repository</button>
+      <div class="progress" id="progress">
+        <div class="track"><div class="fill" id="progressFill"></div></div>
+        <div class="label" id="progressLabel">0 of 5 required fields</div>
+      </div>
+      <label class="config-toggle"><input type="checkbox" id="configOnly" /> Config only — refresh Dockerfile / K8s / pipeline, no app scaffold</label>
+      <button id="generateBtn" class="gen-btn" disabled aria-label="Generate repository">Generate Repository</button>
       <div class="spec-card" id="specCard"></div>
       <div id="resultBox"></div>
       <p class="hint">Required fields: source system, target system, business object, interface type, and template.</p>
@@ -156,6 +209,13 @@
     email: "Email", env: "Env", k8s_domain: "K8s domain", country_code: "Country", unique_id: "Unique ID"
   };
 
+  const EXAMPLES = [
+    "Publish S4HANA sales orders to a Kafka topic",
+    "Expose a REST service from Salesforce for customer orders",
+    "Subscribe to WMS inventory updates into S4HANA"
+  ];
+  const ARTIFACTS = ["Dockerfile", "k8s/deployment.yaml", "README.md", "bitbucket-pipelines.yml", "manifest.json"];
+
   let sessionId = null;
   let lastSpec = {};
   let ready = false;
@@ -168,6 +228,24 @@
   const statusEl = document.getElementById("status");
   const specCard = document.getElementById("specCard");
   const resultBox = document.getElementById("resultBox");
+  const chipsEl = document.getElementById("chips");
+  const progressFill = document.getElementById("progressFill");
+  const progressLabel = document.getElementById("progressLabel");
+  const configOnlyEl = document.getElementById("configOnly");
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // init/reset messages arrive wrapped in literal quotes — strip a single surrounding pair.
+  function cleanMessage(text) {
+    if (typeof text !== "string") return text;
+    var t = text.trim();
+    if (t.length >= 2 && t.charAt(0) === '"' && t.charAt(t.length - 1) === '"') t = t.slice(1, -1);
+    return t;
+  }
 
   function addMessage(text, who) {
     const msg = document.createElement("div");
@@ -198,6 +276,26 @@
     if (t) t.remove();
   }
 
+  function renderChips() {
+    chipsEl.innerHTML = "";
+    EXAMPLES.forEach(function (ex) {
+      const c = document.createElement("button");
+      c.className = "chip"; c.type = "button"; c.textContent = ex;
+      c.addEventListener("click", function () { inputEl.value = ex; sendMessage(); });
+      chipsEl.appendChild(c);
+    });
+    chipsEl.style.display = "flex";
+  }
+  function hideChips() { chipsEl.style.display = "none"; }
+
+  function updateProgress(spec) {
+    const filled = REQUIRED.filter(function (f) {
+      return spec && spec[f] != null && spec[f] !== "" && spec[f] !== "NA";
+    }).length;
+    progressFill.style.width = Math.round(filled / REQUIRED.length * 100) + "%";
+    progressLabel.textContent = filled + " of " + REQUIRED.length + " required fields";
+  }
+
   function renderSpec(spec) {
     lastSpec = spec || {};
     specCard.innerHTML = "";
@@ -221,6 +319,7 @@
       row.appendChild(v);
       specCard.appendChild(row);
     });
+    updateProgress(spec);
   }
 
   function setStatus(missing, isReady) {
@@ -256,10 +355,12 @@
     resultBox.innerHTML = "";
     renderSpec({});
     setStatus([], false);
+    configOnlyEl.checked = false;
     try {
       const data = await api("/api/chat/init", {});
       sessionId = data.session_id;
-      addMessage(data.message || "Hello! Describe the integration you need.", "bot");
+      addMessage(cleanMessage(data.message) || "Hello! Describe the integration you need.", "bot");
+      renderChips();
     } catch (e) {
       addMessage("Could not start a session: " + e.message, "bot");
     }
@@ -268,14 +369,16 @@
   async function sendMessage() {
     const text = inputEl.value.trim();
     if (!text || !sessionId) return;
+    hideChips();
     inputEl.value = "";
+    inputEl.style.height = "auto";
     addMessage(text, "user");
     sendBtn.disabled = true;
     showTyping();
     try {
       const data = await api("/api/chat/message", { session_id: sessionId, message: text });
       hideTyping();
-      addMessage(data.message || "(no response)", "bot");
+      addMessage(cleanMessage(data.message) || "(no response)", "bot");
       if (data.spec) renderSpec(data.spec);
       setStatus(data.missing_fields || [], !!data.ready_to_generate);
     } catch (e) {
@@ -287,43 +390,71 @@
     }
   }
 
+  function copyButton(cmd) {
+    return '<div class="pre-wrap"><button class="copy-btn" type="button" data-copy="' + encodeURIComponent(cmd) + '">Copy</button><pre>' + escapeHtml(cmd) + '</pre></div>';
+  }
+  function artifactsBlock() {
+    return '<div class="artifacts"><div class="a-title">Scaffolded artifacts</div><div class="a-list">' +
+      ARTIFACTS.map(function (a) { return '<span class="a-item">' + escapeHtml(a) + '</span>'; }).join("") +
+      '</div></div>';
+  }
+
   async function generate() {
     if (!ready) return;
+    const configOnly = configOnlyEl.checked;
     generateBtn.disabled = true;
     generateBtn.textContent = "Generating…";
     resultBox.innerHTML = "";
     try {
-      const data = await api("/generate", { spec: lastSpec });
+      const data = await api("/generate", { spec: lastSpec, config_only: configOnly });
       if (data.duplicate) {
         resultBox.innerHTML =
           '<div class="result" style="border-color:var(--accent-2)">' +
           '<div>⚠️ This repository already exists — not regenerated.</div>' +
-          '<div class="repo">' + (data.repo_name || "") + '</div>' +
-          (data.existing_status ? '<div class="hint" style="margin-top:6px">status: ' + data.existing_status + (data.existing_generation_id ? ' · id: ' + data.existing_generation_id : '') + '</div>' : '') +
-          (data.shell_command ? '<pre>' + data.shell_command + '</pre>' : '') +
+          '<div class="repo">' + escapeHtml(data.repo_name || "") + '</div>' +
+          (data.existing_status ? '<div class="hint" style="margin-top:6px">status: ' + escapeHtml(data.existing_status) + (data.existing_generation_id ? ' · id: ' + escapeHtml(data.existing_generation_id) : '') + '</div>' : '') +
+          (data.shell_command ? copyButton(data.shell_command) : '') +
           '</div>';
         addMessage("That repository already exists: " + data.repo_name + " — returning the existing one (no new repo created).", "bot");
       } else if (data.success) {
         resultBox.innerHTML =
-          '<div class="result"><div>✓ Repository generated</div>' +
-          '<div class="repo">' + (data.repo_name || "") + '</div>' +
-          (data.generation_id ? '<div class="hint" style="margin-top:6px">ID: ' + data.generation_id + '</div>' : '') +
-          (data.shell_command ? '<pre>' + data.shell_command + '</pre>' : '') +
+          '<div class="result"><div>✓ ' + (configOnly ? 'Configuration refreshed' : 'Repository generated') + '</div>' +
+          '<div class="repo">' + escapeHtml(data.repo_name || "") + '</div>' +
+          (data.generation_id ? '<div class="hint" style="margin-top:6px">ID: ' + escapeHtml(data.generation_id) + '</div>' : '') +
+          (data.shell_command ? copyButton(data.shell_command) : '') +
+          artifactsBlock() +
           '</div>';
-        addMessage("Done! I generated the repository '" + data.repo_name + "'.", "bot");
+        addMessage("Done! I " + (configOnly ? "refreshed the configuration for" : "generated the repository") + " '" + data.repo_name + "'.", "bot");
       } else {
-        resultBox.innerHTML = '<div class="result" style="border-color:var(--danger)"><div>' + (data.message || data.error || "Generation failed") + '</div></div>';
+        resultBox.innerHTML = '<div class="result" style="border-color:var(--danger)"><div>' + escapeHtml(data.message || data.error || "Generation failed") + '</div></div>';
       }
     } catch (e) {
-      resultBox.innerHTML = '<div class="result" style="border-color:var(--danger)"><div>Error: ' + e.message + '</div></div>';
+      resultBox.innerHTML = '<div class="result" style="border-color:var(--danger)"><div>Error: ' + escapeHtml(e.message) + '</div></div>';
     } finally {
       generateBtn.textContent = "Generate Repository";
       generateBtn.disabled = !ready;
     }
   }
 
+  resultBox.addEventListener("click", function (e) {
+    const btn = e.target.closest(".copy-btn");
+    if (!btn) return;
+    const cmd = decodeURIComponent(btn.getAttribute("data-copy") || "");
+    navigator.clipboard.writeText(cmd).then(function () {
+      const orig = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(function () { btn.textContent = orig; }, 1400);
+    });
+  });
+
   sendBtn.addEventListener("click", sendMessage);
-  inputEl.addEventListener("keydown", function (e) { if (e.key === "Enter") sendMessage(); });
+  inputEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  inputEl.addEventListener("input", function () {
+    inputEl.style.height = "auto";
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + "px";
+  });
   resetBtn.addEventListener("click", initSession);
   generateBtn.addEventListener("click", generate);
 
