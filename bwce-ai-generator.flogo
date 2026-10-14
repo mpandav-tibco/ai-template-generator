@@ -1808,8 +1808,8 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "source_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.source_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.source_system) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].source_system) : \"\")",
-                    "target_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.target_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.target_system) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].target_system) : \"\")",
+                    "source_system": "=(array.count($activity[GetSession].Output.records) > 0 && coerce.toString($activity[GetSession].Output.records[0].source_system) != \"\") ? coerce.toString($activity[GetSession].Output.records[0].source_system) : coerce.toString($activity[ParseExtraction].jsonObject.source_system)",
+                    "target_system": "=(array.count($activity[GetSession].Output.records) > 0 && coerce.toString($activity[GetSession].Output.records[0].target_system) != \"\") ? coerce.toString($activity[GetSession].Output.records[0].target_system) : coerce.toString($activity[ParseExtraction].jsonObject.target_system)",
                     "business_object": "=(coerce.toString($activity[ParseExtraction].jsonObject.business_object) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.business_object) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].business_object) : \"\")",
                     "interface_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_type) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].interface_type) : \"\")",
                     "template_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.template_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.template_type) : ((array.count($activity[GetSession].Output.records) > 0) ? coerce.toString($activity[GetSession].Output.records[0].template_type) : \"\")",
@@ -1903,8 +1903,8 @@
                     "status": "\"active\"",
                     "message": "=$activity[ComputeMissing].output.next_q",
                     "spec": {
-                      "source_system": "=$activity[MergeSpec].output.source_system",
-                      "target_system": "=$activity[MergeSpec].output.target_system",
+                      "source_system": "=string.toUpper($activity[MergeSpec].output.source_system)",
+                      "target_system": "=string.toUpper($activity[MergeSpec].output.target_system)",
                       "business_object": "=$activity[MergeSpec].output.business_object",
                       "interface_type": "=$activity[MergeSpec].output.interface_type",
                       "template_type": "=$activity[MergeSpec].output.template_type",
@@ -2782,8 +2782,8 @@
               "input": {
                 "input": {
                   "mapping": {
-                    "source_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.source_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.source_system) : (isDefined($flow.content.current_spec.source_system) ? coerce.toString($flow.content.current_spec.source_system) : \"\")",
-                    "target_system": "=(coerce.toString($activity[ParseExtraction].jsonObject.target_system) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.target_system) : (isDefined($flow.content.current_spec.target_system) ? coerce.toString($flow.content.current_spec.target_system) : \"\")",
+                    "source_system": "=(isDefined($flow.content.current_spec.source_system) && coerce.toString($flow.content.current_spec.source_system) != \"\") ? coerce.toString($flow.content.current_spec.source_system) : coerce.toString($activity[ParseExtraction].jsonObject.source_system)",
+                    "target_system": "=(isDefined($flow.content.current_spec.target_system) && coerce.toString($flow.content.current_spec.target_system) != \"\") ? coerce.toString($flow.content.current_spec.target_system) : coerce.toString($activity[ParseExtraction].jsonObject.target_system)",
                     "business_object": "=(coerce.toString($activity[ParseExtraction].jsonObject.business_object) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.business_object) : (isDefined($flow.content.current_spec.business_object) ? coerce.toString($flow.content.current_spec.business_object) : \"\")",
                     "interface_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.interface_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.interface_type) : (isDefined($flow.content.current_spec.interface_type) ? coerce.toString($flow.content.current_spec.interface_type) : \"\")",
                     "template_type": "=(coerce.toString($activity[ParseExtraction].jsonObject.template_type) != \"\") ? coerce.toString($activity[ParseExtraction].jsonObject.template_type) : (isDefined($flow.content.current_spec.template_type) ? coerce.toString($flow.content.current_spec.template_type) : \"\")",
@@ -2822,8 +2822,8 @@
                   "mapping": {
                     "success": true,
                     "spec": {
-                      "source_system": "=$activity[MergeSpec].output.source_system",
-                      "target_system": "=$activity[MergeSpec].output.target_system",
+                      "source_system": "=string.toUpper($activity[MergeSpec].output.source_system)",
+                      "target_system": "=string.toUpper($activity[MergeSpec].output.target_system)",
                       "business_object": "=$activity[MergeSpec].output.business_object",
                       "interface_type": "=$activity[MergeSpec].output.interface_type",
                       "template_type": "=$activity[MergeSpec].output.template_type",
@@ -6452,7 +6452,7 @@
     {
       "name": "EXTRACTION_SYSTEM_PROMPT",
       "type": "string",
-      "value": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}"
+      "value": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Never split a template_type identifier like S4HANA_PUB_To_KAFKATopic into source_system or target_system; source_system and target_system come only from the integration description, not from a template name. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}"
     },
     {
       "name": "VECTOR_COLLECTION",
