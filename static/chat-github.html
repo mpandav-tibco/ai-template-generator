@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BWCE AI Integration Generator</title>
+<style>
+  :root {
+    --bg: #0b0d12; --panel: #151922; --panel-2: #1c2230; --border: #2a3142;
+    --txt: #e6e9ef; --muted: #97a0b3; --accent: #00e0a4; --accent-2: #4a9eff;
+    --user: #243044; --bot: #1a1f2b; --danger: #ff6b6b; --ok: #00e0a4; --warn: #ffb547;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--txt); display: flex; flex-direction: column; height: 100vh;
+  }
+  a { color: var(--accent-2); }
+  header {
+    padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  header .logo {
+    width: 30px; height: 30px; border-radius: 7px; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center; font-weight: 800; color: #06131d;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 650; }
+  header .sub { color: var(--muted); font-size: 12px; margin-left: 2px; }
+  header .spacer { flex: 1; }
+  header button, .tab {
+    background: var(--panel-2); color: var(--muted); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; cursor: pointer; font-size: 13px;
+  }
+  header button:hover, .tab:hover { color: var(--txt); border-color: var(--accent-2); }
+  .tabs { display: flex; gap: 6px; }
+  .tab.active { color: #06131d; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; font-weight: 700; }
+
+  main { flex: 1; display: flex; overflow: hidden; }
+  .view { display: none; flex: 1; overflow: hidden; }
+  .view.active { display: flex; }
+
+  .chat { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); min-width: 0; }
+  .messages { flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { display: flex; gap: 10px; max-width: 80%; }
+  .msg .avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+  .msg.bot { align-self: flex-start; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg .bubble { padding: 11px 14px; border-radius: 12px; line-height: 1.5; font-size: 14px; white-space: pre-wrap; word-wrap: break-word; }
+  .msg.bot .avatar { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06131d; }
+  .msg.bot .bubble { background: var(--bot); border: 1px solid var(--border); border-top-left-radius: 3px; }
+  .msg.user .avatar { background: var(--user); color: var(--txt); }
+  .msg.user .bubble { background: var(--user); border-top-right-radius: 3px; }
+
+  .composer { padding: 16px; border-top: 1px solid var(--border); background: var(--panel); display: flex; gap: 10px; }
+  .composer textarea {
+    flex: 1; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+    color: var(--txt); font-size: 14px; outline: none; resize: none; font-family: inherit; line-height: 1.4; max-height: 120px; min-height: 46px;
+  }
+  .composer textarea:focus { border-color: var(--accent-2); }
+  .composer button {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06131d; border: none; border-radius: 10px;
+    padding: 0 20px; font-weight: 700; cursor: pointer; font-size: 14px;
+  }
+  .composer button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .side { width: 380px; flex-shrink: 0; overflow-y: auto; padding: 18px; background: var(--bg); }
+  .side h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+  .spec-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+  .field { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+  .field:last-child { border-bottom: none; }
+  .field .k { color: var(--muted); }
+  .field .v { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-align: right; word-break: break-all; padding-left: 10px; }
+  .field .v.empty { color: #5b6478; font-weight: 400; font-style: italic; }
+  .field .v.req-missing { color: var(--danger); }
+  .field .v.auto { color: var(--accent-2); font-weight: 500; font-style: italic; }
+
+  .status { border-radius: 10px; padding: 11px 13px; font-size: 13px; margin-bottom: 12px; border: 1px solid var(--border); }
+  .status.waiting { background: rgba(74,158,255,0.08); border-color: rgba(74,158,255,0.3); color: var(--accent-2); }
+  .status.ready { background: rgba(0,224,164,0.08); border-color: rgba(0,224,164,0.35); color: var(--ok); }
+
+  .controls { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; display: grid; gap: 10px; }
+  .controls label { font-size: 12px; color: var(--muted); display: grid; gap: 5px; }
+  .controls select {
+    background: var(--panel-2); color: var(--txt); border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; font-size: 13px;
+  }
+  .config-toggle { display: flex !important; grid-template-columns: none; align-items: center; gap: 8px; cursor: pointer; user-select: none; line-height: 1.35; }
+  .config-toggle input { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
+
+  .suggest { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+  .suggest .s-item {
+    display: flex; justify-content: space-between; gap: 8px; align-items: center; width: 100%; text-align: left;
+    background: var(--panel-2); color: var(--txt); border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px;
+    margin-top: 6px; cursor: pointer; font-family: ui-monospace, monospace; font-size: 12px;
+  }
+  .suggest .s-item:hover { border-color: var(--accent-2); }
+  .suggest .s-item.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .suggest .score { color: var(--muted); font-size: 11px; flex-shrink: 0; }
+
+  .gen-btn {
+    width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06131d; border: none; border-radius: 10px;
+    padding: 12px; font-weight: 700; cursor: pointer; font-size: 14px; margin-bottom: 14px;
+  }
+  .gen-btn:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.4); }
+
+  .progress { margin: 0 0 12px; }
+  .progress .track { height: 6px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .progress .fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-2), var(--accent)); transition: width .3s ease; }
+  .progress .label { font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+  .result { background: var(--panel); border: 1px solid var(--ok); border-radius: 12px; padding: 14px; font-size: 13px; margin-bottom: 14px; }
+  .result .repo { font-family: ui-monospace, monospace; color: var(--ok); font-weight: 700; font-size: 15px; word-break: break-all; margin: 4px 0 8px; }
+  .result pre { background: #0a0c10; border: 1px solid var(--border); border-radius: 8px; padding: 10px; overflow-x: auto; font-size: 12px; color: var(--accent); margin: 10px 0 0; white-space: pre-wrap; word-break: break-all; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: 12px; margin-top: 8px; }
+  .kv .k { color: var(--muted); }
+  .kv .v { font-family: ui-monospace, monospace; word-break: break-all; }
+  .timeline { list-style: none; padding: 0; margin: 10px 0 0; }
+  .timeline li { display: flex; gap: 8px; font-size: 12.5px; padding: 4px 0; border-bottom: 1px dashed var(--border); }
+  .timeline li:last-child { border-bottom: none; }
+  .timeline .ic { width: 16px; flex-shrink: 0; text-align: center; }
+  .timeline .ok { color: var(--ok); }
+  .timeline .skip { color: var(--muted); }
+  .timeline .step { flex-shrink: 0; min-width: 150px; }
+  .timeline .det { color: var(--muted); word-break: break-all; }
+  .hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .typing { display: inline-flex; gap: 4px; align-items: center; }
+  .typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite both; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 14px; }
+  .chip { background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); border-radius: 16px; padding: 7px 13px; font-size: 12.5px; cursor: pointer; }
+  .chip:hover { color: var(--txt); border-color: var(--accent-2); background: var(--panel); }
+
+  .pre-wrap { position: relative; }
+  .copy-btn { position: absolute; top: 7px; right: 7px; background: var(--panel-2); color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 3px 9px; font-size: 11px; cursor: pointer; }
+  .copy-btn:hover { color: var(--txt); border-color: var(--accent-2); }
+  .artifacts { margin-top: 12px; }
+  .artifacts .a-title { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
+  .artifacts .a-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .artifacts .a-item { background: #0a0c10; border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; font-size: 11.5px; font-family: ui-monospace, monospace; color: var(--muted); }
+
+  .page { flex: 1; overflow-y: auto; padding: 22px; }
+  .page h2 { font-size: 15px; margin: 0 0 4px; }
+  .page .bar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .page .bar input {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--txt); font-size: 13px; min-width: 260px;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 13px; display: flex; flex-direction: column; gap: 6px; }
+  .card .t-id { font-family: ui-monospace, monospace; font-weight: 700; color: var(--accent); font-size: 13px; word-break: break-all; }
+  .card .t-desc { color: var(--muted); font-size: 12.5px; line-height: 1.45; flex: 1; }
+  .card .t-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tag { font-size: 11px; padding: 2px 7px; border-radius: 10px; border: 1px solid var(--border); color: var(--muted); }
+  .card button { align-self: flex-start; background: var(--panel-2); color: var(--txt); border: 1px solid var(--border); border-radius: 7px; padding: 5px 10px; cursor: pointer; font-size: 12px; }
+  .card button:hover { border-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; position: sticky; top: 0; background: var(--bg); }
+  td.mono { font-family: ui-monospace, monospace; }
+  .badge { font-size: 11px; padding: 2px 7px; border-radius: 10px; border: 1px solid var(--ok); color: var(--ok); }
+
+  @media (max-width: 860px) {
+    #view-chat { flex-direction: column; }
+    .chat { border-right: none; border-bottom: 1px solid var(--border); flex: 1 1 55%; }
+    .side { width: auto; flex: 1 1 45%; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">AI</div>
+    <div>
+      <h1>BWCE AI Integration Generator</h1>
+      <div class="sub">Describe your integration — I generate it from the BWCE template library and publish it to GitHub.</div>
+    </div>
+    <div class="spacer"></div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-view="chat" role="tab">Chat</button>
+      <button class="tab" data-view="templates" role="tab">Templates</button>
+      <button class="tab" data-view="tracker" role="tab">Tracker</button>
+    </nav>
+    <button id="resetBtn">↻ New conversation</button>
+  </header>
+
+  <main>
+    <div class="view active" id="view-chat">
+      <section class="chat">
+        <div class="messages" id="messages"></div>
+        <div id="chips" class="chips"></div>
+        <div class="composer">
+          <textarea id="input" rows="1" placeholder="e.g. publish S4HANA article IDocs to a Kafka topic (Enter to send, Shift+Enter for newline)" autocomplete="off" aria-label="Describe your integration"></textarea>
+          <button id="sendBtn" aria-label="Send message">Send</button>
+        </div>
+      </section>
+
+      <aside class="side">
+        <h2>Integration Spec</h2>
+        <div id="status" class="status waiting">Collecting requirements…</div>
+        <div class="progress">
+          <div class="track"><div class="fill" id="progressFill"></div></div>
+          <div class="label" id="progressLabel">0 of 4 required fields</div>
+        </div>
+
+        <div class="controls">
+          <label>Product area (repository prefix / GitHub project)
+            <select id="productArea" aria-label="Product area"></select>
+          </label>
+          <label>Environment
+            <select id="envSelect" aria-label="Environment">
+              <option value="">From conversation (default DEV)</option>
+              <option>DEV</option><option>SIT</option><option>UAT</option><option>PROD</option>
+            </select>
+          </label>
+          <label class="config-toggle"><input type="checkbox" id="configOnly" /> Config only — refresh configs/ in GitHub, keep the code</label>
+        </div>
+
+        <div class="suggest" id="suggestBox" style="display:none">
+          <h2 style="margin-bottom:4px">Template</h2>
+          <div class="hint" id="suggestHint">Best matches for this spec — pick one or keep automatic.</div>
+          <div id="suggestList"></div>
+        </div>
+
+        <button id="generateBtn" class="gen-btn" disabled aria-label="Generate repository">Generate &amp; Publish to GitHub</button>
+        <div id="resultBox"></div>
+        <div class="spec-card" id="specCard"></div>
+        <p class="hint">Required: source system, target system, business object and interface type. The template is selected automatically from the library unless you pick one.</p>
+      </aside>
+    </div>
+
+    <div class="view" id="view-templates">
+      <div class="page">
+        <div class="bar">
+          <div><h2>Template library</h2><div class="hint" id="tplCount">Loading…</div></div>
+          <div class="spacer" style="flex:1"></div>
+          <input id="tplFilter" placeholder="Filter (e.g. kafka, sap, sftp)" aria-label="Filter templates" />
+        </div>
+        <div class="grid" id="tplGrid"></div>
+      </div>
+    </div>
+
+    <div class="view" id="view-tracker">
+      <div class="page">
+        <div class="bar">
+          <div><h2>Generated repositories</h2><div class="hint" id="trkInfo">Loading…</div></div>
+          <div class="spacer" style="flex:1"></div>
+          <input id="trkFilter" placeholder="Filter" aria-label="Filter tracker" />
+          <button class="tab" id="trkRefresh">↻ Refresh</button>
+        </div>
+        <table>
+          <thead><tr><th>Generated</th><th>Repository</th><th>Template</th><th>Flow</th><th>Type</th><th>Env</th><th>Product area</th><th>Status</th></tr></thead>
+          <tbody id="trkBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+<script>
+  const REQUIRED = ["source_system", "target_system", "business_object", "interface_type"];
+  const ALL_FIELDS = REQUIRED.concat(["template_type", "cdm", "interface_id", "scenario_id", "email", "env", "k8s_domain", "country_code", "unique_id"]);
+  const LABELS = {
+    source_system: "Source", target_system: "Target", business_object: "Object", interface_type: "Interface",
+    template_type: "Template", cdm: "CDM", interface_id: "Interface ID", scenario_id: "Scenario ID",
+    email: "Email", env: "Env", k8s_domain: "K8s domain", country_code: "Country", unique_id: "Unique ID"
+  };
+  const PRODUCT_AREAS = ["product_area-brandba", "product_area-brandmerch", "product_area-brandpmd", "product_area-cite",
+    "product_area-csddistribution", "product_area-csdfulfilment", "product_area-csdlc", "product_area-csdps",
+    "product_area-csdsourcing", "product_area-mbh2r", "product_area-mblra", "product_area-mbo2c", "product_area-mbr2c",
+    "product_area-mbs2p", "product_area-mdg", "product_area-mmrfid", "product_area-salescec", "product_area-salesceng",
+    "product_area-salescom", "product_area-salesdtc", "product_area-salesmmr", "product_area-salespdcp",
+    "product_area-salessedr", "product_area-tsisiam"];
+  const EXAMPLES = [
+    "Publish S4HANA article IDocs to a Kafka topic",
+    "Subscribe to a Kafka topic for orders and call a downstream REST service",
+    "Pick up WMS stock files from SFTP and publish them to Kafka"
+  ];
+
+  let sessionId = null, lastSpec = {}, ready = false, pinnedTemplate = "", userText = [];
+  const $ = function (id) { return document.getElementById(id); };
+  const messagesEl = $("messages"), inputEl = $("input"), sendBtn = $("sendBtn"), generateBtn = $("generateBtn");
+  const statusEl = $("status"), specCard = $("specCard"), resultBox = $("resultBox"), chipsEl = $("chips");
+  const configOnlyEl = $("configOnly"), productAreaEl = $("productArea"), envEl = $("envSelect");
+
+  productAreaEl.innerHTML = '<option value="">None (no prefix)</option>' +
+    PRODUCT_AREAS.map(function (p) { return '<option value="' + p + '">' + p.replace("product_area-", "") + "</option>"; }).join("");
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function cleanMessage(text) {
+    if (typeof text !== "string") return text;
+    var t = text.trim();
+    if (t.length >= 2 && t.charAt(0) === '"' && t.charAt(t.length - 1) === '"') t = t.slice(1, -1);
+    return t;
+  }
+  function safeUrl(u) { return /^https:\/\//.test(String(u || "")) ? u : ""; }
+
+  function addMessage(text, who) {
+    const msg = document.createElement("div");
+    msg.className = "msg " + who;
+    const avatar = document.createElement("div");
+    avatar.className = "avatar"; avatar.textContent = who === "bot" ? "AI" : "You";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble"; bubble.textContent = text;
+    msg.appendChild(avatar); msg.appendChild(bubble);
+    messagesEl.appendChild(msg);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function showTyping() {
+    const msg = document.createElement("div");
+    msg.className = "msg bot"; msg.id = "typingIndicator";
+    msg.innerHTML = '<div class="avatar">AI</div><div class="bubble"><span class="typing"><span></span><span></span><span></span></span></div>';
+    messagesEl.appendChild(msg); messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function hideTyping() { const t = $("typingIndicator"); if (t) t.remove(); }
+
+  function renderChips() {
+    chipsEl.innerHTML = "";
+    EXAMPLES.forEach(function (ex) {
+      const c = document.createElement("button");
+      c.className = "chip"; c.type = "button"; c.textContent = ex;
+      c.addEventListener("click", function () { inputEl.value = ex; sendMessage(); });
+      chipsEl.appendChild(c);
+    });
+    chipsEl.style.display = "flex";
+  }
+  function hideChips() { chipsEl.style.display = "none"; }
+
+  function filled(spec, f) { return spec && spec[f] != null && spec[f] !== "" && spec[f] !== "NA"; }
+  function updateProgress(spec) {
+    const n = REQUIRED.filter(function (f) { return filled(spec, f); }).length;
+    $("progressFill").style.width = Math.round(n / REQUIRED.length * 100) + "%";
+    $("progressLabel").textContent = n + " of " + REQUIRED.length + " required fields";
+  }
+
+  function renderSpec(spec) {
+    lastSpec = spec || {};
+    specCard.innerHTML = "";
+    ALL_FIELDS.forEach(function (f) {
+      let val = (lastSpec[f] != null) ? String(lastSpec[f]) : "";
+      if (f === "template_type" && pinnedTemplate) val = pinnedTemplate;
+      const row = document.createElement("div");
+      row.className = "field";
+      const k = document.createElement("span"); k.className = "k"; k.textContent = LABELS[f] || f;
+      const v = document.createElement("span"); v.className = "v";
+      if (val === "" || val === "NA") {
+        if (f === "template_type") { v.textContent = "auto (best match)"; v.className = "v auto"; }
+        else {
+          v.textContent = val === "NA" ? "NA" : "—";
+          v.className = REQUIRED.indexOf(f) >= 0 && val === "" ? "v req-missing" : "v empty";
+        }
+      } else { v.textContent = val; }
+      row.appendChild(k); row.appendChild(v); specCard.appendChild(row);
+    });
+    updateProgress(lastSpec);
+  }
+
+  function setStatus(missing, isReady) {
+    ready = isReady;
+    if (isReady) {
+      statusEl.className = "status ready";
+      statusEl.textContent = "✓ Required fields captured — ready to generate.";
+    } else {
+      statusEl.className = "status waiting";
+      const miss = (missing || []).filter(function (m) { return m !== "template_type"; });
+      statusEl.textContent = "Still needed: " + (miss.length ? miss.map(function (m) { return LABELS[m] || m; }).join(", ") : "…");
+    }
+    generateBtn.disabled = !isReady;
+  }
+
+  async function call(method, path, body) {
+    const opts = { method: method, headers: { "Content-Type": "application/json" } };
+    if (method !== "GET") opts.body = JSON.stringify(body || {});
+    const res = await fetch(path, opts);
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+    if (!res.ok) {
+      const err = new Error((data && (data.message || data.error)) || ("HTTP " + res.status));
+      err.data = data; err.status = res.status;
+      throw err;
+    }
+    return data;
+  }
+
+  async function initSession() {
+    messagesEl.innerHTML = ""; resultBox.innerHTML = "";
+    pinnedTemplate = ""; userText = []; renderSpec({}); setStatus([], false);
+    configOnlyEl.checked = false; $("suggestBox").style.display = "none";
+    try {
+      const data = await call("POST", "/api/chat/init", {});
+      sessionId = data.session_id;
+      addMessage(cleanMessage(data.message) || "Hello! Describe the integration you need.", "bot");
+      renderChips();
+    } catch (e) { addMessage("Could not start a session: " + e.message, "bot"); }
+  }
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text || !sessionId) return;
+    hideChips();
+    inputEl.value = ""; inputEl.style.height = "auto";
+    addMessage(text, "user");
+    userText.push(text);
+    sendBtn.disabled = true; showTyping();
+    try {
+      const data = await call("POST", "/api/chat/message", { session_id: sessionId, message: text });
+      hideTyping();
+      addMessage(cleanMessage(data.message) || "(no response)", "bot");
+      if (data.spec) {
+        if (data.spec.template_type) pinnedTemplate = data.spec.template_type;
+        renderSpec(data.spec);
+      }
+      setStatus(data.missing_fields || [], !!data.ready_to_generate);
+      refreshSuggestions();
+    } catch (e) { hideTyping(); addMessage("Error: " + e.message, "bot"); }
+    finally { sendBtn.disabled = false; inputEl.focus(); }
+  }
+
+  async function refreshSuggestions() {
+    if (!filled(lastSpec, "source_system") || !filled(lastSpec, "target_system")) return;
+    try {
+      const data = await call("POST", "/api/templates/suggest", {
+        source_system: lastSpec.source_system, target_system: lastSpec.target_system,
+        business_object: lastSpec.business_object || "", interface_type: lastSpec.interface_type || "",
+        query: userText.join(" ")
+      });
+      const list = (data && data.suggestions) || [];
+      if (!list.length) return;
+      $("suggestBox").style.display = "block";
+      $("suggestList").innerHTML =
+        '<button class="s-item' + (pinnedTemplate ? "" : " selected") + '" data-tpl=""><span>Automatic — best match (' + escapeHtml(list[0].id) + ')</span></button>' +
+        list.map(function (s) {
+          return '<button class="s-item' + (pinnedTemplate === s.id ? " selected" : "") + '" data-tpl="' + escapeHtml(s.id) + '"><span>' +
+            escapeHtml(s.id) + '</span><span class="score">' + (typeof s.score === "number" ? s.score.toFixed(3) : "") + "</span></button>";
+        }).join("");
+    } catch (e) { /* suggestions are optional */ }
+  }
+  $("suggestList").addEventListener("click", function (e) {
+    const b = e.target.closest(".s-item");
+    if (!b) return;
+    pinTemplate(b.getAttribute("data-tpl") || "");
+  });
+  function pinTemplate(id) {
+    pinnedTemplate = id;
+    lastSpec.template_type = id;
+    renderSpec(lastSpec);
+    Array.prototype.forEach.call(document.querySelectorAll("#suggestList .s-item"), function (x) {
+      x.classList.toggle("selected", (x.getAttribute("data-tpl") || "") === id);
+    });
+  }
+
+  function copyButton(cmd) {
+    return '<div class="pre-wrap"><button class="copy-btn" type="button" data-copy="' + encodeURIComponent(cmd) + '">Copy</button><pre>' + escapeHtml(cmd) + "</pre></div>";
+  }
+  function kv(rows) {
+    return '<div class="kv">' + rows.filter(function (r) { return r[1] !== "" && r[1] != null; }).map(function (r) {
+      return '<span class="k">' + escapeHtml(r[0]) + '</span><span class="v">' + (r[2] ? r[1] : escapeHtml(r[1])) + "</span>";
+    }).join("") + "</div>";
+  }
+  function timeline(d, configOnly) {
+    const steps = [
+      ["Input validation", "ok", "required fields, naming and IKD checks passed"],
+      ["Repository name", "ok", d.repo_name],
+      ["Duplicate check", "ok", "not in generation registry"],
+      ["Template resolution", "ok", d.template_name + " (" + (d.template_source === "requested" ? "requested" : "best hybrid match, score " + (d.template_match_score ? Number(d.template_match_score).toFixed(3) : "")) + ")"],
+      ["Code generation", configOnly ? "skip" : "ok", configOnly ? "skipped (config only)" : d.files_total + " files, " + d.files_modified + " with tokens replaced, " + d.paths_renamed + " paths renamed"],
+      ["Configuration export", "ok", "configs/generation.properties, configs/generation-metadata.json"],
+      ["GitHub push", "ok", d.pushed ? ("commit " + String(d.commit_sha || "").slice(0, 7) + " via " + d.write_mode) : "no changes — repository already up to date"],
+      ["Registry & tracker", "ok", "generation " + (d.generation_id || "")],
+      ["Notification", "ok", "team e-mail sent"]
+    ];
+    return '<ul class="timeline">' + steps.map(function (s) {
+      return '<li><span class="ic ' + s[1] + '">' + (s[1] === "ok" ? "✓" : "–") + '</span><span class="step">' + escapeHtml(s[0]) +
+        '</span><span class="det">' + escapeHtml(s[2]) + "</span></li>";
+    }).join("") + "</ul>";
+  }
+  function artifacts(repo, configOnly) {
+    const items = (configOnly ? [] : ["code/" + repo + "/" + repo + ".module", "code/" + repo + "/" + repo + ".parent", "code/" + repo + "/" + repo, "code/" + repo + "/bwceLib"])
+      .concat(["configs/generation.properties", "configs/generation-metadata.json"]);
+    return '<div class="artifacts"><div class="a-title">Published to ' + escapeHtml(repo) + '/</div><div class="a-list">' +
+      items.map(function (a) { return '<span class="a-item">' + escapeHtml(a) + "</span>"; }).join("") + "</div></div>";
+  }
+
+  async function generate() {
+    if (!ready) return;
+    const configOnly = configOnlyEl.checked;
+    const spec = Object.assign({}, lastSpec);
+    spec.template_type = pinnedTemplate || "";
+    if (productAreaEl.value) spec.product_area = productAreaEl.value;
+    if (envEl.value) spec.env = envEl.value;
+    generateBtn.disabled = true; generateBtn.textContent = "Generating & publishing…";
+    resultBox.innerHTML = '<div class="result" style="border-color:var(--accent-2)"><span class="typing"><span></span><span></span><span></span></span> Generating from the template library and committing to GitHub…</div>';
+    try {
+      const d = await call("POST", "/generate", { spec: spec, config_only: configOnly, context: userText.join(" ") });
+      const gh = safeUrl(d.github_url);
+      if (d.duplicate) {
+        resultBox.innerHTML = '<div class="result" style="border-color:var(--warn)"><div>⚠️ Already generated — not regenerated.</div>' +
+          '<div class="repo">' + escapeHtml(d.repo_name) + "</div>" +
+          kv([["Status", d.existing_status || ""], ["Generation", d.existing_generation_id || ""],
+              ["GitHub", gh ? '<a href="' + escapeHtml(gh) + '" target="_blank" rel="noopener">' + escapeHtml(gh) + "</a>" : "", true]]) +
+          '<div class="hint" style="margin-top:8px">Tick “Config only” to refresh its configuration.</div></div>';
+        addMessage("'" + d.repo_name + "' already exists in the registry — nothing regenerated.", "bot");
+      } else if (d.success) {
+        resultBox.innerHTML = '<div class="result"><div>✓ ' + (configOnly ? "Configuration refreshed in GitHub" : "Repository generated and published to GitHub") + "</div>" +
+          '<div class="repo">' + escapeHtml(d.repo_name) + "</div>" +
+          kv([["GitHub", gh ? '<a href="' + escapeHtml(gh) + '" target="_blank" rel="noopener">' + escapeHtml(gh.replace("https://github.com/", "")) + "</a>" : "", true],
+              ["Template", d.template_name], ["Commit", String(d.commit_sha || "").slice(0, 12)],
+              ["Template rev", String(d.template_commit || "").slice(0, 12)], ["Product area", d.product_area || "none"]]) +
+          timeline(d, configOnly) +
+          (d.shell_command ? copyButton(d.shell_command) : "") + artifacts(d.repo_name, configOnly) + "</div>";
+        addMessage("Done — '" + d.repo_name + "' was generated from template " + d.template_name + " and published to GitHub" + (gh ? ": " + gh : "."), "bot");
+      } else {
+        resultBox.innerHTML = '<div class="result" style="border-color:var(--danger)"><div>' + escapeHtml(d.message || d.error || "Generation failed") + "</div></div>";
+      }
+    } catch (e) {
+      const d = e.data || {};
+      const detail = d.details ? '<pre style="color:var(--danger)">' + escapeHtml(d.details) + "</pre>" : "";
+      resultBox.innerHTML = '<div class="result" style="border-color:var(--danger)"><div>✗ ' + escapeHtml(d.message || e.message) + "</div>" +
+        (d.activity ? '<div class="hint">at ' + escapeHtml(d.activity) + (d.code ? " (" + escapeHtml(d.code) + ")" : "") + "</div>" : "") + detail + "</div>";
+    } finally {
+      generateBtn.textContent = "Generate & Publish to GitHub";
+      generateBtn.disabled = !ready;
+    }
+  }
+
+  let templates = [];
+  async function loadTemplates() {
+    try {
+      const data = await call("GET", "/api/templates");
+      const root = (data && data.data) ? data.data : data;
+      templates = (root && root.templates) || [];
+      renderTemplates();
+    } catch (e) { $("tplCount").textContent = "Could not load templates: " + e.message; }
+  }
+  function renderTemplates() {
+    const q = $("tplFilter").value.trim().toLowerCase();
+    const list = templates.filter(function (t) { return !q || JSON.stringify(t).toLowerCase().indexOf(q) >= 0; });
+    $("tplCount").textContent = list.length + " of " + templates.length + " templates (ci-bwcetemplates)";
+    $("tplGrid").innerHTML = list.map(function (t) {
+      return '<div class="card"><div class="t-id">' + escapeHtml(t.id) + '</div><div class="t-desc">' + escapeHtml(t.description) + "</div>" +
+        '<div class="t-tags">' + (t.interface_types || []).map(function (x) { return '<span class="tag">' + escapeHtml(x) + "</span>"; }).join("") +
+        (t.source_protocols || []).concat(t.target_protocols || []).filter(function (x, i, a) { return a.indexOf(x) === i; }).map(function (x) { return '<span class="tag">' + escapeHtml(x) + "</span>"; }).join("") +
+        '</div><button type="button" data-use="' + escapeHtml(t.id) + '">Use this template</button></div>';
+    }).join("");
+  }
+  $("tplFilter").addEventListener("input", renderTemplates);
+  $("tplGrid").addEventListener("click", function (e) {
+    const b = e.target.closest("button[data-use]");
+    if (!b) return;
+    pinTemplate(b.getAttribute("data-use"));
+    showView("chat");
+    addMessage("Template pinned: " + b.getAttribute("data-use") + ". Describe the rest of the integration (source, target, object, interface type).", "bot");
+  });
+
+  let tracker = { records: [] };
+  async function loadTracker() {
+    $("trkInfo").textContent = "Loading…";
+    try { tracker = (await call("GET", "/api/tracker")) || { records: [] }; renderTracker(); }
+    catch (e) { $("trkInfo").textContent = "Could not load tracker: " + e.message; }
+  }
+  function renderTracker() {
+    const q = $("trkFilter").value.trim().toLowerCase();
+    const rows = (tracker.records || []).filter(function (r) { return !q || JSON.stringify(r).toLowerCase().indexOf(q) >= 0; });
+    const base = safeUrl(tracker.target_repo_url);
+    $("trkInfo").innerHTML = rows.length + " repositories" + (base ? ' · shared repository <a href="' + escapeHtml(base) + '" target="_blank" rel="noopener">' +
+      escapeHtml(base.replace("https://github.com/", "")) + "</a>" : "");
+    $("trkBody").innerHTML = rows.map(function (r) {
+      const link = base ? (tracker.target_mode === "newRepo" ? base.replace(/\/[^/]+$/, "/" + r.repo_name) : base + "/tree/" + (tracker.target_branch || "main") + "/" + r.repo_name) : "";
+      return "<tr><td>" + escapeHtml(String(r.created_at || "").replace("T", " ").slice(0, 19)) + '</td><td class="mono">' +
+        (link ? '<a href="' + escapeHtml(link) + '" target="_blank" rel="noopener">' + escapeHtml(r.repo_name) + "</a>" : escapeHtml(r.repo_name)) +
+        '</td><td class="mono">' + escapeHtml(r.template_name || r.template_type || "") + "</td><td>" + escapeHtml((r.source_system || "") + " → " + (r.target_system || "")) +
+        "</td><td>" + escapeHtml(r.interface_type) + "</td><td>" + escapeHtml(r.env) + "</td><td>" + escapeHtml(r.bitbucket_project || "") +
+        '</td><td><span class="badge">' + escapeHtml(r.status) + "</span></td></tr>";
+    }).join("");
+  }
+  $("trkFilter").addEventListener("input", renderTracker);
+  $("trkRefresh").addEventListener("click", loadTracker);
+
+  function showView(v) {
+    Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"), function (t) { t.classList.toggle("active", t.getAttribute("data-view") === v); });
+    Array.prototype.forEach.call(document.querySelectorAll(".view"), function (x) { x.classList.toggle("active", x.id === "view-" + v); });
+    if (v === "templates" && !templates.length) loadTemplates();
+    if (v === "tracker") loadTracker();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"), function (t) {
+    t.addEventListener("click", function () { showView(t.getAttribute("data-view")); });
+  });
+
+  resultBox.addEventListener("click", function (e) {
+    const btn = e.target.closest(".copy-btn");
+    if (!btn) return;
+    navigator.clipboard.writeText(decodeURIComponent(btn.getAttribute("data-copy") || "")).then(function () {
+      const orig = btn.textContent; btn.textContent = "Copied!";
+      setTimeout(function () { btn.textContent = orig; }, 1400);
+    });
+  });
+  sendBtn.addEventListener("click", sendMessage);
+  inputEl.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+  inputEl.addEventListener("input", function () { inputEl.style.height = "auto"; inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + "px"; });
+  $("resetBtn").addEventListener("click", initSession);
+  generateBtn.addEventListener("click", generate);
+
+  initSession();
+</script>
+</body>
+</html>

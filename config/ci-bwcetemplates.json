@@ -1,0 +1,911 @@
+{
+  "templates": [
+    {
+      "id": "DB_To_EMSQueue",
+      "name": "DB To EMSQueue",
+      "description": "DB To EMSQueue: receives data from a relational database (JDBC table) and delivers it to a TIBCO EMS queue.",
+      "source_protocols": [
+        "DATABASE"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "pub"
+      ],
+      "keywords": [
+        "database",
+        "ems",
+        "jms queue",
+        "oracle",
+        "postgres",
+        "pub",
+        "sql server"
+      ],
+      "text": "DB To EMSQueue: receives data from a relational database (JDBC table) and delivers it to a TIBCO EMS queue. Source: DATABASE (oracle, postgres, sql server, database). Target: EMS (ems, jms queue). Interface types: pub. Template folder: DB_To_EMSQueue."
+    },
+    {
+      "id": "DB_To_KafkaTopic",
+      "name": "DB To KafkaTopic",
+      "description": "DB To KafkaTopic: receives data from a relational database (JDBC table) and delivers it to an Apache Kafka topic.",
+      "source_protocols": [
+        "DATABASE"
+      ],
+      "target_protocols": [
+        "KAFKA"
+      ],
+      "interface_types": [
+        "pub"
+      ],
+      "keywords": [
+        "database",
+        "event stream",
+        "kafka",
+        "oracle",
+        "postgres",
+        "pub",
+        "sql server"
+      ],
+      "text": "DB To KafkaTopic: receives data from a relational database (JDBC table) and delivers it to an Apache Kafka topic. Source: DATABASE (oracle, postgres, sql server, database). Target: KAFKA (kafka, event stream). Interface types: pub. Template folder: DB_To_KafkaTopic."
+    },
+    {
+      "id": "EMSQueue_To_DB",
+      "name": "EMSQueue To DB",
+      "description": "EMSQueue To DB: receives data from a TIBCO EMS queue and delivers it to a relational database (JDBC table).",
+      "source_protocols": [
+        "EMS"
+      ],
+      "target_protocols": [
+        "DATABASE"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "database",
+        "ems",
+        "jms queue",
+        "oracle",
+        "postgres",
+        "sql server",
+        "sub"
+      ],
+      "text": "EMSQueue To DB: receives data from a TIBCO EMS queue and delivers it to a relational database (JDBC table). Source: EMS (ems, jms queue). Target: DATABASE (oracle, postgres, sql server, database). Interface types: sub. Template folder: EMSQueue_To_DB."
+    },
+    {
+      "id": "EMSQueue_To_EMSTopic",
+      "name": "EMSQueue To EMSTopic",
+      "description": "EMSQueue To EMSTopic: receives data from a TIBCO EMS queue and delivers it to a TIBCO EMS topic.",
+      "source_protocols": [
+        "EMS"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "pub",
+        "sub"
+      ],
+      "keywords": [
+        "ems",
+        "jms queue",
+        "jms topic",
+        "pub",
+        "sub"
+      ],
+      "text": "EMSQueue To EMSTopic: receives data from a TIBCO EMS queue and delivers it to a TIBCO EMS topic. Source: EMS (ems, jms queue). Target: EMS (ems, jms topic). Interface types: pub, sub. Template folder: EMSQueue_To_EMSTopic."
+    },
+    {
+      "id": "EMSQueue_To_KAFKATopic",
+      "name": "EMSQueue To KAFKATopic",
+      "description": "EMSQueue To KAFKATopic: receives data from a TIBCO EMS queue and delivers it to an Apache Kafka topic.",
+      "source_protocols": [
+        "EMS"
+      ],
+      "target_protocols": [
+        "KAFKA"
+      ],
+      "interface_types": [
+        "pub",
+        "sub"
+      ],
+      "keywords": [
+        "ems",
+        "event stream",
+        "jms queue",
+        "kafka",
+        "pub",
+        "sub"
+      ],
+      "text": "EMSQueue To KAFKATopic: receives data from a TIBCO EMS queue and delivers it to an Apache Kafka topic. Source: EMS (ems, jms queue). Target: KAFKA (kafka, event stream). Interface types: pub, sub. Template folder: EMSQueue_To_KAFKATopic."
+    },
+    {
+      "id": "EMSQueue_To_REST_SERVICE",
+      "name": "EMSQueue To REST SERVICE",
+      "description": "EMSQueue To REST SERVICE: receives data from a TIBCO EMS queue and delivers it to a downstream REST service that is invoked.",
+      "source_protocols": [
+        "EMS"
+      ],
+      "target_protocols": [
+        "REST"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "ems",
+        "http api",
+        "jms queue",
+        "rest",
+        "sub"
+      ],
+      "text": "EMSQueue To REST SERVICE: receives data from a TIBCO EMS queue and delivers it to a downstream REST service that is invoked. Source: EMS (ems, jms queue). Target: REST (rest, http api). Interface types: sub. Template folder: EMSQueue_To_REST_SERVICE."
+    },
+    {
+      "id": "EMSQueue_To_S3Bucket",
+      "name": "EMSQueue To S3Bucket",
+      "description": "EMSQueue To S3Bucket: receives data from a TIBCO EMS queue and delivers it to an AWS S3 bucket.",
+      "source_protocols": [
+        "EMS"
+      ],
+      "target_protocols": [
+        "S3"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "aws",
+        "ems",
+        "jms queue",
+        "object storage",
+        "s3",
+        "sub"
+      ],
+      "text": "EMSQueue To S3Bucket: receives data from a TIBCO EMS queue and delivers it to an AWS S3 bucket. Source: EMS (ems, jms queue). Target: S3 (s3, aws, object storage). Interface types: sub. Template folder: EMSQueue_To_S3Bucket."
+    },
+    {
+      "id": "EMSQueue_To_SAP_RFC",
+      "name": "EMSQueue To SAP RFC",
+      "description": "EMSQueue To SAP RFC: receives data from a TIBCO EMS queue and delivers it to SAP RFC/BAPI calls (S/4HANA, ECC).",
+      "source_protocols": [
+        "EMS"
+      ],
+      "target_protocols": [
+        "SAP_RFC"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "bapi",
+        "ecc",
+        "ems",
+        "jms queue",
+        "rfc",
+        "s4hana",
+        "sap",
+        "sap_rfc",
+        "sub"
+      ],
+      "text": "EMSQueue To SAP RFC: receives data from a TIBCO EMS queue and delivers it to SAP RFC/BAPI calls (S/4HANA, ECC). Source: EMS (ems, jms queue). Target: SAP_RFC (s4hana, sap, ecc, rfc, bapi). Interface types: sub. Template folder: EMSQueue_To_SAP_RFC."
+    },
+    {
+      "id": "EMSQueue_To_SFTPPut",
+      "name": "EMSQueue To SFTPPut",
+      "description": "EMSQueue To SFTPPut: receives data from a TIBCO EMS queue and delivers it to files written to an SFTP server.",
+      "source_protocols": [
+        "EMS"
+      ],
+      "target_protocols": [
+        "SFTP"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "ems",
+        "file",
+        "jms queue",
+        "sftp",
+        "sub"
+      ],
+      "text": "EMSQueue To SFTPPut: receives data from a TIBCO EMS queue and delivers it to files written to an SFTP server. Source: EMS (ems, jms queue). Target: SFTP (sftp, file). Interface types: sub. Template folder: EMSQueue_To_SFTPPut."
+    },
+    {
+      "id": "EMSQueue_To_SOAP_SERVICE",
+      "name": "EMSQueue To SOAP SERVICE",
+      "description": "EMSQueue To SOAP SERVICE: receives data from a TIBCO EMS queue and delivers it to a downstream SOAP service that is invoked.",
+      "source_protocols": [
+        "EMS"
+      ],
+      "target_protocols": [
+        "SOAP"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "ems",
+        "jms queue",
+        "soap",
+        "sub",
+        "web service"
+      ],
+      "text": "EMSQueue To SOAP SERVICE: receives data from a TIBCO EMS queue and delivers it to a downstream SOAP service that is invoked. Source: EMS (ems, jms queue). Target: SOAP (soap, web service). Interface types: sub. Template folder: EMSQueue_To_SOAP_SERVICE."
+    },
+    {
+      "id": "HTTP_Proxy_To_EMSTopic",
+      "name": "HTTP Proxy To EMSTopic",
+      "description": "HTTP Proxy To EMSTopic: receives data from an HTTP proxy endpoint and delivers it to a TIBCO EMS topic.",
+      "source_protocols": [
+        "HTTP"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "ems",
+        "http",
+        "jms topic",
+        "proxy",
+        "pub",
+        "service"
+      ],
+      "text": "HTTP Proxy To EMSTopic: receives data from an HTTP proxy endpoint and delivers it to a TIBCO EMS topic. Source: HTTP (http, proxy). Target: EMS (ems, jms topic). Interface types: service, pub. Template folder: HTTP_Proxy_To_EMSTopic."
+    },
+    {
+      "id": "HTTP_Receiver_To_EMSQueue",
+      "name": "HTTP Receiver To EMSQueue",
+      "description": "HTTP Receiver To EMSQueue: receives data from an HTTP receiver endpoint and delivers it to a TIBCO EMS queue.",
+      "source_protocols": [
+        "HTTP"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "ems",
+        "http",
+        "jms queue",
+        "pub",
+        "service",
+        "webhook"
+      ],
+      "text": "HTTP Receiver To EMSQueue: receives data from an HTTP receiver endpoint and delivers it to a TIBCO EMS queue. Source: HTTP (http, webhook). Target: EMS (ems, jms queue). Interface types: service, pub. Template folder: HTTP_Receiver_To_EMSQueue."
+    },
+    {
+      "id": "HTTP_Receiver_To_EMSTopic",
+      "name": "HTTP Receiver To EMSTopic",
+      "description": "HTTP Receiver To EMSTopic: receives data from an HTTP receiver endpoint and delivers it to a TIBCO EMS topic.",
+      "source_protocols": [
+        "HTTP"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "ems",
+        "http",
+        "jms topic",
+        "pub",
+        "service",
+        "webhook"
+      ],
+      "text": "HTTP Receiver To EMSTopic: receives data from an HTTP receiver endpoint and delivers it to a TIBCO EMS topic. Source: HTTP (http, webhook). Target: EMS (ems, jms topic). Interface types: service, pub. Template folder: HTTP_Receiver_To_EMSTopic."
+    },
+    {
+      "id": "HTTP_Receiver_To_KAFKATopic",
+      "name": "HTTP Receiver To KAFKATopic",
+      "description": "HTTP Receiver To KAFKATopic: receives data from an HTTP receiver endpoint and delivers it to an Apache Kafka topic.",
+      "source_protocols": [
+        "HTTP"
+      ],
+      "target_protocols": [
+        "KAFKA"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "event stream",
+        "http",
+        "kafka",
+        "pub",
+        "service",
+        "webhook"
+      ],
+      "text": "HTTP Receiver To KAFKATopic: receives data from an HTTP receiver endpoint and delivers it to an Apache Kafka topic. Source: HTTP (http, webhook). Target: KAFKA (kafka, event stream). Interface types: service, pub. Template folder: HTTP_Receiver_To_KAFKATopic."
+    },
+    {
+      "id": "HTTP_Receiver_To_SOAP_SERVICE",
+      "name": "HTTP Receiver To SOAP SERVICE",
+      "description": "HTTP Receiver To SOAP SERVICE: receives data from an HTTP receiver endpoint and delivers it to a downstream SOAP service that is invoked.",
+      "source_protocols": [
+        "HTTP"
+      ],
+      "target_protocols": [
+        "SOAP"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "http",
+        "pub",
+        "service",
+        "soap",
+        "web service",
+        "webhook"
+      ],
+      "text": "HTTP Receiver To SOAP SERVICE: receives data from an HTTP receiver endpoint and delivers it to a downstream SOAP service that is invoked. Source: HTTP (http, webhook). Target: SOAP (soap, web service). Interface types: service, pub. Template folder: HTTP_Receiver_To_SOAP_SERVICE."
+    },
+    {
+      "id": "KAFKATopic_To_EMSQueue",
+      "name": "KAFKATopic To EMSQueue",
+      "description": "KAFKATopic To EMSQueue: receives data from an Apache Kafka topic and delivers it to a TIBCO EMS queue.",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "pub",
+        "sub"
+      ],
+      "keywords": [
+        "ems",
+        "event stream",
+        "jms queue",
+        "kafka",
+        "pub",
+        "sub"
+      ],
+      "text": "KAFKATopic To EMSQueue: receives data from an Apache Kafka topic and delivers it to a TIBCO EMS queue. Source: KAFKA (kafka, event stream). Target: EMS (ems, jms queue). Interface types: pub, sub. Template folder: KAFKATopic_To_EMSQueue."
+    },
+    {
+      "id": "KAFKATopic_To_EMSTopic",
+      "name": "KAFKATopic To EMSTopic",
+      "description": "KAFKATopic To EMSTopic: receives data from an Apache Kafka topic and delivers it to a TIBCO EMS topic.",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "pub",
+        "sub"
+      ],
+      "keywords": [
+        "ems",
+        "event stream",
+        "jms topic",
+        "kafka",
+        "pub",
+        "sub"
+      ],
+      "text": "KAFKATopic To EMSTopic: receives data from an Apache Kafka topic and delivers it to a TIBCO EMS topic. Source: KAFKA (kafka, event stream). Target: EMS (ems, jms topic). Interface types: pub, sub. Template folder: KAFKATopic_To_EMSTopic."
+    },
+    {
+      "id": "KAFKATopic_To_FilePlugin_SFTPPut",
+      "name": "KAFKATopic To FilePlugin SFTPPut",
+      "description": "KAFKATopic To FilePlugin SFTPPut: receives data from an Apache Kafka topic and delivers it to files written to SFTP via the File plugin.",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "SFTP"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "event stream",
+        "file",
+        "kafka",
+        "sftp",
+        "sub"
+      ],
+      "text": "KAFKATopic To FilePlugin SFTPPut: receives data from an Apache Kafka topic and delivers it to files written to SFTP via the File plugin. Source: KAFKA (kafka, event stream). Target: SFTP (sftp, file). Interface types: sub. Template folder: KAFKATopic_To_FilePlugin_SFTPPut."
+    },
+    {
+      "id": "KAFKATopic_To_KAFKATopic",
+      "name": "KAFKATopic To KAFKATopic",
+      "description": "KAFKATopic To KAFKATopic: receives data from an Apache Kafka topic and delivers it to an Apache Kafka topic.",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "KAFKA"
+      ],
+      "interface_types": [
+        "pub",
+        "sub"
+      ],
+      "keywords": [
+        "event stream",
+        "kafka",
+        "pub",
+        "sub"
+      ],
+      "text": "KAFKATopic To KAFKATopic: receives data from an Apache Kafka topic and delivers it to an Apache Kafka topic. Source: KAFKA (kafka, event stream). Target: KAFKA (kafka, event stream). Interface types: pub, sub. Template folder: KAFKATopic_To_KAFKATopic."
+    },
+    {
+      "id": "KAFKATopic_To_REST_SERVICE",
+      "name": "KAFKATopic To REST SERVICE",
+      "description": "KAFKATopic To REST SERVICE: receives data from an Apache Kafka topic and delivers it to a downstream REST service that is invoked.",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "REST"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "event stream",
+        "http api",
+        "kafka",
+        "rest",
+        "sub"
+      ],
+      "text": "KAFKATopic To REST SERVICE: receives data from an Apache Kafka topic and delivers it to a downstream REST service that is invoked. Source: KAFKA (kafka, event stream). Target: REST (rest, http api). Interface types: sub. Template folder: KAFKATopic_To_REST_SERVICE."
+    },
+    {
+      "id": "KAFKATopic_To_SAP_IDOC",
+      "name": "KAFKATopic To SAP IDOC",
+      "description": "KAFKATopic To SAP IDOC: receives data from an Apache Kafka topic and delivers it to SAP IDocs (S/4HANA, ECC).",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "SAP_IDOC"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "ecc",
+        "event stream",
+        "idoc",
+        "kafka",
+        "s4hana",
+        "sap",
+        "sap_idoc",
+        "sub"
+      ],
+      "text": "KAFKATopic To SAP IDOC: receives data from an Apache Kafka topic and delivers it to SAP IDocs (S/4HANA, ECC). Source: KAFKA (kafka, event stream). Target: SAP_IDOC (s4hana, sap, ecc, idoc). Interface types: sub. Template folder: KAFKATopic_To_SAP_IDOC."
+    },
+    {
+      "id": "KAFKATopic_To_SAP_RFC",
+      "name": "KAFKATopic To SAP RFC",
+      "description": "KAFKATopic To SAP RFC: receives data from an Apache Kafka topic and delivers it to SAP RFC/BAPI calls (S/4HANA, ECC).",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "SAP_RFC"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "bapi",
+        "ecc",
+        "event stream",
+        "kafka",
+        "rfc",
+        "s4hana",
+        "sap",
+        "sap_rfc",
+        "sub"
+      ],
+      "text": "KAFKATopic To SAP RFC: receives data from an Apache Kafka topic and delivers it to SAP RFC/BAPI calls (S/4HANA, ECC). Source: KAFKA (kafka, event stream). Target: SAP_RFC (s4hana, sap, ecc, rfc, bapi). Interface types: sub. Template folder: KAFKATopic_To_SAP_RFC."
+    },
+    {
+      "id": "KAFKATopic_To_SFTPPut",
+      "name": "KAFKATopic To SFTPPut",
+      "description": "KAFKATopic To SFTPPut: receives data from an Apache Kafka topic and delivers it to files written to an SFTP server.",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "SFTP"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "event stream",
+        "file",
+        "kafka",
+        "sftp",
+        "sub"
+      ],
+      "text": "KAFKATopic To SFTPPut: receives data from an Apache Kafka topic and delivers it to files written to an SFTP server. Source: KAFKA (kafka, event stream). Target: SFTP (sftp, file). Interface types: sub. Template folder: KAFKATopic_To_SFTPPut."
+    },
+    {
+      "id": "KAFKATopic_To_SOAP_SERVICE",
+      "name": "KAFKATopic To SOAP SERVICE",
+      "description": "KAFKATopic To SOAP SERVICE: receives data from an Apache Kafka topic and delivers it to a downstream SOAP service that is invoked.",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "SOAP"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "event stream",
+        "kafka",
+        "soap",
+        "sub",
+        "web service"
+      ],
+      "text": "KAFKATopic To SOAP SERVICE: receives data from an Apache Kafka topic and delivers it to a downstream SOAP service that is invoked. Source: KAFKA (kafka, event stream). Target: SOAP (soap, web service). Interface types: sub. Template folder: KAFKATopic_To_SOAP_SERVICE."
+    },
+    {
+      "id": "KafkaTopic_To_DB",
+      "name": "KafkaTopic To DB",
+      "description": "KafkaTopic To DB: receives data from an Apache Kafka topic and delivers it to a relational database (JDBC table).",
+      "source_protocols": [
+        "KAFKA"
+      ],
+      "target_protocols": [
+        "DATABASE"
+      ],
+      "interface_types": [
+        "sub"
+      ],
+      "keywords": [
+        "database",
+        "event stream",
+        "kafka",
+        "oracle",
+        "postgres",
+        "sql server",
+        "sub"
+      ],
+      "text": "KafkaTopic To DB: receives data from an Apache Kafka topic and delivers it to a relational database (JDBC table). Source: KAFKA (kafka, event stream). Target: DATABASE (oracle, postgres, sql server, database). Interface types: sub. Template folder: KafkaTopic_To_DB."
+    },
+    {
+      "id": "ODATAQuery_To_REST_SERVICE",
+      "name": "ODATAQuery To REST SERVICE",
+      "description": "ODATAQuery To REST SERVICE: receives data from an OData service query and delivers it to a downstream REST service that is invoked.",
+      "source_protocols": [
+        "ODATA"
+      ],
+      "target_protocols": [
+        "REST"
+      ],
+      "interface_types": [
+        "pub",
+        "sub"
+      ],
+      "keywords": [
+        "http api",
+        "odata",
+        "pub",
+        "rest",
+        "sap gateway",
+        "sub"
+      ],
+      "text": "ODATAQuery To REST SERVICE: receives data from an OData service query and delivers it to a downstream REST service that is invoked. Source: ODATA (odata, sap gateway). Target: REST (rest, http api). Interface types: pub, sub. Template folder: ODATAQuery_To_REST_SERVICE."
+    },
+    {
+      "id": "REST_SERVICE_To_EMSQueue",
+      "name": "REST SERVICE To EMSQueue",
+      "description": "REST SERVICE To EMSQueue: receives data from a REST API service endpoint exposed to callers and delivers it to a TIBCO EMS queue.",
+      "source_protocols": [
+        "REST"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "ems",
+        "http api",
+        "jms queue",
+        "pub",
+        "rest",
+        "service"
+      ],
+      "text": "REST SERVICE To EMSQueue: receives data from a REST API service endpoint exposed to callers and delivers it to a TIBCO EMS queue. Source: REST (rest, http api). Target: EMS (ems, jms queue). Interface types: service, pub. Template folder: REST_SERVICE_To_EMSQueue."
+    },
+    {
+      "id": "REST_SERVICE_To_EMSTopic",
+      "name": "REST SERVICE To EMSTopic",
+      "description": "REST SERVICE To EMSTopic: receives data from a REST API service endpoint exposed to callers and delivers it to a TIBCO EMS topic.",
+      "source_protocols": [
+        "REST"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "ems",
+        "http api",
+        "jms topic",
+        "pub",
+        "rest",
+        "service"
+      ],
+      "text": "REST SERVICE To EMSTopic: receives data from a REST API service endpoint exposed to callers and delivers it to a TIBCO EMS topic. Source: REST (rest, http api). Target: EMS (ems, jms topic). Interface types: service, pub. Template folder: REST_SERVICE_To_EMSTopic."
+    },
+    {
+      "id": "REST_SERVICE_To_KAFKATopic",
+      "name": "REST SERVICE To KAFKATopic",
+      "description": "REST SERVICE To KAFKATopic: receives data from a REST API service endpoint exposed to callers and delivers it to an Apache Kafka topic.",
+      "source_protocols": [
+        "REST"
+      ],
+      "target_protocols": [
+        "KAFKA"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "event stream",
+        "http api",
+        "kafka",
+        "pub",
+        "rest",
+        "service"
+      ],
+      "text": "REST SERVICE To KAFKATopic: receives data from a REST API service endpoint exposed to callers and delivers it to an Apache Kafka topic. Source: REST (rest, http api). Target: KAFKA (kafka, event stream). Interface types: service, pub. Template folder: REST_SERVICE_To_KAFKATopic."
+    },
+    {
+      "id": "REST_SERVICE_To_RESTService",
+      "name": "REST SERVICE To RESTService",
+      "description": "REST SERVICE To RESTService: receives data from a REST API service endpoint exposed to callers and delivers it to a downstream REST service that is called.",
+      "source_protocols": [
+        "REST"
+      ],
+      "target_protocols": [
+        "REST"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "http api",
+        "pub",
+        "rest",
+        "service"
+      ],
+      "text": "REST SERVICE To RESTService: receives data from a REST API service endpoint exposed to callers and delivers it to a downstream REST service that is called. Source: REST (rest, http api). Target: REST (rest, http api). Interface types: service, pub. Template folder: REST_SERVICE_To_RESTService."
+    },
+    {
+      "id": "SAP_IDOC_To_KAFKATopic",
+      "name": "SAP IDOC To KAFKATopic",
+      "description": "SAP IDOC To KAFKATopic: receives data from SAP IDocs (S/4HANA, ECC) and delivers it to an Apache Kafka topic.",
+      "source_protocols": [
+        "SAP_IDOC"
+      ],
+      "target_protocols": [
+        "KAFKA"
+      ],
+      "interface_types": [
+        "pub"
+      ],
+      "keywords": [
+        "ecc",
+        "event stream",
+        "idoc",
+        "kafka",
+        "pub",
+        "s4hana",
+        "sap",
+        "sap_idoc"
+      ],
+      "text": "SAP IDOC To KAFKATopic: receives data from SAP IDocs (S/4HANA, ECC) and delivers it to an Apache Kafka topic. Source: SAP_IDOC (s4hana, sap, ecc, idoc). Target: KAFKA (kafka, event stream). Interface types: pub. Template folder: SAP_IDOC_To_KAFKATopic."
+    },
+    {
+      "id": "SFTPGet_FilePlugin_To_KAFKATopic",
+      "name": "SFTPGet FilePlugin To KAFKATopic",
+      "description": "SFTPGet FilePlugin To KAFKATopic: receives data from files picked up from SFTP via the File plugin and delivers it to an Apache Kafka topic.",
+      "source_protocols": [
+        "SFTP"
+      ],
+      "target_protocols": [
+        "KAFKA"
+      ],
+      "interface_types": [
+        "pub"
+      ],
+      "keywords": [
+        "event stream",
+        "file",
+        "kafka",
+        "pub",
+        "sftp"
+      ],
+      "text": "SFTPGet FilePlugin To KAFKATopic: receives data from files picked up from SFTP via the File plugin and delivers it to an Apache Kafka topic. Source: SFTP (sftp, file). Target: KAFKA (kafka, event stream). Interface types: pub. Template folder: SFTPGet_FilePlugin_To_KAFKATopic."
+    },
+    {
+      "id": "SFTPGet_To_EMSQueue",
+      "name": "SFTPGet To EMSQueue",
+      "description": "SFTPGet To EMSQueue: receives data from files picked up from an SFTP server and delivers it to a TIBCO EMS queue.",
+      "source_protocols": [
+        "SFTP"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "pub"
+      ],
+      "keywords": [
+        "ems",
+        "file",
+        "jms queue",
+        "pub",
+        "sftp"
+      ],
+      "text": "SFTPGet To EMSQueue: receives data from files picked up from an SFTP server and delivers it to a TIBCO EMS queue. Source: SFTP (sftp, file). Target: EMS (ems, jms queue). Interface types: pub. Template folder: SFTPGet_To_EMSQueue."
+    },
+    {
+      "id": "SFTPGet_To_KAFKATopic",
+      "name": "SFTPGet To KAFKATopic",
+      "description": "SFTPGet To KAFKATopic: receives data from files picked up from an SFTP server and delivers it to an Apache Kafka topic.",
+      "source_protocols": [
+        "SFTP"
+      ],
+      "target_protocols": [
+        "KAFKA"
+      ],
+      "interface_types": [
+        "pub"
+      ],
+      "keywords": [
+        "event stream",
+        "file",
+        "kafka",
+        "pub",
+        "sftp"
+      ],
+      "text": "SFTPGet To KAFKATopic: receives data from files picked up from an SFTP server and delivers it to an Apache Kafka topic. Source: SFTP (sftp, file). Target: KAFKA (kafka, event stream). Interface types: pub. Template folder: SFTPGet_To_KAFKATopic."
+    },
+    {
+      "id": "SOAP_SERVICE_To_EMSQueue",
+      "name": "SOAP SERVICE To EMSQueue",
+      "description": "SOAP SERVICE To EMSQueue: receives data from a SOAP web service and delivers it to a TIBCO EMS queue.",
+      "source_protocols": [
+        "SOAP"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "ems",
+        "jms queue",
+        "pub",
+        "service",
+        "soap",
+        "web service"
+      ],
+      "text": "SOAP SERVICE To EMSQueue: receives data from a SOAP web service and delivers it to a TIBCO EMS queue. Source: SOAP (soap, web service). Target: EMS (ems, jms queue). Interface types: service, pub. Template folder: SOAP_SERVICE_To_EMSQueue."
+    },
+    {
+      "id": "SOAP_SERVICE_To_EMSTopic",
+      "name": "SOAP SERVICE To EMSTopic",
+      "description": "SOAP SERVICE To EMSTopic: receives data from a SOAP web service and delivers it to a TIBCO EMS topic.",
+      "source_protocols": [
+        "SOAP"
+      ],
+      "target_protocols": [
+        "EMS"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "ems",
+        "jms topic",
+        "pub",
+        "service",
+        "soap",
+        "web service"
+      ],
+      "text": "SOAP SERVICE To EMSTopic: receives data from a SOAP web service and delivers it to a TIBCO EMS topic. Source: SOAP (soap, web service). Target: EMS (ems, jms topic). Interface types: service, pub. Template folder: SOAP_SERVICE_To_EMSTopic."
+    },
+    {
+      "id": "SOAP_SERVICE_To_KAFKATopic",
+      "name": "SOAP SERVICE To KAFKATopic",
+      "description": "SOAP SERVICE To KAFKATopic: receives data from a SOAP web service and delivers it to an Apache Kafka topic.",
+      "source_protocols": [
+        "SOAP"
+      ],
+      "target_protocols": [
+        "KAFKA"
+      ],
+      "interface_types": [
+        "service",
+        "pub"
+      ],
+      "keywords": [
+        "event stream",
+        "kafka",
+        "pub",
+        "service",
+        "soap",
+        "web service"
+      ],
+      "text": "SOAP SERVICE To KAFKATopic: receives data from a SOAP web service and delivers it to an Apache Kafka topic. Source: SOAP (soap, web service). Target: KAFKA (kafka, event stream). Interface types: service, pub. Template folder: SOAP_SERVICE_To_KAFKATopic."
+    }
+  ],
+  "template_ids": [
+    "DB_To_EMSQueue",
+    "DB_To_KafkaTopic",
+    "EMSQueue_To_DB",
+    "EMSQueue_To_EMSTopic",
+    "EMSQueue_To_KAFKATopic",
+    "EMSQueue_To_REST_SERVICE",
+    "EMSQueue_To_S3Bucket",
+    "EMSQueue_To_SAP_RFC",
+    "EMSQueue_To_SFTPPut",
+    "EMSQueue_To_SOAP_SERVICE",
+    "HTTP_Proxy_To_EMSTopic",
+    "HTTP_Receiver_To_EMSQueue",
+    "HTTP_Receiver_To_EMSTopic",
+    "HTTP_Receiver_To_KAFKATopic",
+    "HTTP_Receiver_To_SOAP_SERVICE",
+    "KAFKATopic_To_EMSQueue",
+    "KAFKATopic_To_EMSTopic",
+    "KAFKATopic_To_FilePlugin_SFTPPut",
+    "KAFKATopic_To_KAFKATopic",
+    "KAFKATopic_To_REST_SERVICE",
+    "KAFKATopic_To_SAP_IDOC",
+    "KAFKATopic_To_SAP_RFC",
+    "KAFKATopic_To_SFTPPut",
+    "KAFKATopic_To_SOAP_SERVICE",
+    "KafkaTopic_To_DB",
+    "ODATAQuery_To_REST_SERVICE",
+    "REST_SERVICE_To_EMSQueue",
+    "REST_SERVICE_To_EMSTopic",
+    "REST_SERVICE_To_KAFKATopic",
+    "REST_SERVICE_To_RESTService",
+    "SAP_IDOC_To_KAFKATopic",
+    "SFTPGet_FilePlugin_To_KAFKATopic",
+    "SFTPGet_To_EMSQueue",
+    "SFTPGet_To_KAFKATopic",
+    "SOAP_SERVICE_To_EMSQueue",
+    "SOAP_SERVICE_To_EMSTopic",
+    "SOAP_SERVICE_To_KAFKATopic"
+  ]
+}

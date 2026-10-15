@@ -249,3 +249,36 @@ The `generation_log` registry can be reset between demos with:
 ```bash
 docker exec flogo-studio-postgres psql -U flogo -d flogo_agent_studio -c 'TRUNCATE generation_log;'
 ```
+
+---
+
+## GitHub edition (`bwce-ai-generator-github.flogo`)
+
+A second app generated from this one that produces the **real BWCE code** from the customer template library
+(`ci-bwcetemplates`) and publishes it to GitHub in a single commit, using the
+[Git Repo Scaffolder](https://github.com/mpandav-tibco/flogo-custom-extensions/tree/main/activity/gitreposcaffolder)
+activity. Its output is byte-identical to the reference Python generator for the same template revision and spec.
+
+| Aspect | Behaviour |
+|--------|-----------|
+| Repository name | `[in<area>-]src-object-target[-uid][-country]-itype`, product-area prefix map and `REST_SERVICE`/`SOAP_SERVICE` → `service`, max 50 chars (400 otherwise) |
+| Template selection | Requested template if it exists in the catalog, otherwise Weaviate **hybrid** (BM25 + vector, α 0.25) over the 37-template catalog; the chat transcript is passed as `context` so transport hints ("from SFTP") count |
+| Output layout | `<TARGET_REPO_URL>/<repo>/code/<repo>/…` + `<repo>/configs/generation.properties`, `generation-metadata.json` |
+| Target modes | `TARGET_MODE=subfolder` (one shared repo, default) or `newRepo` (one repository per integration under `TARGET_OWNER_URL`) |
+| Config-only | `config_only:true` refreshes only `configs/` and keeps the code |
+| Extra endpoints | `GET /api/tracker` (registry rows with GitHub links), `POST /api/templates/suggest` (ranked templates) |
+| UI | `static/chat-github.html` — chat, product area, template suggestions, result timeline, Templates and Tracker tabs |
+
+Build and run:
+
+```bash
+python3 tools/build-github-app.py      # regenerates bwce-ai-generator-github.flogo from HEAD via the FDA CLI
+fcli build-exe -f bwce-ai-generator-github.flogo -c flogo-studio-2265 -n bwce-ai-generator-github -o .
+FLOGO_APP_PROPS_ENV=auto GITHUB_TOKEN=<fine-grained PAT: contents rw> ./bwce-ai-generator-github
+bash test/e2e-github.sh                 # 15 end-to-end checks (writes one folder to the target repo)
+```
+
+Key properties: `GITHUB_TOKEN` (env only, never stored), `TEMPLATE_REPO_URL`, `TEMPLATE_REF`, `TARGET_MODE`,
+`TARGET_REPO_URL`, `TARGET_OWNER_URL`, `TARGET_BRANCH`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`,
+`TEMPLATE_REGISTRY=config/ci-bwcetemplates.json` (regenerate with `tools/gen-template-catalog.py <library> <out>`),
+`VECTOR_COLLECTION=BWCECiTemplates768`.

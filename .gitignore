@@ -31,3 +31,6 @@ logs/
 *.env
 .env*
 secrets/
+
+# GitHub edition binary
+bwce-ai-generator-github
