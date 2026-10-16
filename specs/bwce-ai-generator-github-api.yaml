@@ -3,7 +3,8 @@ info:
   title: BWCE AI Integration Generator (GitHub edition)
   description: >-
     Generates TIBCO BWCE integration repositories from natural language and publishes them to GitHub,
-    plus the operations APIs (local accounts, audit log, Kubernetes, code review, schema upload, IKD registry).
+    plus the operations APIs (Kubernetes, code review, schema upload, IKD registry). Authentication and
+    authorization are done by the API gateway (Kong) in front of the app.
     Every operation is implemented by one Flogo flow of the same name.
   version: "1.0.0"
   contact:
@@ -14,25 +15,18 @@ servers:
     description: Local development
 tags:
   - name: System
-  - name: Auth
-  - name: Admin
   - name: Chat
   - name: Templates
   - name: Generation
   - name: Schemas
   - name: Code Review
   - name: Kubernetes
-security:
-  - sessionCookie: []
-  - bearerToken: []
-  - apiKey: []
 paths:
   /:
     get:
       operationId: root_GET
-      summary: Web UI (signs users in itself)
+      summary: Web UI
       tags: [System]
-      security: []
       responses:
         "200": {description: Single-page web UI, content: {text/html: {schema: {type: string}}}}
   /docs:
@@ -42,7 +36,6 @@ paths:
       tags: [System]
       responses:
         "200": {description: HTML page rendering this API definition, content: {text/html: {schema: {type: string}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /openapi.json:
     get:
       operationId: openapi_json_GET
@@ -50,113 +43,23 @@ paths:
       tags: [System]
       responses:
         "200": {description: OpenAPI document, content: {application/json: {schema: {type: object}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /health:
     get:
       operationId: health_GET
       summary: Liveness and readiness probe
       tags: [System]
-      security: []
       responses:
         "200":
           description: Service is up
           content: {application/json: {schema: {$ref: "#/components/schemas/HealthResponse"}}}
-
-  /api/login:
-    post:
-      operationId: auth_login_POST
-      summary: Sign in with a local account (sets the session cookie)
-      tags: [Auth]
-      security: []
-      requestBody:
-        required: true
-        content: {application/json: {schema: {$ref: "#/components/schemas/LoginRequest"}}}
-      responses:
-        "200":
-          description: Signed in; the response sets the HttpOnly `session` cookie
-          content: {application/json: {schema: {$ref: "#/components/schemas/LoginResponse"}}}
-        "401": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "429": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-  /api/logout:
-    post:
-      operationId: auth_logout_POST
-      summary: Sign out (clears the session cookie)
-      tags: [Auth]
-      security: []
-      responses:
-        "200": {description: Signed out, content: {application/json: {schema: {$ref: "#/components/schemas/SuccessResponse"}}}}
-  /api/session:
-    get:
-      operationId: auth_session_GET
-      summary: Current authentication state (called by the UI on load)
-      tags: [Auth]
-      security: []
-      responses:
-        "200": {description: Session state, content: {application/json: {schema: {$ref: "#/components/schemas/SessionResponse"}}}}
-  /api/auth/diagnostics:
-    get:
-      operationId: auth_diagnostics_GET
-      summary: Authentication configuration (no secrets)
-      tags: [Admin]
-      responses:
-        "200": {description: Auth settings, content: {application/json: {schema: {type: object, additionalProperties: true}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "403": {description: Administrator privileges required, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-  /api/users:
-    get:
-      operationId: users_GET
-      summary: List local accounts
-      tags: [Admin]
-      responses:
-        "200": {description: Accounts, content: {application/json: {schema: {$ref: "#/components/schemas/UserListResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "403": {description: Administrator privileges required, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-    post:
-      operationId: users_POST
-      summary: Create or update a local account
-      tags: [Admin]
-      requestBody:
-        required: true
-        content: {application/json: {schema: {$ref: "#/components/schemas/UserUpsertRequest"}}}
-      responses:
-        "200": {description: Saved, content: {application/json: {schema: {$ref: "#/components/schemas/UserSavedResponse"}}}}
-        "400": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "403": {description: Administrator privileges required, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-    delete:
-      operationId: users_DELETE
-      summary: Delete a local account
-      tags: [Admin]
-      parameters:
-        - {name: username, in: query, required: true, schema: {type: string}}
-      responses:
-        "200": {description: Deleted, content: {application/json: {schema: {$ref: "#/components/schemas/SuccessResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "403": {description: Administrator privileges required, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "404": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-  /api/auditlog:
-    get:
-      operationId: auditlog_GET
-      summary: Recent audit log entries (newest first)
-      tags: [Admin]
-      parameters:
-        - {name: limit, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 2000, default: 200}}
-      responses:
-        "200": {description: Entries, content: {application/json: {schema: {$ref: "#/components/schemas/AuditLogResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "403": {description: Administrator privileges required, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
 
   /api/chat/init:
     post:
       operationId: api_chat/init_POST
       summary: Start a conversation
       tags: [Chat]
-      requestBody:
-        required: false
-        content: {application/json: {schema: {$ref: "#/components/schemas/ChatInitRequest"}}}
       responses:
         "200": {description: Session created, content: {application/json: {schema: {$ref: "#/components/schemas/ChatInitResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/chat/message:
     post:
       operationId: api_chat/message_POST
@@ -167,7 +70,6 @@ paths:
         content: {application/json: {schema: {$ref: "#/components/schemas/ChatMessageRequest"}}}
       responses:
         "200": {description: Reply with the current spec, content: {application/json: {schema: {$ref: "#/components/schemas/ChatMessageResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "500": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/chat/reset:
     post:
@@ -179,7 +81,6 @@ paths:
         content: {application/json: {schema: {$ref: "#/components/schemas/ChatResetRequest"}}}
       responses:
         "200": {description: Session reset, content: {application/json: {schema: {$ref: "#/components/schemas/ChatResetResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/templates:
     get:
       operationId: api_templates_GET
@@ -187,7 +88,6 @@ paths:
       tags: [Templates]
       responses:
         "200": {description: Templates, content: {application/json: {schema: {$ref: "#/components/schemas/TemplateListResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/templates/suggest:
     post:
       operationId: api_templates_suggest_POST
@@ -198,7 +98,6 @@ paths:
         content: {application/json: {schema: {$ref: "#/components/schemas/SuggestRequest"}}}
       responses:
         "200": {description: Ranked templates, content: {application/json: {schema: {$ref: "#/components/schemas/SuggestResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /extract:
     post:
       operationId: extract_POST
@@ -209,7 +108,6 @@ paths:
         content: {application/json: {schema: {$ref: "#/components/schemas/ExtractRequest"}}}
       responses:
         "200": {description: Extracted fields, content: {application/json: {schema: {$ref: "#/components/schemas/ExtractResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "500": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /generate:
     post:
@@ -222,7 +120,6 @@ paths:
       responses:
         "200": {description: Generation result, content: {application/json: {schema: {$ref: "#/components/schemas/GenerateResponse"}}}}
         "400": {description: Validation errors, content: {application/json: {schema: {$ref: "#/components/schemas/GenerateResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "409": {description: Repository already generated, content: {application/json: {schema: {$ref: "#/components/schemas/GenerateResponse"}}}}
         "500": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/tracker:
@@ -232,7 +129,6 @@ paths:
       tags: [Generation]
       responses:
         "200": {description: Generated repositories, content: {application/json: {schema: {$ref: "#/components/schemas/TrackerResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/ikd:
     get:
       operationId: ikd_GET
@@ -242,7 +138,6 @@ paths:
         - {name: kind, in: query, required: true, schema: {type: string, enum: [InterfaceIDs, ScenarioIDs]}}
       responses:
         "200": {description: One entry per line, content: {text/plain: {schema: {type: string}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/schemas/upload/{kind}:
     post:
       operationId: schemas_upload_POST
@@ -257,7 +152,6 @@ paths:
       responses:
         "200": {description: Committed, content: {application/json: {schema: {$ref: "#/components/schemas/SchemaUploadResponse"}}}}
         "400": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "404": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
 
   /api/codereview/token:
@@ -267,7 +161,6 @@ paths:
       tags: [Code Review]
       responses:
         "200": {description: Token cached, content: {application/json: {schema: {$ref: "#/components/schemas/CodeReviewTokenResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "502": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "503": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/codereview/run:
@@ -281,7 +174,6 @@ paths:
       responses:
         "200": {description: Review result, content: {application/json: {schema: {$ref: "#/components/schemas/CodeReviewRunResponse"}}}}
         "400": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "502": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/codereview/history:
     get:
@@ -290,7 +182,6 @@ paths:
       tags: [Code Review]
       responses:
         "200": {description: History, content: {application/json: {schema: {$ref: "#/components/schemas/CodeReviewHistoryResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/codereview/network-debug:
     get:
       operationId: codereview_netdebug_GET
@@ -298,7 +189,6 @@ paths:
       tags: [Code Review]
       responses:
         "200": {description: Probe results, content: {application/json: {schema: {type: object, additionalProperties: true}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
 
   /k8s/{resource}:
     get:
@@ -313,7 +203,6 @@ paths:
       responses:
         "200": {description: "Operation result (kubectl-style fields; success and timestamp always present)", content: {application/json: {schema: {$ref: "#/components/schemas/K8sResponse"}}}}
         "400": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "404": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "502": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "503": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
@@ -328,7 +217,6 @@ paths:
       responses:
         "200": {description: "Operation result (kubectl-style fields; success and timestamp always present)", content: {application/json: {schema: {$ref: "#/components/schemas/K8sResponse"}}}}
         "400": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "404": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "502": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "503": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
@@ -349,14 +237,13 @@ paths:
       responses:
         "200": {description: "Operation result (kubectl-style fields; success and timestamp always present)", content: {application/json: {schema: {$ref: "#/components/schemas/K8sResponse"}}}}
         "400": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "404": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "502": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "503": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /k8s/deployments/{name}/{action}:
     post:
       operationId: k8s_deployment_action_POST
-      summary: Scale or restart a deployment (administrators)
+      summary: Scale or restart a deployment
       tags: [Kubernetes]
       parameters:
         - {name: name, in: path, required: true, schema: {type: string}}
@@ -367,15 +254,13 @@ paths:
       responses:
         "200": {description: "Operation result (kubectl-style fields; success and timestamp always present)", content: {application/json: {schema: {$ref: "#/components/schemas/K8sResponse"}}}}
         "400": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "403": {description: Administrator privileges required, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "404": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "502": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
         "503": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /k8s/context/switch:
     post:
       operationId: k8s_context_switch_POST
-      summary: Switch the active Kubernetes context (administrators)
+      summary: Switch the active Kubernetes context
       tags: [Kubernetes]
       requestBody:
         required: true
@@ -383,14 +268,8 @@ paths:
       responses:
         "200": {description: "Operation result (kubectl-style fields; success and timestamp always present)", content: {application/json: {schema: {$ref: "#/components/schemas/K8sResponse"}}}}
         "400": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "401": {description: Not signed in, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
-        "403": {description: Administrator privileges required, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
 
 components:
-  securitySchemes:
-    sessionCookie: {type: apiKey, in: cookie, name: session, description: "Set by POST /api/login"}
-    bearerToken: {type: http, scheme: bearer, description: Session token}
-    apiKey: {type: apiKey, in: header, name: X-API-Key, description: "Service key (AUTH_API_KEY), administrator rights"}
   schemas:
     ErrorResponse:
       type: object
@@ -398,11 +277,6 @@ components:
         detail: {type: string}
         error: {type: string}
         code: {type: string}
-    SuccessResponse:
-      type: object
-      properties:
-        success: {type: boolean}
-        message: {type: string}
     HealthResponse:
       type: object
       properties:
@@ -410,71 +284,6 @@ components:
         service: {type: string}
         version: {type: string}
         engine: {type: string}
-    LoginRequest:
-      type: object
-      required: [username, password]
-      properties:
-        username: {type: string}
-        password: {type: string, format: password}
-    LoginResponse:
-      type: object
-      properties:
-        success: {type: boolean}
-        username: {type: string}
-        displayName: {type: string}
-        role: {type: string, enum: [admin, reader]}
-    SessionResponse:
-      type: object
-      properties:
-        authenticated: {type: boolean}
-        authEnabled: {type: boolean}
-        ssoEnabled: {type: boolean}
-        localAccountsAvailable: {type: boolean}
-        username: {type: string}
-        displayName: {type: string}
-        role: {type: string}
-    UserUpsertRequest:
-      type: object
-      required: [username]
-      properties:
-        username: {type: string, maxLength: 100}
-        displayName: {type: string}
-        role: {type: string, enum: [admin, reader], default: reader}
-        password: {type: string, format: password, description: "Required for a new account (min 8 characters); blank keeps the current one"}
-    UserSavedResponse:
-      type: object
-      properties:
-        success: {type: boolean}
-        created: {type: boolean}
-        user: {$ref: "#/components/schemas/User"}
-    User:
-      type: object
-      properties:
-        username: {type: string}
-        displayName: {type: string}
-        role: {type: string}
-        created_at: {type: string, format: date-time}
-        updated_at: {type: string, format: date-time}
-    UserListResponse:
-      type: object
-      properties:
-        users: {type: array, items: {$ref: "#/components/schemas/User"}}
-    AuditLogResponse:
-      type: object
-      properties:
-        entries:
-          type: array
-          items:
-            type: object
-            properties:
-              timestamp: {type: string, format: date-time}
-              username: {type: string}
-              role: {type: string}
-              ip: {type: string}
-              action: {type: string}
-              path: {type: string}
-              message: {type: string}
-              mechanism: {type: string}
     IntegrationSpec:
       type: object
       properties:
@@ -494,10 +303,6 @@ components:
         need_secret: {type: boolean, default: false}
         country_code: {type: string, default: NA}
         unique_id: {type: string, default: NA}
-    ChatInitRequest:
-      type: object
-      properties:
-        session_id: {type: string, description: Resume this session}
     ChatInitResponse:
       type: object
       properties:

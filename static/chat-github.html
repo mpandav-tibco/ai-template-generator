@@ -34,7 +34,6 @@
   }
   header button:hover, .tab:hover { color: var(--txt); border-color: var(--accent-2); }
   .tabs { display: flex; gap: 5px; flex-wrap: nowrap; }
-  header .userbox { white-space: nowrap; }
   @media (max-width: 1360px) { header .sub { display: none; } }
   .tab.active { color: #06131d; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; font-weight: 700; }
 
@@ -163,22 +162,14 @@
   td.mono { font-family: ui-monospace, monospace; }
   .badge { font-size: 11px; padding: 2px 7px; border-radius: 10px; border: 1px solid var(--ok); color: var(--ok); }
 
-  .userbox { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-  .userbox .who { color: var(--txt); }
-  .userbox .role { font-size: 10.5px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--accent-2); color: var(--accent-2); }
   .btn { background: var(--panel-2); color: var(--txt); border: 1px solid var(--border); border-radius: 7px; padding: 6px 11px; cursor: pointer; font-size: 12px; }
   .btn:hover { border-color: var(--accent-2); }
   .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06131d; border: none; font-weight: 700; }
   .btn.danger:hover { border-color: var(--danger); color: var(--danger); }
   .btn:disabled { opacity: .45; cursor: not-allowed; }
-  .overlay { position: fixed; inset: 0; background: rgba(5, 7, 10, .82); display: none; align-items: center; justify-content: center; z-index: 50; }
-  .overlay.show { display: flex; }
-  .login { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px; width: 340px; display: flex; flex-direction: column; gap: 10px; }
-  .login h2 { margin: 0; font-size: 16px; }
   label.field { display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; gap: 4px; padding: 0;
     border-bottom: none; font-size: 12px; color: var(--muted); }
   label.field input, label.field select { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--txt); font-size: 13px; }
-  .err { color: var(--danger); font-size: 12px; min-height: 16px; }
   .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 6px; }
   .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
   .stat .n { font-size: 22px; font-weight: 700; }
@@ -218,10 +209,8 @@
       <button class="tab" data-view="tracker" role="tab">Tracker</button>
       <button class="tab" data-view="k8s" role="tab">Kubernetes</button>
       <button class="tab" data-view="review" role="tab">Code Review</button>
-      <button class="tab" data-view="admin" role="tab" id="adminTab" style="display:none">Admin</button>
     </nav>
     <button id="resetBtn">↻ New conversation</button>
-    <div class="userbox" id="userBox"></div>
   </header>
 
   <main>
@@ -315,8 +304,8 @@
           <div><h2>Kubernetes</h2><div class="hint" id="k8sInfo">Loading…</div></div>
           <div class="spacer" style="flex:1"></div>
           <input id="k8sSelector" placeholder="Label selector (e.g. app=demo-app)" aria-label="Label selector" />
-          <span class="admin-only" style="display:none"><input id="k8sContext" placeholder="Context" aria-label="Context name" style="min-width:110px" />
-            <button class="btn" id="k8sSwitch" type="button">Switch context</button></span>
+          <input id="k8sContext" placeholder="Context" aria-label="Context name" style="min-width:110px" />
+          <button class="btn" id="k8sSwitch" type="button">Switch context</button>
           <button class="tab" id="k8sRefresh">↻ Refresh</button>
         </div>
         <div class="cards" id="k8sCards"></div>
@@ -351,37 +340,8 @@
         <table><thead><tr><th>When</th><th>Repository</th><th>Product</th><th>Version</th><th>Status</th><th>Reports</th></tr></thead><tbody id="crHist"></tbody></table>
       </div>
     </div>
-
-    <div class="view" id="view-admin">
-      <div class="page">
-        <div class="bar"><div><h2>Administration</h2><div class="hint" id="admInfo">Local accounts, audit log and authentication status.</div></div></div>
-        <div class="section">Accounts</div>
-        <div class="form-row">
-          <label class="field">Username<input id="uName" autocomplete="off" /></label>
-          <label class="field">Display name<input id="uDisplay" autocomplete="off" /></label>
-          <label class="field">Role<select id="uRole"><option value="reader">reader</option><option value="admin">admin</option></select></label>
-          <label class="field">Password<input id="uPass" type="password" placeholder="min 8 chars; blank keeps current" autocomplete="new-password" /></label>
-          <button class="btn primary" id="uSave" type="button">Save account</button>
-        </div>
-        <table><thead><tr><th>Username</th><th>Display name</th><th>Role</th><th></th></tr></thead><tbody id="uBody"></tbody></table>
-        <div class="section">Audit log <button class="btn" id="audRefresh" type="button">↻</button></div>
-        <table><thead><tr><th>When</th><th>Action</th><th>User</th><th>Role</th><th>Path</th><th>Message</th><th>IP</th></tr></thead><tbody id="audBody"></tbody></table>
-        <div class="section">Authentication status</div>
-        <div class="kv" id="diagBox"></div>
-      </div>
-    </div>
   </main>
 
-  <div class="overlay" id="loginOverlay">
-    <form class="login" id="loginForm">
-      <h2>Sign in</h2>
-      <div class="hint">BWCE AI Integration Generator</div>
-      <label class="field">Username<input id="lgUser" autocomplete="username" required /></label>
-      <label class="field">Password<input id="lgPass" type="password" autocomplete="current-password" required /></label>
-      <div class="err" id="lgErr"></div>
-      <button class="btn primary" type="submit" id="lgBtn">Sign in</button>
-    </form>
-  </div>
   <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -506,7 +466,6 @@
     let data = null;
     try { data = await res.json(); } catch (e) { data = null; }
     if (!res.ok) {
-      if (res.status === 401 && path !== "/api/login") showLogin("Please sign in.");
       const err = new Error((data && (data.detail || data.message || data.error)) || ("HTTP " + res.status));
       err.data = data; err.status = res.status;
       throw err;
@@ -514,48 +473,11 @@
     return data;
   }
 
-  let me = null;
   function toast(msg, good) {
     const t = $("toast");
     t.textContent = msg; t.className = "toast show " + (good ? "good" : "bad");
     clearTimeout(toast.h); toast.h = setTimeout(function () { t.className = "toast"; }, 4200);
   }
-  function isAdmin() { return !!(me && me.role === "admin"); }
-  function showLogin(msg) {
-    $("lgErr").textContent = msg || "";
-    $("loginOverlay").classList.add("show");
-    setTimeout(function () { $("lgUser").focus(); }, 50);
-  }
-  function renderUser() {
-    const box = $("userBox");
-    box.innerHTML = (me && me.authenticated) ? '<span class="who">' + escapeHtml(me.displayName || me.username) + '</span><span class="role">' +
-      escapeHtml(me.role) + "</span>" + (me.authEnabled ? '<button class="btn" id="logoutBtn" type="button">Sign out</button>' : "") : "";
-    $("adminTab").style.display = isAdmin() ? "" : "none";
-    Array.prototype.forEach.call(document.querySelectorAll(".admin-only"), function (x) { x.style.display = isAdmin() ? "" : "none"; });
-    const lo = $("logoutBtn");
-    if (lo) lo.addEventListener("click", logout);
-  }
-  async function loadSession() {
-    try { me = await call("GET", "/api/session"); } catch (e) { me = null; }
-    renderUser();
-    if (me && me.authEnabled && !me.authenticated) { showLogin(); return; }
-    initSession();
-  }
-  async function logout() {
-    try { await call("POST", "/api/logout", {}); } catch (e) { /* the cookie is cleared either way */ }
-    me = null; renderUser(); showView("chat"); showLogin();
-  }
-  $("loginForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    $("lgBtn").disabled = true; $("lgErr").textContent = "";
-    try {
-      await call("POST", "/api/login", { username: $("lgUser").value, password: $("lgPass").value });
-      $("lgPass").value = "";
-      $("loginOverlay").classList.remove("show");
-      await loadSession();
-    } catch (err) { $("lgErr").textContent = err.message; }
-    finally { $("lgBtn").disabled = false; }
-  });
 
   async function initSession() {
     messagesEl.innerHTML = ""; resultBox.innerHTML = "";
@@ -805,13 +727,12 @@
       };
       $("k8sCards").innerHTML = card("Deployments ready", s.deployments) + card("Pods ready", s.pods) + card("Services", s.services) +
         card("Recent events", { total: (st.recent_events || []).length });
-      const adm = isAdmin();
       $("k8sDeps").innerHTML = (st.deployments || []).map(function (d) {
         const n = escapeHtml(d.name);
         return '<tr><td class="mono">' + n + "</td><td>" + pill(d.replicas_ready + "/" + d.replicas_desired, d.is_ready ? "ok" : "warn") + '</td><td class="mono">' +
           escapeHtml(d.image) + "</td><td>" + when(d.created_at) + '</td><td style="white-space:nowrap"><button class="btn" data-k8s="rollout" data-name="' + n + '">Rollout</button> ' +
-          (adm ? '<button class="btn" data-k8s="scale" data-name="' + n + '" data-replicas="' + escapeHtml(d.replicas_desired) + '">Scale</button> ' +
-            '<button class="btn danger" data-k8s="restart" data-name="' + n + '">Restart</button>' : "") + "</td></tr>";
+          '<button class="btn" data-k8s="scale" data-name="' + n + '" data-replicas="' + escapeHtml(d.replicas_desired) + '">Scale</button> ' +
+          '<button class="btn danger" data-k8s="restart" data-name="' + n + '">Restart</button></td></tr>';
       }).join("") || '<tr><td colspan="5" class="hint">No deployments</td></tr>';
       $("k8sPods").innerHTML = (st.pods || []).map(function (p) {
         const n = escapeHtml(p.name);
@@ -895,46 +816,6 @@
   });
   $("crHistRefresh").addEventListener("click", loadReviewHistory);
 
-  async function loadAdmin() {
-    try {
-      const res = await Promise.all([call("GET", "/api/users"), call("GET", "/api/auditlog?limit=200"), call("GET", "/api/auth/diagnostics")]);
-      const u = res[0], a = res[1], d = res[2];
-      $("uBody").innerHTML = (u.users || []).map(function (x) {
-        const n = escapeHtml(x.username);
-        return '<tr><td class="mono">' + n + "</td><td>" + escapeHtml(x.displayName) + "</td><td>" + pill(x.role, x.role === "admin" ? "ok" : "") +
-          '</td><td style="white-space:nowrap"><button class="btn" data-edit="' + n + '" data-dn="' + escapeHtml(x.displayName) + '" data-role="' + escapeHtml(x.role) +
-          '">Edit</button> <button class="btn danger" data-del="' + n + '">Delete</button></td></tr>';
-      }).join("");
-      $("audBody").innerHTML = (a.entries || []).map(function (x) {
-        return "<tr><td>" + when(x.timestamp) + "</td><td>" + pill(x.action, /denied|failed|locked/.test(x.action) ? "bad" : "") + '</td><td class="mono">' + escapeHtml(x.username) +
-          "</td><td>" + escapeHtml(x.role) + '</td><td class="mono">' + escapeHtml(x.path) + "</td><td>" + escapeHtml(x.message) + '</td><td class="mono">' + escapeHtml(x.ip) + "</td></tr>";
-      }).join("") || '<tr><td colspan="7" class="hint">No entries</td></tr>';
-      $("diagBox").innerHTML = Object.keys(d).map(function (k) {
-        return '<span class="k">' + escapeHtml(k) + '</span><span class="v">' + escapeHtml(Array.isArray(d[k]) ? d[k].join(", ") : String(d[k])) + "</span>";
-      }).join("");
-    } catch (e) { $("admInfo").textContent = "Could not load: " + e.message; }
-  }
-  $("uSave").addEventListener("click", async function () {
-    try {
-      const d = await call("POST", "/api/users", { username: $("uName").value.trim(), displayName: $("uDisplay").value.trim(), role: $("uRole").value, password: $("uPass").value });
-      $("uPass").value = ""; toast("Saved " + d.user.username + " (" + d.user.role + ")", true); loadAdmin();
-    } catch (e) { toast(e.message); }
-  });
-  $("view-admin").addEventListener("click", async function (e) {
-    const ed = e.target.closest("button[data-edit]"), del = e.target.closest("button[data-del]");
-    if (ed) {
-      $("uName").value = ed.getAttribute("data-edit"); $("uDisplay").value = ed.getAttribute("data-dn");
-      $("uRole").value = ed.getAttribute("data-role"); $("uPass").value = ""; $("uPass").focus();
-    }
-    if (del) {
-      const u = del.getAttribute("data-del");
-      if (me && u.toLowerCase() === String(me.username).toLowerCase()) { toast("You cannot delete the account you are signed in with."); return; }
-      if (!confirm("Delete account " + u + "?")) return;
-      try { await call("DELETE", "/api/users?username=" + encodeURIComponent(u)); toast("Deleted " + u, true); loadAdmin(); } catch (err) { toast(err.message); }
-    }
-  });
-  $("audRefresh").addEventListener("click", loadAdmin);
-
   function showView(v) {
     Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"), function (t) { t.classList.toggle("active", t.getAttribute("data-view") === v); });
     Array.prototype.forEach.call(document.querySelectorAll(".view"), function (x) { x.classList.toggle("active", x.id === "view-" + v); });
@@ -942,7 +823,6 @@
     if (v === "tracker") loadTracker();
     if (v === "k8s") loadK8s();
     if (v === "review") { loadReviewHistory(); if (!tracker.records.length) loadTracker(); }
-    if (v === "admin") loadAdmin();
   }
   Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"), function (t) {
     t.addEventListener("click", function () { showView(t.getAttribute("data-view")); });
@@ -962,7 +842,7 @@
   $("resetBtn").addEventListener("click", initSession);
   generateBtn.addEventListener("click", generate);
 
-  loadSession();
+  initSession();
 </script>
 </body>
 </html>

@@ -269,29 +269,28 @@ activity. Its output is byte-identical to the reference Python generator for the
 | Extra endpoints | `GET /api/tracker` (registry rows with GitHub links), `POST /api/templates/suggest` (ranked templates) |
 | CI/CD files | `.github/workflows/ci.yml`, `Jenkinsfile`, `k8s/deployment-<env>.yaml`, `config/runtime-<env>.json` — byte-identical to the reference `CICDScaffolder`; templates live in `config/ops-programs.json` (`cicd.templates`), off with `GENERATE_CICD=false` |
 | IKD registry | Every generation registers `<interface_id>:<repo>` / `<scenario_id>:<repo>` (replacing the repo's previous entry, skipped for config-only) in `ikd_registry`; `GET /api/ikd?kind=InterfaceIDs\|ScenarioIDs` returns the reference `IKD_*.txt` content |
-| UI | `static/chat-github.html` — sign-in, chat, templates, tracker + schema upload, Kubernetes, code review and admin tabs |
+| UI | `static/chat-github.html` — chat, templates, tracker + schema upload, Kubernetes and code review tabs |
+| Access control | Done by Kong in front of the app; the app has no sign-in, accounts, roles or audit log (see below) |
 
 ### Operations (ported from the reference generator)
 
-All logic is Flogo flows; data-shaped logic (Kubernetes response mapping, auth decisions, request planning, CI/CD
-rendering) runs as **jq programs** (TIBCO `json.jq`) loaded at startup from `config/ops-programs.json` into
-shared data, so one generic flow serves many endpoints. Only OOTB activities are used (REST, JWT, PostgreSQL,
-Shared Data, XML-to-JSON, Mapper) plus the Git Repo Scaffolder.
+All logic is Flogo flows; data-shaped logic (Kubernetes response mapping, request planning, CI/CD rendering) runs
+as **jq programs** (TIBCO `json.jq`) loaded at startup from `config/ops-programs.json` into shared data, so one
+generic flow serves many endpoints. Only OOTB activities are used (REST, PostgreSQL, Shared Data, XML-to-JSON,
+Mapper) plus the Git Repo Scaffolder.
 
 | Area | Endpoints | Notes |
 |------|-----------|-------|
-| Auth | `POST /api/login`, `POST /api/logout`, `GET /api/session` | Local accounts (bcrypt via pgcrypto), HS256 JWT in an HttpOnly `session` cookie (also accepted as `Authorization: Bearer`), `X-API-Key` = admin, lockout after `AUTH_LOGIN_MAX_ATTEMPTS` for `AUTH_LOGIN_LOCKOUT_SECONDS`. Every other endpoint answers 401 (`UNAUTHENTICATED`) / 403 (`FORBIDDEN`, audited) like the reference guard. Public: `/`, `/health`, `/api/login`, `/api/logout`, `/api/session` |
-| Admin | `GET/POST/DELETE /api/users`, `GET /api/auditlog?limit=`, `GET /api/auth/diagnostics` | Users and diagnostics are admin-only; the audit log keeps the newest 2000 entries (login, logout, login_failed, login_locked_out, access_denied, user_upsert, user_delete, k8s_*, code_review_run) |
-| Kubernetes | `GET /k8s/{resource}` (health, context, status, deployments, pods, services, events), `GET /k8s/{resource}/{name}`, `GET /k8s/{resource}/{name}/{view}` (rollout, logs, port-forward), `POST /k8s/deployments/{name}/{action}` (scale, restart), `POST /k8s/context/switch` | Same URLs as the reference; the route selects the operation (`k8s.routes` in `config/ops-programs.json`, anything else is 404). Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token, ca, insecure); scale/restart/switch are admin-only and audited |
+| Kubernetes | `GET /k8s/{resource}` (health, context, status, deployments, pods, services, events), `GET /k8s/{resource}/{name}`, `GET /k8s/{resource}/{name}/{view}` (rollout, logs, port-forward), `POST /k8s/deployments/{name}/{action}` (scale, restart), `POST /k8s/context/switch` | Same URLs as the reference; the route selects the operation (`k8s.routes` in `config/ops-programs.json`, anything else is 404). Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token, ca, insecure); restrict the `POST` routes (scale, restart, switch) in Kong if only operators may use them |
 | Code review | `POST /api/codereview/token`, `POST /api/codereview/run`, `GET /api/codereview/history`, `GET /api/codereview/network-debug` | intginvent token cached in shared data, one retry with a refreshed token, history (newest 500) in PostgreSQL, report links extracted and query strings redacted |
 | Schemas | `POST /api/schemas/upload/{kind}` (source, target, batch) | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); XML is validated, files are committed into `<repo>.module/Schemas` or `Service Descriptors` in one commit, a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
 
 Flow structure (Flogo designer): every REST handler is an operation of the embedded API definition
 `specs/bwce-ai-generator-github-api.yaml` (also served as `/openapi.json`, rendered by `/docs`), one handler per
-flow, named after the flow. Each handler maps the request (`headers`, `pathParams`, `queryParams`, `body`) to flow
-inputs and the flow's `code` + `responseBody` outputs to the reply. Endpoints that share logic are thin flows over a
-subflow: `root_GET`, `docs_GET`, `openapi_json_GET` → `StaticFile`; the five Kubernetes endpoints → `K8sOperation`.
-Shared subflows: `AuthGuard`, `WriteAudit`, `HttpCall`, `CodeReviewToken`, `RecordCodeReview`, `ExtractSpecCore`.
+flow, named after the flow. Each handler maps the request (`pathParams`, `queryParams`, `body`) to the inputs the
+flow declares and the flow's `code` + `responseBody` outputs to the reply. `root_GET`, `docs_GET` and
+`openapi_json_GET` read their file and return it; the five Kubernetes endpoints are thin flows over `K8sOperation`.
+Shared subflows: `HttpCall`, `CodeReviewToken`, `RecordCodeReview`, `ExtractSpecCore`.
 To add an endpoint, add the operation to the API definition first (the designer offers Method/Path from it), then
 its flow and handler.
 
@@ -299,16 +298,18 @@ Consolidation in this edition: the extraction pipeline duplicated in `/extract` 
 `ExtractSpecCore` subflow; the Return/Reply pairs of `/generate` and `/extract` are one Return each (the MCP tools
 read `responseBody.body`); the pass-through `BuildRepoName` task, the unused `GetAppConfig` lookup, three unused
 properties, duplicate import aliases, the never-bound `LLMProvider` connection and the unused File Write import
-were removed.
+were removed. With access control in Kong, the in-app authentication went too: the login, session, user,
+audit-log and diagnostics endpoints, the `AuthGuard`, `WriteAudit` and `StaticFile` subflows, the guard and audit
+steps in every flow, the JWT import, the auth properties, the MCP server token, the alias mappings loaded at
+startup but never read, and flow inputs nothing used (47 → 36 flows, 31 → 23 endpoints, 71 → 58 properties).
 
 Build and run:
 
 ```bash
 fcli build-exe -f bwce-ai-generator-github.flogo -c flogo-studio-2265 -n bwce-ai-generator-github -o .
-FLOGO_APP_PROPS_ENV=auto GITHUB_TOKEN=<fine-grained PAT: contents rw> AUTH_API_KEY=<random> \
-  BOOTSTRAP_ADMIN_USERNAME=admin BOOTSTRAP_ADMIN_PASSWORD=<initial password> ./bwce-ai-generator-github
-AUTH_API_KEY=<same> bash test/e2e-github.sh    # 15 end-to-end checks (writes one folder to the target repo)
-AUTH_API_KEY=<same> bash test/e2e-ops.sh       # auth, admin, Kubernetes, code review, schemas, IKD
+FLOGO_APP_PROPS_ENV=auto GITHUB_TOKEN=<fine-grained PAT: contents rw> ./bwce-ai-generator-github
+bash test/e2e-github.sh    # 15 end-to-end checks (writes one folder to the target repo)
+bash test/e2e-ops.sh       # Kubernetes, code review, schemas, IKD (optional: E2E_REPO=<repo> K8S_DEPLOYMENT=<name>)
 ```
 
 `bwce-ai-generator-github.flogo` is maintained directly (Flogo designer / FDA); it is the source of truth. When the
@@ -319,14 +320,20 @@ specs/bwce-ai-generator-github-api.yaml static/openapi-github.json`) and load th
 Key properties: `GITHUB_TOKEN` (env only, never stored), `TEMPLATE_REPO_URL`, `TEMPLATE_REF`, `TARGET_MODE`,
 `TARGET_REPO_URL`, `TARGET_OWNER_URL`, `TARGET_BRANCH`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`,
 `TEMPLATE_REGISTRY=config/ci-bwcetemplates.json`, `VECTOR_COLLECTION=BWCECiTemplates768`.
-Operations: `AUTH_ENABLED` (default true), `AUTH_API_KEY`, `SESSION_SIGNING_KEY` (random per process when empty —
-set it when running more than one instance), `SESSION_TTL_SECONDS` (7200), `HTTPS_ENABLED` (adds `Secure` to the
-cookie), `BOOTSTRAP_ADMIN_USERNAME`/`_PASSWORD`/`_DISPLAY_NAME` (creates the first admin once), `MCP_AUTH_TYPE`
-(`None` \| `API Key` \| `JWT Token`) + `MCP_AUTH_TOKEN`, `K8S_CONTEXTS`, `K8S_CONTEXT`, `CODE_REVIEW_BASE_URL`,
+Operations: `K8S_CONTEXTS`, `K8S_CONTEXT`, `CODE_REVIEW_BASE_URL`,
 `CODE_REVIEW_USERNAME`/`_PASSWORD`/`_USERID`/`_USERTYPE`/`_COOKIE`, `CODE_REVIEW_VERIFY_SSL`,
 `CODE_REVIEW_TOKEN_METHOD` (`POST`; `GET` matches the reference but puts the password in the URL),
 `OPS_PROGRAMS=config/ops-programs.json`, `GENERATE_CICD`. Secrets belong in the environment, not in the `.flogo`.
 
-Differences from the reference: Entra ID SSO is not ported; passwords must have 8+ characters; the code review
-network check infers DNS/TCP/TLS from one HTTP probe; rollout status is a snapshot (no blocking wait); schema upload
-takes JSON instead of multipart and requires a previously generated repository (404 otherwise).
+Differences from the reference: sign-in, accounts, roles and the audit log (Entra ID SSO included) are left to Kong;
+the code review network check infers DNS/TCP/TLS from one HTTP probe; rollout status is a snapshot (no blocking
+wait); schema upload takes JSON instead of multipart and requires a previously generated repository (404 otherwise).
+
+### Access control (Kong)
+
+The UI and the API are exposed through Kong, which authenticates and authorizes every request. The app trusts what
+Kong forwards: it has no sign-in, accounts, sessions, roles or audit log, and neither the REST port (:9999) nor the
+MCP server (:8081) checks credentials. Reach :9999 only through Kong, and keep :8081 internal or behind Kong as well.
+To limit who may scale or restart deployments or switch the Kubernetes context, restrict the `POST /k8s/...` routes
+in Kong (for example with the ACL plugin). A database created by an earlier version still has the unused account and
+audit tables; drop them with `DROP TABLE IF EXISTS public.app_user, public.login_attempt, public.audit_log;`.

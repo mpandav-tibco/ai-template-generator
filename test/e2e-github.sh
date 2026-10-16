@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 # End-to-end API suite for bwce-ai-generator-github (REST 9999, MCP 8081).
-# Requires AUTH_API_KEY (the app's AUTH_API_KEY) when authentication is enabled.
 set -u
 B=http://localhost:9999
 P=0; F=0
 ok()   { P=$((P+1)); echo "PASS  $1"; }
 bad()  { F=$((F+1)); echo "FAIL  $1  :: $2"; }
 jq_()  { python3 -c "import json,sys; d=json.load(sys.stdin); print(eval(sys.argv[1]))" "$1"; }
-# The key goes through a curl config file so it never shows up in the process list.
-CURLRC=$(mktemp); trap 'rm -f "$CURLRC"' EXIT
-[ -n "${AUTH_API_KEY:-}" ] && printf 'header = "X-API-Key: %s"\n' "$AUTH_API_KEY" > "$CURLRC"
-curl() { command curl -K "$CURLRC" "$@"; }
 post() { curl -s -X POST "$B$1" -H 'Content-Type: application/json' -d "$2"; }
 
 # 1. health + catalog

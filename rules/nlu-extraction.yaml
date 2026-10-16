@@ -9,7 +9,7 @@
 #
 # NOTE: The rule engine's `matches` operator is boolean (no capture groups), so
 # these rules SIGNAL which field a token belongs to; the LLM lifts the literal
-# value. Field canonicalisation still happens downstream in alias-normalization.yaml.
+# value. Field values are normalised later by the NormalizeSpec step of generate_POST.
 # ─────────────────────────────────────────────────────────────────────────────
 rules:
 
