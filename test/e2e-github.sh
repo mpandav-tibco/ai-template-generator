@@ -67,4 +67,20 @@ code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE $B/api/tracker/.hidden)
 code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE $B/api/tracker/not-generated-xyz)
 [ "$code" = 404 ] && ok "cleanup of an unknown repository -> 404" || bad "cleanup unknown repository" "$code"
 
+# 10. MCP: generate_code takes target_mode; the spec generated above is answered from the registry, not published again
+M=http://localhost:8081/mcp
+mcp() {  # mcp <method> <params>: one JSON-RPC call in a new MCP session
+  local ct='Content-Type: application/json' ac='Accept: application/json, text/event-stream' sid
+  sid=$(curl -s -D - -o /dev/null -H "$ct" -H "$ac" -X POST $M -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"e2e","version":"1"}}}' \
+    | awk -F': ' 'tolower($1)=="mcp-session-id"{print $2}' | tr -d '\r')
+  curl -s -o /dev/null -H "$ct" -H "$ac" -H "Mcp-Session-Id: $sid" -X POST $M -d '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+  curl -s -H "$ct" -H "$ac" -H "Mcp-Session-Id: $sid" -X POST $M -d "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"$1\",\"params\":$2}" \
+    | sed -n 's/^data: //p;/^{/p' | head -1
+}
+tm=$(mcp tools/list '{}' | jq_ "next(t for t in d['result']['tools'] if t['name']=='generate_code')['inputSchema']['properties']['target_mode']['enum']")
+[ "$tm" = "['subfolder', 'newRepo']" ] && ok "MCP generate_code accepts target_mode" || bad "MCP target_mode" "$tm"
+md=$(mcp tools/call "{\"name\":\"generate_code\",\"arguments\":{\"spec\":$spec,\"target_mode\":\"newRepo\"}}" \
+  | jq_ "(lambda x: str(x.get('duplicate'))+'|'+x.get('target_mode',''))(json.loads(d['result']['content'][0]['text']))")
+[ "$md" = "True|subfolder" ] && ok "MCP generate_code of a generated spec -> duplicate in its stored location" || bad "MCP duplicate" "$md"
+
 echo; echo "$P passed, $F failed"
