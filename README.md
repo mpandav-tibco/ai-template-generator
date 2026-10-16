@@ -263,22 +263,57 @@ activity. Its output is byte-identical to the reference Python generator for the
 |--------|-----------|
 | Repository name | `[in<area>-]src-object-target[-uid][-country]-itype`, product-area prefix map and `REST_SERVICE`/`SOAP_SERVICE` → `service`, max 50 chars (400 otherwise) |
 | Template selection | Requested template if it exists in the catalog, otherwise Weaviate **hybrid** (BM25 + vector, α 0.25) over the 37-template catalog; the chat transcript is passed as `context` so transport hints ("from SFTP") count |
-| Output layout | `<TARGET_REPO_URL>/<repo>/code/<repo>/…` + `<repo>/configs/generation.properties`, `generation-metadata.json` |
+| Output layout | `<TARGET_REPO_URL>/<repo>/code/<repo>/…` + `<repo>/configs/generation.properties`, `generation-metadata.json` + CI/CD files (below) |
 | Target modes | `TARGET_MODE=subfolder` (one shared repo, default) or `newRepo` (one repository per integration under `TARGET_OWNER_URL`) |
 | Config-only | `config_only:true` refreshes only `configs/` and keeps the code |
 | Extra endpoints | `GET /api/tracker` (registry rows with GitHub links), `POST /api/templates/suggest` (ranked templates) |
-| UI | `static/chat-github.html` — chat, product area, template suggestions, result timeline, Templates and Tracker tabs |
+| CI/CD files | `.github/workflows/ci.yml`, `Jenkinsfile`, `k8s/deployment-<env>.yaml`, `config/runtime-<env>.json` — byte-identical to the reference `CICDScaffolder`; templates live in `config/ops-programs.json` (`cicd.templates`), off with `GENERATE_CICD=false` |
+| IKD registry | Every generation registers `<interface_id>:<repo>` / `<scenario_id>:<repo>` (replacing the repo's previous entry, skipped for config-only) in `ikd_registry`; `GET /api/ikd?kind=InterfaceIDs\|ScenarioIDs` returns the reference `IKD_*.txt` content |
+| UI | `static/chat-github.html` — sign-in, chat, templates, tracker + schema upload, Kubernetes, code review and admin tabs |
+
+### Operations (ported from the reference generator)
+
+All logic is Flogo flows; data-shaped logic (Kubernetes response mapping, auth decisions, request planning, CI/CD
+rendering) runs as **jq programs** (TIBCO `json.jq`) loaded at startup from `config/ops-programs.json` into
+shared data, so one generic flow serves many endpoints. Only OOTB activities are used (REST, JWT, PostgreSQL,
+Shared Data, XML-to-JSON, Mapper) plus the Git Repo Scaffolder.
+
+| Area | Endpoints | Notes |
+|------|-----------|-------|
+| Auth | `POST /api/login`, `POST /api/logout`, `GET /api/session` | Local accounts (bcrypt via pgcrypto), HS256 JWT in an HttpOnly `session` cookie (also accepted as `Authorization: Bearer`), `X-API-Key` = admin, lockout after `AUTH_LOGIN_MAX_ATTEMPTS` for `AUTH_LOGIN_LOCKOUT_SECONDS`. Every other endpoint answers 401 (`UNAUTHENTICATED`) / 403 (`FORBIDDEN`, audited) like the reference guard. Public: `/`, `/health`, `/api/login`, `/api/logout`, `/api/session` |
+| Admin | `GET/POST/DELETE /api/users`, `GET /api/auditlog?limit=`, `GET /api/auth/diagnostics` | Users and diagnostics are admin-only; the audit log keeps the newest 2000 entries (login, logout, login_failed, login_locked_out, access_denied, user_upsert, user_delete, k8s_*, code_review_run) |
+| Kubernetes | `/k8s/health`, `/k8s/context`, `/k8s/context/switch`, `/k8s/status`, `/k8s/deployments[/{name}[/scale\|/restart\|/rollout]]`, `/k8s/pods[/{name}[/logs\|/port-forward]]`, `/k8s/services`, `/k8s/events` | Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token, ca, insecure); scale/restart/switch are admin-only and audited |
+| Code review | `POST /api/codereview/token`, `POST /api/codereview/run`, `GET /api/codereview/history`, `GET /api/codereview/network-debug` | intginvent token cached in shared data, one retry with a refreshed token, history (newest 500) in PostgreSQL, report links extracted and query strings redacted |
+| Schemas | `POST /api/schemas/upload/{source\|target\|batch}` | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); XML is validated, files are committed into `<repo>.module/Schemas` or `Service Descriptors` in one commit, a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
+
+Consolidation in this edition: the three identical static-file flows are one `static_GET`; the extraction pipeline
+duplicated in `/extract` and the chat is one `ExtractSpecCore` subflow; the pass-through `BuildRepoName` task,
+the unused `GetAppConfig` lookup, three unused properties and the duplicate import aliases were removed. Shared
+subflows: `AuthGuard`, `WriteAudit`, `HttpCall`, `CodeReviewToken`, `RecordCodeReview`.
 
 Build and run:
 
 ```bash
-python3 tools/build-github-app.py      # regenerates bwce-ai-generator-github.flogo from HEAD via the FDA CLI
 fcli build-exe -f bwce-ai-generator-github.flogo -c flogo-studio-2265 -n bwce-ai-generator-github -o .
-FLOGO_APP_PROPS_ENV=auto GITHUB_TOKEN=<fine-grained PAT: contents rw> ./bwce-ai-generator-github
-bash test/e2e-github.sh                 # 15 end-to-end checks (writes one folder to the target repo)
+FLOGO_APP_PROPS_ENV=auto GITHUB_TOKEN=<fine-grained PAT: contents rw> AUTH_API_KEY=<random> \
+  BOOTSTRAP_ADMIN_USERNAME=admin BOOTSTRAP_ADMIN_PASSWORD=<initial password> ./bwce-ai-generator-github
+AUTH_API_KEY=<same> bash test/e2e-github.sh    # 15 end-to-end checks (writes one folder to the target repo)
+AUTH_API_KEY=<same> bash test/e2e-ops.sh       # auth, admin, Kubernetes, code review, schemas, IKD
 ```
+
+`bwce-ai-generator-github.flogo` is maintained directly (Flogo designer / FDA); it is the source of truth.
 
 Key properties: `GITHUB_TOKEN` (env only, never stored), `TEMPLATE_REPO_URL`, `TEMPLATE_REF`, `TARGET_MODE`,
 `TARGET_REPO_URL`, `TARGET_OWNER_URL`, `TARGET_BRANCH`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`,
-`TEMPLATE_REGISTRY=config/ci-bwcetemplates.json` (regenerate with `tools/gen-template-catalog.py <library> <out>`),
-`VECTOR_COLLECTION=BWCECiTemplates768`.
+`TEMPLATE_REGISTRY=config/ci-bwcetemplates.json`, `VECTOR_COLLECTION=BWCECiTemplates768`.
+Operations: `AUTH_ENABLED` (default true), `AUTH_API_KEY`, `SESSION_SIGNING_KEY` (random per process when empty —
+set it when running more than one instance), `SESSION_TTL_SECONDS` (7200), `HTTPS_ENABLED` (adds `Secure` to the
+cookie), `BOOTSTRAP_ADMIN_USERNAME`/`_PASSWORD`/`_DISPLAY_NAME` (creates the first admin once), `MCP_AUTH_TYPE`
+(`None` \| `API Key` \| `JWT Token`) + `MCP_AUTH_TOKEN`, `K8S_CONTEXTS`, `K8S_CONTEXT`, `CODE_REVIEW_BASE_URL`,
+`CODE_REVIEW_USERNAME`/`_PASSWORD`/`_USERID`/`_USERTYPE`/`_COOKIE`, `CODE_REVIEW_VERIFY_SSL`,
+`CODE_REVIEW_TOKEN_METHOD` (`POST`; `GET` matches the reference but puts the password in the URL),
+`OPS_PROGRAMS=config/ops-programs.json`, `GENERATE_CICD`. Secrets belong in the environment, not in the `.flogo`.
+
+Differences from the reference: Entra ID SSO is not ported; passwords must have 8+ characters; the code review
+network check infers DNS/TCP/TLS from one HTTP probe; rollout status is a snapshot (no blocking wait); schema upload
+takes JSON instead of multipart and requires a previously generated repository (404 otherwise).

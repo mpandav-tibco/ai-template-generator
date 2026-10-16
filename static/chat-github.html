@@ -30,10 +30,12 @@
   header .spacer { flex: 1; }
   header button, .tab {
     background: var(--panel-2); color: var(--muted); border: 1px solid var(--border); border-radius: 8px;
-    padding: 7px 12px; cursor: pointer; font-size: 13px;
+    padding: 7px 11px; cursor: pointer; font-size: 13px; white-space: nowrap;
   }
   header button:hover, .tab:hover { color: var(--txt); border-color: var(--accent-2); }
-  .tabs { display: flex; gap: 6px; }
+  .tabs { display: flex; gap: 5px; flex-wrap: nowrap; }
+  header .userbox { white-space: nowrap; }
+  @media (max-width: 1360px) { header .sub { display: none; } }
   .tab.active { color: #06131d; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; font-weight: 700; }
 
   main { flex: 1; display: flex; overflow: hidden; }
@@ -161,6 +163,40 @@
   td.mono { font-family: ui-monospace, monospace; }
   .badge { font-size: 11px; padding: 2px 7px; border-radius: 10px; border: 1px solid var(--ok); color: var(--ok); }
 
+  .userbox { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .userbox .who { color: var(--txt); }
+  .userbox .role { font-size: 10.5px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--accent-2); color: var(--accent-2); }
+  .btn { background: var(--panel-2); color: var(--txt); border: 1px solid var(--border); border-radius: 7px; padding: 6px 11px; cursor: pointer; font-size: 12px; }
+  .btn:hover { border-color: var(--accent-2); }
+  .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #06131d; border: none; font-weight: 700; }
+  .btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .overlay { position: fixed; inset: 0; background: rgba(5, 7, 10, .82); display: none; align-items: center; justify-content: center; z-index: 50; }
+  .overlay.show { display: flex; }
+  .login { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px; width: 340px; display: flex; flex-direction: column; gap: 10px; }
+  .login h2 { margin: 0; font-size: 16px; }
+  label.field { display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; gap: 4px; padding: 0;
+    border-bottom: none; font-size: 12px; color: var(--muted); }
+  label.field input, label.field select { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--txt); font-size: 13px; }
+  .err { color: var(--danger); font-size: 12px; min-height: 16px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 6px; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+  .stat .n { font-size: 22px; font-weight: 700; }
+  .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .stat.good .n { color: var(--ok); }
+  .stat.badh .n { color: var(--danger); }
+  .section { margin: 18px 0 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .logs { background: #0a0c10; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: ui-monospace, monospace; font-size: 11.5px; max-height: 320px; overflow: auto; white-space: pre-wrap; color: #c9d1d9; }
+  .form-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
+  .pill { font-size: 11px; padding: 2px 7px; border-radius: 10px; border: 1px solid var(--border); color: var(--muted); }
+  .pill.ok { border-color: var(--ok); color: var(--ok); }
+  .pill.bad { border-color: var(--danger); color: var(--danger); }
+  .pill.warn { border-color: var(--warn); color: var(--warn); }
+  .toast { position: fixed; bottom: 18px; right: 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; z-index: 60; display: none; max-width: 420px; }
+  .toast.show { display: block; }
+  .toast.bad { border-color: var(--danger); }
+  .toast.good { border-color: var(--ok); }
+
   @media (max-width: 860px) {
     #view-chat { flex-direction: column; }
     .chat { border-right: none; border-bottom: 1px solid var(--border); flex: 1 1 55%; }
@@ -180,8 +216,12 @@
       <button class="tab active" data-view="chat" role="tab">Chat</button>
       <button class="tab" data-view="templates" role="tab">Templates</button>
       <button class="tab" data-view="tracker" role="tab">Tracker</button>
+      <button class="tab" data-view="k8s" role="tab">Kubernetes</button>
+      <button class="tab" data-view="review" role="tab">Code Review</button>
+      <button class="tab" data-view="admin" role="tab" id="adminTab" style="display:none">Admin</button>
     </nav>
     <button id="resetBtn">↻ New conversation</button>
+    <div class="userbox" id="userBox"></div>
   </header>
 
   <main>
@@ -252,9 +292,97 @@
           <thead><tr><th>Generated</th><th>Repository</th><th>Template</th><th>Flow</th><th>Type</th><th>Env</th><th>Product area</th><th>Status</th></tr></thead>
           <tbody id="trkBody"></tbody>
         </table>
+        <div class="section">Upload schemas into a generated repository</div>
+        <div class="form-row">
+          <label class="field">Repository<select id="scRepo" aria-label="Repository"></select></label>
+          <label class="field">Type<select id="scOp" aria-label="Upload type">
+            <option value="source">Source XSD (generates the integration wrapper)</option>
+            <option value="target">Target XSD / WSDL</option>
+            <option value="batch">Batch (sources + targets)</option></select></label>
+          <label class="field">Source XSD<input type="file" id="scSource" accept=".xsd" multiple /></label>
+          <label class="field">Target XSD / WSDL<input type="file" id="scTarget" accept=".xsd,.wsdl" multiple /></label>
+          <button class="btn primary" id="scUpload" type="button">Upload</button>
+        </div>
+        <div id="scResult" class="hint"></div>
+        <p class="hint">IKD registry export: <a href="/api/ikd?kind=InterfaceIDs" target="_blank" rel="noopener">IKD_InterfaceIDs</a> ·
+          <a href="/api/ikd?kind=ScenarioIDs" target="_blank" rel="noopener">IKD_ScenarioIDs</a></p>
+      </div>
+    </div>
+
+    <div class="view" id="view-k8s">
+      <div class="page">
+        <div class="bar">
+          <div><h2>Kubernetes</h2><div class="hint" id="k8sInfo">Loading…</div></div>
+          <div class="spacer" style="flex:1"></div>
+          <input id="k8sSelector" placeholder="Label selector (e.g. app=demo-app)" aria-label="Label selector" />
+          <span class="admin-only" style="display:none"><input id="k8sContext" placeholder="Context" aria-label="Context name" style="min-width:110px" />
+            <button class="btn" id="k8sSwitch" type="button">Switch context</button></span>
+          <button class="tab" id="k8sRefresh">↻ Refresh</button>
+        </div>
+        <div class="cards" id="k8sCards"></div>
+        <div class="section">Deployments</div>
+        <table><thead><tr><th>Name</th><th>Ready</th><th>Image</th><th>Created</th><th></th></tr></thead><tbody id="k8sDeps"></tbody></table>
+        <div class="section">Pods</div>
+        <table><thead><tr><th>Name</th><th>Phase</th><th>Ready</th><th>Restarts</th><th>Node</th><th></th></tr></thead><tbody id="k8sPods"></tbody></table>
+        <div class="section">Services</div>
+        <table><thead><tr><th>Name</th><th>Type</th><th>Cluster IP</th><th>Ports</th></tr></thead><tbody id="k8sSvcs"></tbody></table>
+        <div class="section">Recent events</div>
+        <table><thead><tr><th>Last seen</th><th>Type</th><th>Reason</th><th>Object</th><th>Message</th></tr></thead><tbody id="k8sEvents"></tbody></table>
+        <div class="section">Output <span class="hint" id="k8sOutTitle"></span></div>
+        <div class="logs" id="k8sOut">Use Logs, Rollout or Port-forward on a row.</div>
+      </div>
+    </div>
+
+    <div class="view" id="view-review">
+      <div class="page">
+        <div class="bar"><div><h2>Code review</h2><div class="hint">Runs the intginvent code quality check for a repository version.</div></div></div>
+        <div class="form-row">
+          <label class="field">Repository<input id="crRepo" list="crRepos" placeholder="repository name" /></label>
+          <datalist id="crRepos"></datalist>
+          <label class="field">Product<input id="crProduct" placeholder="product name" /></label>
+          <label class="field">Version<input id="crVersion" placeholder="e.g. 1.0.0" style="width:110px" /></label>
+          <label class="field" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="crDesign" /> BW design check</label>
+          <button class="btn primary" id="crRun" type="button">Run review</button>
+          <button class="btn" id="crToken" type="button">Check token</button>
+          <button class="btn" id="crNet" type="button">Network check</button>
+        </div>
+        <div id="crResult"></div>
+        <div class="section">History <button class="btn" id="crHistRefresh" type="button">↻</button></div>
+        <table><thead><tr><th>When</th><th>Repository</th><th>Product</th><th>Version</th><th>Status</th><th>Reports</th></tr></thead><tbody id="crHist"></tbody></table>
+      </div>
+    </div>
+
+    <div class="view" id="view-admin">
+      <div class="page">
+        <div class="bar"><div><h2>Administration</h2><div class="hint" id="admInfo">Local accounts, audit log and authentication status.</div></div></div>
+        <div class="section">Accounts</div>
+        <div class="form-row">
+          <label class="field">Username<input id="uName" autocomplete="off" /></label>
+          <label class="field">Display name<input id="uDisplay" autocomplete="off" /></label>
+          <label class="field">Role<select id="uRole"><option value="reader">reader</option><option value="admin">admin</option></select></label>
+          <label class="field">Password<input id="uPass" type="password" placeholder="min 8 chars; blank keeps current" autocomplete="new-password" /></label>
+          <button class="btn primary" id="uSave" type="button">Save account</button>
+        </div>
+        <table><thead><tr><th>Username</th><th>Display name</th><th>Role</th><th></th></tr></thead><tbody id="uBody"></tbody></table>
+        <div class="section">Audit log <button class="btn" id="audRefresh" type="button">↻</button></div>
+        <table><thead><tr><th>When</th><th>Action</th><th>User</th><th>Role</th><th>Path</th><th>Message</th><th>IP</th></tr></thead><tbody id="audBody"></tbody></table>
+        <div class="section">Authentication status</div>
+        <div class="kv" id="diagBox"></div>
       </div>
     </div>
   </main>
+
+  <div class="overlay" id="loginOverlay">
+    <form class="login" id="loginForm">
+      <h2>Sign in</h2>
+      <div class="hint">BWCE AI Integration Generator</div>
+      <label class="field">Username<input id="lgUser" autocomplete="username" required /></label>
+      <label class="field">Password<input id="lgPass" type="password" autocomplete="current-password" required /></label>
+      <div class="err" id="lgErr"></div>
+      <button class="btn primary" type="submit" id="lgBtn">Sign in</button>
+    </form>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
 
 <script>
   const REQUIRED = ["source_system", "target_system", "business_object", "interface_type"];
@@ -373,17 +501,61 @@
 
   async function call(method, path, body) {
     const opts = { method: method, headers: { "Content-Type": "application/json" } };
-    if (method !== "GET") opts.body = JSON.stringify(body || {});
+    if (method !== "GET" && method !== "DELETE") opts.body = JSON.stringify(body || {});
     const res = await fetch(path, opts);
     let data = null;
     try { data = await res.json(); } catch (e) { data = null; }
     if (!res.ok) {
-      const err = new Error((data && (data.message || data.error)) || ("HTTP " + res.status));
+      if (res.status === 401 && path !== "/api/login") showLogin("Please sign in.");
+      const err = new Error((data && (data.detail || data.message || data.error)) || ("HTTP " + res.status));
       err.data = data; err.status = res.status;
       throw err;
     }
     return data;
   }
+
+  let me = null;
+  function toast(msg, good) {
+    const t = $("toast");
+    t.textContent = msg; t.className = "toast show " + (good ? "good" : "bad");
+    clearTimeout(toast.h); toast.h = setTimeout(function () { t.className = "toast"; }, 4200);
+  }
+  function isAdmin() { return !!(me && me.role === "admin"); }
+  function showLogin(msg) {
+    $("lgErr").textContent = msg || "";
+    $("loginOverlay").classList.add("show");
+    setTimeout(function () { $("lgUser").focus(); }, 50);
+  }
+  function renderUser() {
+    const box = $("userBox");
+    box.innerHTML = (me && me.authenticated) ? '<span class="who">' + escapeHtml(me.displayName || me.username) + '</span><span class="role">' +
+      escapeHtml(me.role) + "</span>" + (me.authEnabled ? '<button class="btn" id="logoutBtn" type="button">Sign out</button>' : "") : "";
+    $("adminTab").style.display = isAdmin() ? "" : "none";
+    Array.prototype.forEach.call(document.querySelectorAll(".admin-only"), function (x) { x.style.display = isAdmin() ? "" : "none"; });
+    const lo = $("logoutBtn");
+    if (lo) lo.addEventListener("click", logout);
+  }
+  async function loadSession() {
+    try { me = await call("GET", "/api/session"); } catch (e) { me = null; }
+    renderUser();
+    if (me && me.authEnabled && !me.authenticated) { showLogin(); return; }
+    initSession();
+  }
+  async function logout() {
+    try { await call("POST", "/api/logout", {}); } catch (e) { /* the cookie is cleared either way */ }
+    me = null; renderUser(); showView("chat"); showLogin();
+  }
+  $("loginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    $("lgBtn").disabled = true; $("lgErr").textContent = "";
+    try {
+      await call("POST", "/api/login", { username: $("lgUser").value, password: $("lgPass").value });
+      $("lgPass").value = "";
+      $("loginOverlay").classList.remove("show");
+      await loadSession();
+    } catch (err) { $("lgErr").textContent = err.message; }
+    finally { $("lgBtn").disabled = false; }
+  });
 
   async function initSession() {
     messagesEl.innerHTML = ""; resultBox.innerHTML = "";
@@ -469,7 +641,7 @@
       ["Code generation", configOnly ? "skip" : "ok", configOnly ? "skipped (config only)" : d.files_total + " files, " + d.files_modified + " with tokens replaced, " + d.paths_renamed + " paths renamed"],
       ["Configuration export", "ok", "configs/generation.properties, configs/generation-metadata.json"],
       ["GitHub push", "ok", d.pushed ? ("commit " + String(d.commit_sha || "").slice(0, 7) + " via " + d.write_mode) : "no changes — repository already up to date"],
-      ["Registry & tracker", "ok", "generation " + (d.generation_id || "")],
+      ["Registry & tracker", "ok", "generation " + (d.generation_id || "") + (configOnly ? "" : " · IKD ids registered")],
       ["Notification", "ok", "team e-mail sent"]
     ];
     return '<ul class="timeline">' + steps.map(function (s) {
@@ -478,7 +650,8 @@
     }).join("") + "</ul>";
   }
   function artifacts(repo, configOnly) {
-    const items = (configOnly ? [] : ["code/" + repo + "/" + repo + ".module", "code/" + repo + "/" + repo + ".parent", "code/" + repo + "/" + repo, "code/" + repo + "/bwceLib"])
+    const items = (configOnly ? [] : ["code/" + repo + "/" + repo + ".module", "code/" + repo + "/" + repo + ".parent", "code/" + repo + "/" + repo, "code/" + repo + "/bwceLib",
+      ".github/workflows/ci.yml", "Jenkinsfile", "k8s/deployment-<env>.yaml", "config/runtime-<env>.json"])
       .concat(["configs/generation.properties", "configs/generation-metadata.json"]);
     return '<div class="artifacts"><div class="a-title">Published to ' + escapeHtml(repo) + '/</div><div class="a-list">' +
       items.map(function (a) { return '<span class="a-item">' + escapeHtml(a) + "</span>"; }).join("") + "</div></div>";
@@ -558,8 +731,13 @@
   let tracker = { records: [] };
   async function loadTracker() {
     $("trkInfo").textContent = "Loading…";
-    try { tracker = (await call("GET", "/api/tracker")) || { records: [] }; renderTracker(); }
+    try { tracker = (await call("GET", "/api/tracker")) || { records: [] }; renderTracker(); fillRepos(); }
     catch (e) { $("trkInfo").textContent = "Could not load tracker: " + e.message; }
+  }
+  function fillRepos() {
+    const names = (tracker.records || []).map(function (r) { return r.repo_name; }).filter(function (x, i, a) { return x && a.indexOf(x) === i; });
+    $("scRepo").innerHTML = names.map(function (n) { return '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + "</option>"; }).join("");
+    $("crRepos").innerHTML = names.map(function (n) { return '<option value="' + escapeHtml(n) + '"></option>'; }).join("");
   }
   function renderTracker() {
     const q = $("trkFilter").value.trim().toLowerCase();
@@ -579,11 +757,192 @@
   $("trkFilter").addEventListener("input", renderTracker);
   $("trkRefresh").addEventListener("click", loadTracker);
 
+  function readFiles(input) {
+    return Promise.all(Array.prototype.map.call(input.files || [], function (f) {
+      return new Promise(function (resolve, reject) {
+        const r = new FileReader();
+        r.onload = function () { resolve({ filename: f.name, content: r.result }); };
+        r.onerror = reject;
+        r.readAsText(f);
+      });
+    }));
+  }
+  $("scUpload").addEventListener("click", async function () {
+    const repo = $("scRepo").value, op = $("scOp").value;
+    if (!repo) { toast("Choose a repository"); return; }
+    try {
+      const src = await readFiles($("scSource")), tgt = await readFiles($("scTarget"));
+      let body;
+      if (op === "batch") body = { repository_name: repo, source_schemas: src, target_schemas: tgt };
+      else {
+        const f = (op === "source" ? src : tgt)[0];
+        if (!f) { toast("Choose a " + (op === "source" ? "source XSD" : "target XSD/WSDL") + " file"); return; }
+        body = { repository_name: repo, filename: f.filename, content: f.content };
+      }
+      $("scResult").textContent = "Uploading…";
+      const d = await call("POST", "/api/schemas/upload/" + op, body);
+      const gh = safeUrl(d.github_url);
+      $("scResult").innerHTML = "✓ " + escapeHtml(d.message) + " — " + (d.uploaded_files || []).map(function (f) { return pill(f.filename); }).join(" ") +
+        (gh ? ' · <a href="' + escapeHtml(gh) + '" target="_blank" rel="noopener">GitHub</a>' : "");
+    } catch (e) { $("scResult").textContent = "✗ " + e.message; }
+  });
+
+  function pill(text, cls) { return '<span class="pill ' + (cls || "") + '">' + escapeHtml(text) + "</span>"; }
+  function when(ts) { return escapeHtml(String(ts || "").replace("T", " ").replace("Z", "").slice(0, 19)); }
+  function link(u, label) { const s = safeUrl(u); return s ? '<a href="' + escapeHtml(s) + '" target="_blank" rel="noopener">' + escapeHtml(label || s) + "</a>" : ""; }
+
+  async function loadK8s() {
+    $("k8sInfo").textContent = "Loading…";
+    const sel = $("k8sSelector").value.trim();
+    try {
+      const st = await call("GET", "/k8s/status" + (sel ? "?app_label=" + encodeURIComponent(sel) : ""));
+      $("k8sInfo").innerHTML = "Context " + pill(st.context || "?", "ok") + " · namespace " + pill(st.namespace || "default");
+      const s = st.summary || {};
+      const card = function (label, o) {
+        const h = (o && o.health) || "";
+        return '<div class="stat ' + (h === "Healthy" ? "good" : h ? "badh" : "") + '"><div class="n">' + (o ? (o.ready != null ? o.ready + "/" + o.total : o.total) : 0) +
+          '</div><div class="l">' + escapeHtml(label + (h ? " · " + h : "")) + "</div></div>";
+      };
+      $("k8sCards").innerHTML = card("Deployments ready", s.deployments) + card("Pods ready", s.pods) + card("Services", s.services) +
+        card("Recent events", { total: (st.recent_events || []).length });
+      const adm = isAdmin();
+      $("k8sDeps").innerHTML = (st.deployments || []).map(function (d) {
+        const n = escapeHtml(d.name);
+        return '<tr><td class="mono">' + n + "</td><td>" + pill(d.replicas_ready + "/" + d.replicas_desired, d.is_ready ? "ok" : "warn") + '</td><td class="mono">' +
+          escapeHtml(d.image) + "</td><td>" + when(d.created_at) + '</td><td style="white-space:nowrap"><button class="btn" data-k8s="rollout" data-name="' + n + '">Rollout</button> ' +
+          (adm ? '<button class="btn" data-k8s="scale" data-name="' + n + '" data-replicas="' + escapeHtml(d.replicas_desired) + '">Scale</button> ' +
+            '<button class="btn danger" data-k8s="restart" data-name="' + n + '">Restart</button>' : "") + "</td></tr>";
+      }).join("") || '<tr><td colspan="5" class="hint">No deployments</td></tr>';
+      $("k8sPods").innerHTML = (st.pods || []).map(function (p) {
+        const n = escapeHtml(p.name);
+        return '<tr><td class="mono">' + n + "</td><td>" + pill(p.phase, p.phase === "Running" ? "ok" : "warn") + "</td><td>" + (p.is_ready ? pill("ready", "ok") : pill("not ready", "bad")) +
+          "</td><td>" + escapeHtml(p.restart_count) + '</td><td class="mono">' + escapeHtml(p.node || "") + '</td><td style="white-space:nowrap"><button class="btn" data-k8s="logs" data-name="' +
+          n + '">Logs</button> <button class="btn" data-k8s="portforward" data-name="' + n + '">Port-forward</button></td></tr>';
+      }).join("") || '<tr><td colspan="6" class="hint">No pods</td></tr>';
+      $("k8sSvcs").innerHTML = (st.services || []).map(function (v) {
+        return '<tr><td class="mono">' + escapeHtml(v.name) + "</td><td>" + escapeHtml(v.type) + '</td><td class="mono">' + escapeHtml(v.cluster_ip) + '</td><td class="mono">' +
+          escapeHtml((v.ports || []).map(function (p) { return p.port + "/" + p.protocol; }).join(", ")) + "</td></tr>";
+      }).join("") || '<tr><td colspan="4" class="hint">No services</td></tr>';
+      $("k8sEvents").innerHTML = (st.recent_events || []).map(function (ev) {
+        const o = ev.involved_object || {};
+        return "<tr><td>" + when(ev.last_timestamp) + "</td><td>" + pill(ev.type, ev.type === "Warning" ? "warn" : "") + "</td><td>" + escapeHtml(ev.reason) +
+          '</td><td class="mono">' + escapeHtml(o.kind + "/" + o.name) + "</td><td>" + escapeHtml(ev.message) + "</td></tr>";
+      }).join("") || '<tr><td colspan="5" class="hint">No recent events</td></tr>';
+    } catch (e) { $("k8sInfo").textContent = "Kubernetes unavailable: " + e.message; }
+  }
+  function k8sOut(title, text) { $("k8sOutTitle").textContent = title; $("k8sOut").textContent = text; }
+  $("view-k8s").addEventListener("click", async function (e) {
+    const b = e.target.closest("button[data-k8s]");
+    if (!b) return;
+    const op = b.getAttribute("data-k8s"), name = b.getAttribute("data-name"), n = encodeURIComponent(name);
+    try {
+      if (op === "logs") { const d = await call("GET", "/k8s/pods/" + n + "/logs?tail=200"); k8sOut("logs · " + name, d.logs || "(empty)"); }
+      else if (op === "portforward") { const d = await call("GET", "/k8s/pods/" + n + "/port-forward"); k8sOut("port-forward · " + name, d.command + "\n\n" + d.info); }
+      else if (op === "rollout") { const d = await call("GET", "/k8s/deployments/" + n + "/rollout"); k8sOut("rollout · " + name, d.status || d.message); }
+      else if (op === "scale") {
+        const r = prompt("Scale " + name + " to how many replicas?", b.getAttribute("data-replicas") || "1");
+        if (r === null) return;
+        const d = await call("POST", "/k8s/deployments/" + n + "/scale", { replicas: Number(r) });
+        toast(d.message, true); loadK8s();
+      } else if (op === "restart") {
+        if (!confirm("Restart all pods of " + name + "?")) return;
+        const d = await call("POST", "/k8s/deployments/" + n + "/restart", {});
+        toast(d.message, true); loadK8s();
+      }
+    } catch (err) { toast(err.message); }
+  });
+  $("k8sRefresh").addEventListener("click", loadK8s);
+  $("k8sSelector").addEventListener("keydown", function (e) { if (e.key === "Enter") loadK8s(); });
+  $("k8sSwitch").addEventListener("click", async function () {
+    const c = $("k8sContext").value.trim();
+    if (!c) return;
+    try { const d = await call("POST", "/k8s/context/switch", { context: c }); toast(d.message, true); loadK8s(); } catch (e) { toast(e.message); }
+  });
+
+  async function loadReviewHistory() {
+    try {
+      const d = await call("GET", "/api/codereview/history");
+      $("crHist").innerHTML = (d.entries || []).map(function (r) {
+        const reports = [link(r.master_html, "master"), link(r.app_html, "application")].filter(Boolean).join(" · ");
+        return "<tr><td>" + when(r.timestamp) + '</td><td class="mono">' + escapeHtml(r.repoName) + "</td><td>" + escapeHtml(r.productName) + "</td><td>" +
+          escapeHtml(r.version) + "</td><td>" + pill(r.status, r.status === "success" ? "ok" : "bad") + (r.error ? ' <span class="hint">' + escapeHtml(r.error) + "</span>" : "") +
+          "</td><td>" + reports + "</td></tr>";
+      }).join("") || '<tr><td colspan="6" class="hint">No runs yet</td></tr>';
+    } catch (e) { $("crHist").innerHTML = '<tr><td colspan="6" class="hint">' + escapeHtml(e.message) + "</td></tr>"; }
+  }
+  $("crRun").addEventListener("click", async function () {
+    const btn = $("crRun");
+    btn.disabled = true; $("crResult").innerHTML = '<div class="hint">Running code review…</div>';
+    try {
+      const d = await call("POST", "/api/codereview/run", { repoName: $("crRepo").value.trim(), productName: $("crProduct").value.trim(),
+        version: $("crVersion").value.trim(), checkbwdesign: $("crDesign").checked });
+      $("crResult").innerHTML = '<div class="result"><div>✓ ' + escapeHtml(d.message) + "</div>" +
+        kv([["Master report", link(d.master_html), true], ["Application report", link(d.app_html), true], ["Report links", String((d.links || []).length)]]) + "</div>";
+    } catch (e) { $("crResult").innerHTML = '<div class="result" style="border-color:var(--danger)">✗ ' + escapeHtml(e.message) + "</div>"; }
+    finally { btn.disabled = false; loadReviewHistory(); }
+  });
+  $("crToken").addEventListener("click", async function () {
+    try { const d = await call("POST", "/api/codereview/token", {}); toast(d.message + " (user " + d.userid + ")", true); } catch (e) { toast(e.message); }
+  });
+  $("crNet").addEventListener("click", async function () {
+    try {
+      const d = await call("GET", "/api/codereview/network-debug");
+      $("crResult").innerHTML = '<div class="result"><div>Network check · ' + escapeHtml(d.target_url) + "</div>" + kv([
+        ["DNS", d.dns.ok ? "ok" : (d.dns.error || "failed")], ["TCP", d.tcp.ok ? "ok, " + d.tcp.latency_ms + " ms" : (d.tcp.error || "failed")],
+        ["TLS", d.tls.ok ? "ok" : (d.tls.error || "n/a")], ["HTTP probe", d.http_probe.ok ? "HTTP " + d.http_probe.status : (d.http_probe.error || "failed")]]) +
+        '<div class="hint" style="margin-top:6px">' + escapeHtml(d.note || "") + "</div></div>";
+    } catch (e) { toast(e.message); }
+  });
+  $("crHistRefresh").addEventListener("click", loadReviewHistory);
+
+  async function loadAdmin() {
+    try {
+      const res = await Promise.all([call("GET", "/api/users"), call("GET", "/api/auditlog?limit=200"), call("GET", "/api/auth/diagnostics")]);
+      const u = res[0], a = res[1], d = res[2];
+      $("uBody").innerHTML = (u.users || []).map(function (x) {
+        const n = escapeHtml(x.username);
+        return '<tr><td class="mono">' + n + "</td><td>" + escapeHtml(x.displayName) + "</td><td>" + pill(x.role, x.role === "admin" ? "ok" : "") +
+          '</td><td style="white-space:nowrap"><button class="btn" data-edit="' + n + '" data-dn="' + escapeHtml(x.displayName) + '" data-role="' + escapeHtml(x.role) +
+          '">Edit</button> <button class="btn danger" data-del="' + n + '">Delete</button></td></tr>';
+      }).join("");
+      $("audBody").innerHTML = (a.entries || []).map(function (x) {
+        return "<tr><td>" + when(x.timestamp) + "</td><td>" + pill(x.action, /denied|failed|locked/.test(x.action) ? "bad" : "") + '</td><td class="mono">' + escapeHtml(x.username) +
+          "</td><td>" + escapeHtml(x.role) + '</td><td class="mono">' + escapeHtml(x.path) + "</td><td>" + escapeHtml(x.message) + '</td><td class="mono">' + escapeHtml(x.ip) + "</td></tr>";
+      }).join("") || '<tr><td colspan="7" class="hint">No entries</td></tr>';
+      $("diagBox").innerHTML = Object.keys(d).map(function (k) {
+        return '<span class="k">' + escapeHtml(k) + '</span><span class="v">' + escapeHtml(Array.isArray(d[k]) ? d[k].join(", ") : String(d[k])) + "</span>";
+      }).join("");
+    } catch (e) { $("admInfo").textContent = "Could not load: " + e.message; }
+  }
+  $("uSave").addEventListener("click", async function () {
+    try {
+      const d = await call("POST", "/api/users", { username: $("uName").value.trim(), displayName: $("uDisplay").value.trim(), role: $("uRole").value, password: $("uPass").value });
+      $("uPass").value = ""; toast("Saved " + d.user.username + " (" + d.user.role + ")", true); loadAdmin();
+    } catch (e) { toast(e.message); }
+  });
+  $("view-admin").addEventListener("click", async function (e) {
+    const ed = e.target.closest("button[data-edit]"), del = e.target.closest("button[data-del]");
+    if (ed) {
+      $("uName").value = ed.getAttribute("data-edit"); $("uDisplay").value = ed.getAttribute("data-dn");
+      $("uRole").value = ed.getAttribute("data-role"); $("uPass").value = ""; $("uPass").focus();
+    }
+    if (del) {
+      const u = del.getAttribute("data-del");
+      if (me && u.toLowerCase() === String(me.username).toLowerCase()) { toast("You cannot delete the account you are signed in with."); return; }
+      if (!confirm("Delete account " + u + "?")) return;
+      try { await call("DELETE", "/api/users?username=" + encodeURIComponent(u)); toast("Deleted " + u, true); loadAdmin(); } catch (err) { toast(err.message); }
+    }
+  });
+  $("audRefresh").addEventListener("click", loadAdmin);
+
   function showView(v) {
     Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"), function (t) { t.classList.toggle("active", t.getAttribute("data-view") === v); });
     Array.prototype.forEach.call(document.querySelectorAll(".view"), function (x) { x.classList.toggle("active", x.id === "view-" + v); });
     if (v === "templates" && !templates.length) loadTemplates();
     if (v === "tracker") loadTracker();
+    if (v === "k8s") loadK8s();
+    if (v === "review") { loadReviewHistory(); if (!tracker.records.length) loadTracker(); }
+    if (v === "admin") loadAdmin();
   }
   Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"), function (t) {
     t.addEventListener("click", function () { showView(t.getAttribute("data-view")); });
@@ -603,7 +962,7 @@
   $("resetBtn").addEventListener("click", initSession);
   generateBtn.addEventListener("click", generate);
 
-  initSession();
+  loadSession();
 </script>
 </body>
 </html>
