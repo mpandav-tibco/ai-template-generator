@@ -276,15 +276,24 @@ activity. Its output is byte-identical to the reference Python generator for the
 
 All logic is Flogo flows; data-shaped logic (Kubernetes response mapping, request planning, CI/CD rendering) runs
 as **jq programs** (TIBCO `json.jq`) loaded at startup from `config/ops-programs.json` into shared data, so one
-generic flow serves many endpoints. Only OOTB activities are used (PostgreSQL, Shared Data, XML-to-JSON, Mapper)
-plus the Git Repo Scaffolder and the HTTP Request activity
-([flogo-custom-extensions](https://github.com/mpandav-tibco/flogo-custom-extensions/tree/main/activity/httprequest)):
-the OOTB REST Invoke only takes a fixed method and URL in the designer, while the Kubernetes and code review calls
-build them at runtime.
+generic flow serves many endpoints. Only OOTB activities are used (REST Invoke, PostgreSQL, Shared Data,
+XML-to-JSON, Mapper) plus the Git Repo Scaffolder. Outbound HTTP goes through two subflows built from the OOTB
+**Invoke REST Service** activity, one per target system:
+
+| Subflow | Invokes (method, timeout) | TLS |
+|---------|---------------------------|-----|
+| `K8sRequest` | `Get` (GET, 30 s), `Patch` (PATCH merge patch, 30 s) | `K8S_INSECURE`, `K8S_CA_CERT` |
+| `CodeReviewRequest` | `Probe` (GET, 6 s), `Get` (GET, 25 s), `PostForm` (form POST, 25 s), `PostJson` (JSON POST, 120 s) | `CODE_REVIEW_INSECURE` |
+
+Method, request type and timeout are fixed per Invoke (the designer only offers them as literals), so the subflow
+picks the Invoke from its inputs. The Settings URL is the default endpoint; the URL planned at runtime (path and
+query) is mapped to the Invoke's `serviceUrl` input, which overrides it. A transport failure (DNS, TCP, TLS,
+timeout) takes the error link to `Failed`, so both subflows always return `status`, `text`, `json`,
+`content_type`, `elapsed_ms` and `error` (status 0 on a transport failure).
 
 | Area | Endpoints | Notes |
 |------|-----------|-------|
-| Kubernetes | `GET /k8s/{resource}` (health, context, status, deployments, pods, services, events), `GET /k8s/{resource}/{name}`, `GET /k8s/{resource}/{name}/{view}` (rollout, logs, port-forward), `POST /k8s/deployments/{name}/{action}` (scale, restart), `POST /k8s/context/switch` | Same URLs as the reference; the route selects the operation (`k8s.routes` in `config/ops-programs.json`, anything else is 404). Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token, ca, insecure); restrict the `POST` routes (scale, restart, switch) in Kong if only operators may use them |
+| Kubernetes | `GET /k8s/{resource}` (health, context, status, deployments, pods, services, events), `GET /k8s/{resource}/{name}`, `GET /k8s/{resource}/{name}/{view}` (rollout, logs, port-forward), `POST /k8s/deployments/{name}/{action}` (scale, restart), `POST /k8s/context/switch` | Same URLs as the reference; the route selects the operation (`k8s.routes` in `config/ops-programs.json`, anything else is 404). Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token; TLS for all contexts from `K8S_INSECURE` and `K8S_CA_CERT`); restrict the `POST` routes (scale, restart, switch) in Kong if only operators may use them |
 | Code review | `POST /api/codereview/token`, `POST /api/codereview/run`, `GET /api/codereview/history`, `GET /api/codereview/network-debug` | intginvent token cached in shared data, one retry with a refreshed token, history (newest 500) in PostgreSQL, report links extracted and query strings redacted |
 | Schemas | `POST /api/schemas/upload/{kind}` (source, target, batch) | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); XML is validated, files are committed into `<repo>.module/Schemas` or `Service Descriptors` in one commit, a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
 
@@ -293,7 +302,8 @@ Flow structure (Flogo designer): every REST handler is an operation of the embed
 flow, named after the flow. Each handler maps the request (`pathParams`, `queryParams`, `body`) to the inputs the
 flow declares and the flow's `code` + `responseBody` outputs to the reply. `root_GET`, `docs_GET` and
 `openapi_json_GET` read their file and return it; the five Kubernetes endpoints are thin flows over `K8sOperation`.
-Shared subflows: `CodeReviewToken`, `RecordCodeReview`, `ExtractSpecCore`; `/generate` reuses the
+Shared subflows: `CodeReviewToken`, `RecordCodeReview`, `ExtractSpecCore`, `K8sRequest`, `CodeReviewRequest`;
+`/generate` reuses the
 `/api/templates/suggest` flow for its template search, so the UI's "best match" is the template it generates.
 Startup loads the local configuration first (template registry, IKD ids, operations programs, Kubernetes contexts),
 then creates or upgrades the PostgreSQL tables in one idempotent statement, then ingests the templates into Weaviate.
@@ -308,15 +318,19 @@ were removed. With access control in Kong, the in-app authentication went too: t
 audit-log and diagnostics endpoints, the `AuthGuard`, `WriteAudit` and `StaticFile` subflows, the guard and audit
 steps in every flow, the JWT import, the auth properties, the MCP server token, the alias mappings loaded at
 startup but never read, and flow inputs nothing used (47 → 36 flows, 31 → 23 endpoints, 71 → 58 properties).
-A second review merged `SetupDatabaseFlow` and `TemplateIngestionFlow` into `StartupFlow`, replaced `HttpCall`
-with the HTTP Request activity, made `/generate` reuse the suggest search, stored the IKD ids under one key, folded
-the error-body mappers into the error Returns and dropped request logs the REST trigger already writes
-(36 → 33 flows, 245 → 213 activities, 58 → 57 properties).
+A second review merged `SetupDatabaseFlow` and `TemplateIngestionFlow` into `StartupFlow`, made `/generate` reuse the
+suggest search, stored the IKD ids under one key, folded the error-body mappers into the error Returns and dropped
+request logs the REST trigger already writes; the generic `HttpCall` subflow became the two OOTB REST subflows above
+(36 → 35 flows, 245 → 229 activities, 58 → 59 properties).
 
-Designer safety: every mapper, shared-data and subflow activity carries the schema the designer shows in its
-mapper, and each flow's `metadata.fe_metadata` matches its inputs and outputs (a stale copy made the designer
-rewrite flow inputs on save). With `files.autoSave` on, opening the app in the designer saves its normalised copy;
-run the checks below afterwards.
+Designer validation: the designer's **Validate** reports no errors in any flow. It resolves every mapped path
+against declared schemas and checks each expression's result type, so: the request-body flow inputs (`content`,
+the MCP tools' `arguments`) carry the API definition's schema; the `APP_OPS` shared data declares every program
+key; query activities list their output columns; `json.jq`/`array.get` results are wrapped in
+`coerce.toArray`/`coerce.toString` where the target is typed; link conditions avoid a leading `!(`, which the
+designer's expression parser rejects; error branches read `$error[<activity>]`. Each flow's `metadata.fe_metadata`
+matches its inputs and outputs (a stale copy made the designer rewrite flow inputs on save). The committed file is
+the designer's own saved form, so opening it does not rewrite it.
 
 Build and run:
 
@@ -335,9 +349,13 @@ specs/bwce-ai-generator-github-api.yaml static/openapi-github.json`) and load th
 Key properties: `GITHUB_TOKEN` (env only, never stored), `TEMPLATE_REPO_URL`, `TEMPLATE_REF`, `TARGET_MODE`,
 `TARGET_REPO_URL`, `TARGET_OWNER_URL`, `TARGET_BRANCH`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`,
 `TEMPLATE_REGISTRY=config/ci-bwcetemplates.json`, `VECTOR_COLLECTION=BWCECiTemplates768`.
-Operations: `K8S_CONTEXTS`, `K8S_CONTEXT`, `CODE_REVIEW_BASE_URL`,
-`CODE_REVIEW_USERNAME`/`_PASSWORD`/`_USERID`/`_USERTYPE`/`_COOKIE`, `CODE_REVIEW_VERIFY_SSL`,
-`CODE_REVIEW_TOKEN_METHOD` (`POST`; `GET` matches the reference but puts the password in the URL),
+Operations: `K8S_CONTEXTS`, `K8S_CONTEXT`, `K8S_INSECURE` (`false`), `K8S_CA_CERT` (PEM, base64 PEM or
+`file:///var/run/secrets/kubernetes.io/serviceaccount/ca.crt`; empty = system CAs), `CODE_REVIEW_BASE_URL`,
+`CODE_REVIEW_USERNAME`/`_PASSWORD`/`_USERID`/`_USERTYPE`/`_COOKIE`, `CODE_REVIEW_INSECURE` (`true` = no certificate
+check, the reference default; it replaces the reference's `CODE_REVIEW_VERIFY_SSL` because the REST Invoke binds
+"Disable SSL Verification" to a property, not an expression),
+`CODE_REVIEW_TOKEN_METHOD` (`POST`; `GET` matches the reference but puts the password in the URL, and the REST
+Invoke logs request URLs at INFO),
 `OPS_PROGRAMS=config/ops-programs.json`, `GENERATE_CICD`. Secrets belong in the environment, not in the `.flogo`.
 
 Differences from the reference: sign-in, accounts, roles and the audit log (Entra ID SSO included) are left to Kong;
