@@ -1,21 +1,31 @@
-# BWCE AI Generator — Flogo Agentic AI
+# BWCE AI Generator (TIBCO Flogo)
 
-AI-powered accelerator that generates production-ready **TIBCO BWCE integration repositories** from plain-English requirements, built entirely on **TIBCO Flogo Agentic AI**.
+Generates **TIBCO BusinessWorks Container Edition (BWCE) integration repositories** from plain-English requirements
+and publishes them to GitHub. The app is a TIBCO Flogo application, `bwce-ai-generator-github.flogo`: it extracts a
+structured integration spec with an LLM, picks the best template of the BWCE template library (`ci-bwcetemplates`,
+37 templates) with Weaviate hybrid search, materializes the real project code and publishes it in a single commit.
+For the same template revision and spec, its output is byte-identical to the reference Python generator.
 
-It combines a deterministic rule engine, an LLM for natural-language understanding, Weaviate vector search for template selection, and PostgreSQL for an idempotent generation registry — exposed over both a REST API and an MCP server.
+It serves a web UI, a REST API (`:9999`) and an MCP server (`:8081`), plus the operations around generated
+repositories: generation registry and cleanup, IKD registry, schema upload, Kubernetes status and actions, and code review.
 
 ---
 
 ## Highlights
 
-- **Conversational & one-shot spec extraction** — describe an integration in English; the system extracts a structured BWCE spec.
-- **Deterministic pre-extraction** — a YAML rule engine pulls high-confidence signals (IKD ids, systems, env) before the LLM runs, improving accuracy and making small local models viable.
-- **Fence-tolerant JSON parsing** — LLM responses wrapped in prose / ```code fences``` are sanitized before parsing, so models like `llama3.1:8b` work reliably.
-- **IKD cross-check** — `interface_id` / `scenario_id` are validated against the IKD registry before anything is generated.
-- **Template RAG** — the best-matching template is selected via Weaviate vector search.
-- **Idempotent generation** — duplicate specs return the existing record instead of re-scaffolding.
-- **Repo scaffolding** + **notification email** on success.
-- **Dual interface** — REST API (`:9999`) and MCP server (`:8081`) for Claude / Copilot agents.
+- **Conversational or one-shot spec extraction** — a YAML rule engine pre-extracts high-confidence fields, the LLM
+  fills in the rest; the chat keeps the spec across turns.
+- **Governed generation** — validation rules, the IKD cross-check and duplicate detection run before anything is written.
+- **Template selection** — the requested template if it is in the catalog, otherwise Weaviate **hybrid** search
+  (BM25 + vector, α 0.25); the chat transcript is passed as context, so hints like "from SFTP" count.
+- **Real code in one commit** — the [Git Repo Scaffolder](https://github.com/mpandav-tibco/flogo-custom-extensions/tree/main/activity/gitreposcaffolder)
+  activity fetches the template, replaces its tokens, renames paths, adds configuration and CI/CD files and pushes
+  one commit: into a folder of a shared repository, or into a new repository per integration.
+- **Registry** — every generation is recorded in PostgreSQL together with where it was published; the same spec
+  returns the existing registration, and a cleanup endpoint removes a generation again.
+- **Operations** — Kubernetes (status, rollout, logs, scale, restart, context switch), code review, XSD/WSDL schema
+  upload, IKD export and a notification e-mail per generation.
+- **Three front doors** — web UI, REST API (OpenAPI definition and docs page), MCP server for AI agents.
 
 ---
 
@@ -24,256 +34,167 @@ It combines a deterministic rule engine, an LLM for natural-language understandi
 ```mermaid
 flowchart LR
     subgraph Clients
-        U[Developer / UI]
-        AG[AI Agent<br/>Claude · Copilot]
+        UI[Browser UI]
+        CL[API clients]
+        AG[AI agent<br/>Claude · Copilot]
     end
-
-    subgraph App["BWCE AI Generator (Flogo)"]
-        direction TB
-        REST["REST Trigger :9999"]
-        MCP["MCP Server :8081"]
-        subgraph Flows
-            EX["extract_POST<br/>one-shot NLU"]
-            CHAT["api_chat/*<br/>multi-turn"]
-            GEN["generate_POST<br/>pipeline"]
-            START["StartupFlow<br/>ingestion"]
-        end
-        RULES["Rule Engine #ruleengine<br/>deterministic pre-extract (YAML)"]
-        RAG["#ragQuery (vectordb-weaviate)<br/>vector search + LLM call"]
+    KONG[Kong<br/>access control]
+    subgraph App["bwce-ai-generator-github (Flogo)"]
+        REST["REST trigger :9999"]
+        MCP["MCP server :8081"]
+        FLOWS["Flows<br/>chat · extract · generate · tracker<br/>schemas · IKD · Kubernetes · code review"]
     end
-
-    subgraph Deps["External services"]
-        LLM["LLM provider<br/>(OpenAI-compatible:<br/>Ollama · vLLM · cloud)"]
-        WV["Weaviate VectorDB<br/>:18080"]
-        PG[("PostgreSQL :5432<br/>generation_log · chat_session")]
-        SMTP["SMTP server<br/>(any relay; MailDev for dev)"]
-        FS[["generated-repos/"]]
+    subgraph Services
+        LLM["LLM, OpenAI-compatible<br/>(Ollama qwen2.5:7b)"]
+        WV["Weaviate :18080<br/>template catalog"]
+        PG[("PostgreSQL :5432<br/>registry · chat · IKD · reviews")]
+        GH["GitHub<br/>template library · target repositories"]
+        SMTP["SMTP<br/>(MailDev for development)"]
+        K8S["Kubernetes API"]
+        CR["Code review service"]
     end
-
-    U --> REST
+    UI & CL --> KONG --> REST
     AG --> MCP
-    REST --> EX & CHAT & GEN
-    MCP --> EX & GEN
-    EX & CHAT --> RULES --> RAG
-    RAG --> WV
-    RAG --> LLM
-    CHAT --> PG
-    START --> WV
-    GEN --> WV
-    GEN --> PG
-    GEN --> FS
-    GEN --> SMTP
+    REST & MCP --> FLOWS
+    FLOWS --> LLM & WV & PG & GH & SMTP & K8S & CR
 ```
 
-### `generate_POST` pipeline (the headline flow)
+Startup (`StartupFlow`) loads the template catalog, the IKD id lists, the operations programs and the Kubernetes
+contexts into shared data, creates or upgrades the PostgreSQL tables (`generation_log`, `chat_session`,
+`ikd_registry`, `code_review_history`) in one idempotent statement and ingests the catalog into Weaviate.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client
-    participant G as generate_POST
-    participant IKD as IKD Registry
-    participant DB as PostgreSQL
-    participant WV as Weaviate
-    participant FS as Filesystem
-    participant M as SMTP server
+---
 
-    C->>G: POST /generate { spec }
-    G->>G: NormalizeSpec
-    G->>G: ValidateSpec
-    alt spec invalid
-        G-->>C: 400 VALIDATION_ERROR
-    else spec valid
-        G->>IKD: CrossCheckIKD
-        alt IKD invalid
-            G-->>C: 200 IKD_VALIDATION_FAILED
-        else IKD valid
-            G->>G: BuildRepoName
-            G->>DB: CheckDuplicate
-            alt duplicate exists
-                G-->>C: 200 { duplicate:true, existing record }
-            else new
-                G->>WV: SelectTemplate (RAG)
-                G->>DB: RegisterGeneration (ON CONFLICT DO NOTHING) → GENERATED
-                G->>FS: ScaffoldArtifacts → manifest.json + Dockerfile + k8s + README + pipeline
-                G->>M: SendNotification email
-                G-->>C: 200 { success:true, repo_name, generation_id }
-            end
-        end
-    end
-```
+## How a generation works
 
-#### Governance gates (decision flow)
-
-The pipeline is a chain of conditional gates — each either lets the request proceed or short-circuits to a reply, so **no side effect happens until every gate passes**:
+`POST /generate` (also behind the UI's Generate step and the MCP tool `generate_code`) is a chain of gates; nothing
+is written until every gate has passed.
 
 ```mermaid
 flowchart TD
-    N["NormalizeSpec<br/>alias canon · length cap · defaults"] --> V["ValidateSpec (#ruleengine)"]
-    V -- "errorCount &gt; 0" --> R400["HTTP 400<br/>VALIDATION_ERROR"]
-    V -- "errorCount == 0" --> IKD["CrossCheckIKD"]
-    IKD -- "ikd_valid == false" --> R2A["HTTP 200<br/>IKD_VALIDATION_FAILED"]
-    IKD -- "ikd_valid == true" --> DUP["CheckDuplicate (#query)"]
-    DUP -- "rows &gt; 0 AND not config_only" --> R2B["HTTP 200<br/>duplicate · existing record"]
-    DUP -- "rows == 0 OR config_only" --> RAG["SelectTemplate (RAG)"]
-    RAG --> REG["RegisterGeneration<br/>#insert · ON CONFLICT (repo_name)"]
-    REG --> SC["ScaffoldArtifacts"] --> NT["NotifyTeam"] --> OK["HTTP 200<br/>success"]
+    N["DeriveNaming · NormalizeSpec<br/>repository name, defaults, target_mode"] --> V["ValidateSpec<br/>rule engine"]
+    V -- "errors" --> R1["400 VALIDATION_FAILED"]
+    V -- "valid" --> I["CrossCheckIKD"]
+    I -- "unknown id" --> R2["400 IKD_VALIDATION_FAILED"]
+    I -- "valid" --> D["CheckDuplicate<br/>generation_log"]
+    D -- "registered, not config_only" --> R3["200 duplicate: true<br/>existing registration"]
+    D -- "new, or config_only" --> T["SelectTemplate<br/>requested or hybrid search"]
+    T --> S["ScaffoldArtifacts<br/>Git Repo Scaffolder: one commit"]
+    S --> G["RegisterGeneration · RegisterIKD"] --> M["NotifyTeam<br/>e-mail"] --> OK["200 success"]
 ```
 
-| Gate | Check | On fail |
-|------|-------|---------|
-| **Validation** | `ValidateSpec.errorCount == 0` (rule pack) | **400** `VALIDATION_ERROR` — fail fast, no writes |
-| **IKD cross-check** | `ikd_valid == true` | **200** `IKD_VALIDATION_FAILED` |
-| **Idempotency** | no existing `repo_name` *(unless `config_only`)* | **200** returns the existing record |
-| **Race-safety** | `UNIQUE(repo_name)` + `ON CONFLICT DO NOTHING` | concurrent duplicates collapse to 1 row |
+| Gate | Check | On failure |
+|------|-------|------------|
+| Validation | `rules/spec-validation.yaml`: required fields, repository name ≤ 50 characters, e-mail domain, … | 400 `VALIDATION_FAILED` with details, no writes |
+| IKD | `interface_id` / `scenario_id` exist in the IKD lists | 400 `IKD_VALIDATION_FAILED` |
+| Idempotency | no registration for the repository name yet (unless `config_only`) | 200 with the existing registration |
+| Race safety | `UNIQUE(repo_name)` + `ON CONFLICT` | concurrent duplicates collapse to one row |
 
-> Any runtime fault (e.g. PostgreSQL down) is caught by a flow-level error handler → structured **500** `{error, activity, code}`.
+A runtime fault (for example PostgreSQL down) is caught by the flow's error handler: 500 `INTERNAL_ERROR` with the
+failing activity and message.
 
----
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET  | `/` | Web chat UI |
-| GET  | `/health` | Health check |
-| GET  | `/docs` | Interactive API reference |
-| GET  | `/openapi.json` | OpenAPI 3.0 spec |
-| GET  | `/api/templates` | List available BWCE templates |
-| POST | `/api/chat/init` | Initialize a chat session |
-| POST | `/api/chat/message` | Conversational spec extraction |
-| POST | `/api/chat/reset` | Reset a session |
-| POST | `/extract` | One-shot NLU extraction |
-| POST | `/generate` | Generate a BWCE repository |
-
-MCP tools (`:8081`): `extract_spec`, `generate_code`, `list_templates`.
+**Repository name:** `[in<area>-]src-object-target[-uid][-country]-itype` (product-area prefix map,
+`REST_SERVICE`/`SOAP_SERVICE` → `service`).
+**Generated content:** `code/<repo>/…` (the template project with its tokens replaced and paths renamed),
+`configs/generation.properties`, `configs/generation-metadata.json` and the CI/CD files `.github/workflows/ci.yml`,
+`Jenkinsfile`, `k8s/deployment-<env>.yaml` and `config/runtime-<env>.json` (templates in `config/ops-programs.json`,
+off with `GENERATE_CICD=false`). `config_only: true` refreshes only `configs/` and keeps the code.
+**IKD registry:** every generation registers `<interface_id>:<repo>` / `<scenario_id>:<repo>` in `ikd_registry`
+(replacing the repository's previous entry; skipped for config-only).
 
 ---
 
-## Flows
+## Where the code is published
 
-| Flow | Purpose |
-|------|---------|
-| `StartupFlow` | Loads the template registry + IKD ids, ingests templates into Weaviate, initializes the PostgreSQL `generation_log` + `chat_session` tables |
-| `api_chat/*` | Multi-turn conversational spec gathering (session state persisted in PostgreSQL `chat_session`) |
-| `extract_POST` | One-shot NLU extraction (deterministic pre-extract + LLM) |
-| `generate_POST` | Validate → IKD cross-check → template RAG → register → scaffold → notify |
-| `MCPExtractSpecTool`, `MCPGenerateTool`, `MCPListTemplates` | MCP-exposed tools |
+| `target_mode` | Result |
+|---------------|--------|
+| `subfolder` (default) | folder `<repo>/` in the shared repository `TARGET_REPO_URL`, branch `TARGET_BRANCH` |
+| `newRepo` | new private repository `<repo>` under `TARGET_OWNER_URL` |
 
----
+`TARGET_MODE` sets the default; a request overrides it with `target_mode` (REST `/generate`, MCP `generate_code`, UI).
+The registry stores where each repository went, so links, duplicate answers, schema uploads and cleanup keep
+following the repository when the default changes later.
 
-## Prerequisites
+The repository name is derived from the spec, so **the same spec maps to the same repository**: `/generate` answers
+`duplicate: true` with the existing registration and changes nothing. In the UI, a new request after a generation
+starts a new conversation.
 
-| Service | Where | Port | Notes |
-|---------|-------|------|-------|
-| TIBCO Flogo CLI (`fcli`) | host | — | build context `flogo-studio-2264` (2.26.4) |
-| PostgreSQL | container `flogo-studio-postgres` | 5432 | db `flogo_agent_studio`, user `flogo` |
-| Weaviate | container `weaviate` | 18080 | template RAG collection `BWCETemplates768` |
-| **SMTP server** | any relay | 1025 | **MailDev** is the local-dev default (mock SMTP + web inbox at :1080); point `SMTP_HOST`/`SMTP_PORT` at any relay |
-| **LLM provider** | any OpenAI-compatible API | 11434 | **Ollama** is the local-dev default (`llama3.1:8b`, `nomic-embed-text`); swap in vLLM, LM Studio, or a cloud LLM |
+**New repository from the UI:** describe the integration in the chat, choose **🆕 New repository** after the
+product-area step (or type `/newrepo` at any time; `/shared` switches back), then generate; the result links the new
+repository.
 
-> **Pluggable backends:** the LLM and the SMTP relay are *not* hard-wired — Ollama and MailDev are only the
-> local-dev defaults. Point `LLM_Base_URL` at any OpenAI-compatible endpoint and `SMTP_HOST`/`SMTP_PORT` at any
-> SMTP server; nothing else changes.
+**Cleanup:** `DELETE /api/tracker/{repo_name}` (UI: `/cleanup <repo>` or **🧹 Clean up repository**) deletes the
+folder from the shared repository in one commit and removes the registry and IKD rows. A repository of its own is kept
+on GitHub (deleting a repository cannot be undone and needs extra token rights); delete it there by hand.
 
 ---
 
-## Quick start (demo)
+## Web UI
 
-Two helper scripts under [`demo/`](demo/) bring everything up and walk through the solution.
+`GET /` serves `static/chat-github.html`, read on every request (UI changes need no rebuild):
+
+- **Chat** with quick prompts and the commands `/templates`, `/suggest`, `/analyze`, `/generate`, `/newrepo`,
+  `/shared`, `/upload <repo>` and `/cleanup <repo>`; configuration drawer and schema upload.
+- **Repos Generated** — the registry with GitHub links and repository actions: deployment status, code review,
+  links to the generated Kubernetes, configuration and Jenkins files, and cleanup. The Jenkins and Fortanix steps
+  need the customer's systems.
+- **Code Review** and **QAssist** (opens `QASSIST_URL`).
+
+---
+
+## REST API
+
+Every operation is defined in `specs/bwce-ai-generator-github-api.yaml` (served as `/openapi.json`, rendered by `/docs`).
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/`, `/docs`, `/openapi.json` | Web UI, API documentation, API definition |
+| GET | `/health` | Liveness and readiness probe |
+| POST | `/api/chat/init`, `/api/chat/message`, `/api/chat/reset` | Conversation that builds the spec (sessions in PostgreSQL) |
+| POST | `/extract` | One-shot spec extraction from free text |
+| GET | `/api/templates` | Template catalog |
+| POST | `/api/templates/suggest` | Ranked templates for a (partial) spec; `/generate` uses the same search |
+| POST | `/generate` | Generate and publish (`spec`, `config_only`, `target_mode`) |
+| GET | `/api/tracker` | Generated repositories with their GitHub location, the template source and UI settings |
+| DELETE | `/api/tracker/{repo_name}` | Clean up a generated repository |
+| GET | `/api/ikd?kind=InterfaceIDs\|ScenarioIDs` | IKD registry in the reference `IKD_*.txt` format (`<id>:<repo>` lines) |
+| POST | `/api/schemas/upload/{kind}` | Commit XSD/WSDL files into a generated repository (`source`, `target`, `batch`) |
+| POST | `/api/codereview/token`, `/api/codereview/run` | Code review token, code review run |
+| GET | `/api/codereview/history`, `/api/codereview/network-debug` | Code review history, connectivity check |
+| GET | `/k8s/{resource}`, `/k8s/{resource}/{name}`, `/k8s/{resource}/{name}/{view}` | Cluster health, context, status, lists, one item, rollout, logs, port-forward |
+| POST | `/k8s/deployments/{name}/{action}`, `/k8s/context/switch` | Scale or restart a deployment, switch the context |
+
+---
+
+## MCP server
+
+Streamable HTTP at `http://<host>:8081/mcp`. VS Code (`.vscode/mcp.json`):
+
+```json
+{ "servers": { "bwce-ai-generator": { "type": "http", "url": "http://localhost:8081/mcp" } } }
+```
+
+Cursor: `{ "mcpServers": { "bwce-ai-generator": { "url": "http://localhost:8081/mcp" } } }`. Clients that only speak stdio
+(for example Claude Desktop) can bridge with `npx mcp-remote http://localhost:8081/mcp`.
+
+| Tool | Arguments | Result |
+|------|-----------|--------|
+| `extract_spec` | `message` (required), `current_spec` (the spec so far, for follow-up turns) | the extracted spec, missing fields, `ready_to_generate` |
+| `generate_code` | `spec` (required: `source_system`, `target_system`, `business_object`, `interface_type`), `config_only`, `target_mode` (`subfolder` or `newRepo`) | the `/generate` result as JSON text: same pipeline, registry and notification |
+| `list_templates` | — | the template catalog |
+
+`test/mcp-call.sh` performs the MCP handshake and prints a tool's result:
 
 ```bash
-# 1. Start every prerequisite (Postgres, Weaviate, MailDev, Ollama) + the app.
-#    Add --build to compile the binary first.
-./demo/start-demo.sh            # or: ./demo/start-demo.sh --build
-
-# 2. Run the guided, narrated walkthrough (pauses before each step).
-./demo/run-demo.sh              # or: ./demo/run-demo.sh --auto
-
-# Stop the app + MailDev when finished (shared services stay up).
-./demo/start-demo.sh --stop
-```
-
-Once running:
-
-- REST API → http://localhost:9999
-- MCP server → http://localhost:8081
-- MailDev inbox → http://localhost:1080
-- App log → `/tmp/bwce-ai-generator.log`
-
----
-
-## Build (manual)
-
-```bash
-fcli build-exe -f bwce-ai-generator.flogo -c flogo-studio-2264 -n bwce-ai-generator -o .
-```
-
-## Run (manual)
-
-```bash
-./bwce-ai-generator
-# REST API on :9999, MCP server on :8081
+test/mcp-call.sh list_templates
+test/mcp-call.sh extract_spec '{"message":"publish article master data from S4HANA to Kafka"}'
+test/mcp-call.sh generate_code '{"spec":{"source_system":"S4HANA","target_system":"KAFKA","business_object":"Article","interface_type":"pub","product_area":"product_area-csddistribution"},"target_mode":"newRepo"}'
+npx @modelcontextprotocol/inspector    # interactive; connect to http://localhost:8081/mcp (Streamable HTTP)
 ```
 
 ---
 
-## Configuration
-
-App properties (set via Flogo app properties or environment overrides):
-
-| Property | Description | Default |
-|----------|-------------|---------|
-| `AgenticAI.LLMProvider.LLM_Base_URL` | LLM endpoint — any OpenAI-compatible API (Ollama / vLLM / cloud) | `http://localhost:11434` |
-| `LLM_MODEL` | LLM model name (provider-specific) | `llama3.1:8b` |
-| `LLM_EMBEDDING_MODEL` | Embedding model | `nomic-embed-text` |
-| `VECTOR_COLLECTION` | Weaviate collection | `BWCETemplates768` |
-| `RULES_PATH` | Rules directory | `rules/` |
-| `TEMPLATE_REGISTRY` | Template list file | `config/templates.json` |
-| `SMTP_HOST` / `SMTP_PORT` | Notification relay | `localhost` / `1025` |
-| `NOTIFY_SENDER` / `NOTIFY_RECIPIENTS` | Email from / to | `bwce-generator@adidas.com` / `core-integration@adidas.com` |
-| `SCAFFOLD_OUTPUT_DIR` | Scaffold output | `generated-repos` |
-| `PostgreSQL.GenerationRegistry.Database_Name` | Registry DB | `flogo_agent_studio` |
-
----
-
-## Test
-
-```bash
-# Full REST API test suite (assumes the app is already running on :9999)
-bash test/api-test.sh
-```
-
-The `generation_log` registry can be reset between demos with:
-
-```bash
-docker exec flogo-studio-postgres psql -U flogo -d flogo_agent_studio -c 'TRUNCATE generation_log;'
-```
-
----
-
-## GitHub edition (`bwce-ai-generator-github.flogo`)
-
-A second app generated from this one that produces the **real BWCE code** from the customer template library
-(`ci-bwcetemplates`) and publishes it to GitHub in a single commit, using the
-[Git Repo Scaffolder](https://github.com/mpandav-tibco/flogo-custom-extensions/tree/main/activity/gitreposcaffolder)
-activity. Its output is byte-identical to the reference Python generator for the same template revision and spec.
-
-| Aspect | Behaviour |
-|--------|-----------|
-| Repository name | `[in<area>-]src-object-target[-uid][-country]-itype`, product-area prefix map and `REST_SERVICE`/`SOAP_SERVICE` → `service`, max 50 chars (400 otherwise) |
-| Template selection | Requested template if it exists in the catalog, otherwise Weaviate **hybrid** (BM25 + vector, α 0.25) over the 37-template catalog; the chat transcript is passed as `context` so transport hints ("from SFTP") count |
-| Output layout | `<TARGET_REPO_URL>/<repo>/code/<repo>/…` + `<repo>/configs/generation.properties`, `generation-metadata.json` + CI/CD files (below) |
-| Target modes | `TARGET_MODE=subfolder` (one shared repo, default) or `newRepo` (one private repository per integration under `TARGET_OWNER_URL`); a `/generate` request can override it with `target_mode`, and the UI offers both after the product-area step |
-| Config-only | `config_only:true` refreshes only `configs/` and keeps the code |
-| Same repository again | The name is derived from the spec, so the same spec maps to the same repository: `/generate` answers `duplicate:true` with the existing registration and changes nothing. In the UI, a new request after a generation starts a new conversation |
-| Extra endpoints | `GET /api/tracker` (registry rows with where each repository was published, plus the template source), `DELETE /api/tracker/{repo_name}` (cleanup: deletes the folder from the shared repository in one commit and the registry rows; a repository of its own is kept on GitHub), `POST /api/templates/suggest` (ranked templates) |
-| CI/CD files | `.github/workflows/ci.yml`, `Jenkinsfile`, `k8s/deployment-<env>.yaml`, `config/runtime-<env>.json` — byte-identical to the reference `CICDScaffolder`; templates live in `config/ops-programs.json` (`cicd.templates`), off with `GENERATE_CICD=false` |
-| IKD registry | Every generation registers `<interface_id>:<repo>` / `<scenario_id>:<repo>` (replacing the repo's previous entry, skipped for config-only) in `ikd_registry`; `GET /api/ikd?kind=InterfaceIDs\|ScenarioIDs` returns the reference `IKD_*.txt` content |
-| UI | `static/chat-github.html` — the customer's reference UI on the Flogo API: chat with `/templates`, `/suggest`, `/analyze`, `/generate`, `/newrepo`, `/shared`, `/upload <repo>` and `/cleanup <repo>`, schema upload, Repos Generated with repository actions (deployment status, code review, cleanup; Jenkins and Fortanix steps need the customer's systems), code review |
-| Access control | Done by Kong in front of the app; the app has no sign-in, accounts, roles or audit log (see below) |
-
-### Operations (ported from the reference generator)
+## Operations
 
 All logic is Flogo flows; data-shaped logic (Kubernetes response mapping, request planning, CI/CD rendering) runs
 as **jq programs** (TIBCO `json.jq`) loaded at startup from `config/ops-programs.json` into shared data, so one
@@ -298,76 +219,130 @@ timeout) takes the error link to `Failed`, so both subflows always return `statu
 | Code review | `POST /api/codereview/token`, `POST /api/codereview/run`, `GET /api/codereview/history`, `GET /api/codereview/network-debug` | intginvent token cached in shared data, one retry with a refreshed token, history (newest 500) in PostgreSQL, report links extracted and query strings redacted |
 | Schemas | `POST /api/schemas/upload/{kind}` (source, target, batch) | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); XML is validated, files are committed into `<repo>.module/Schemas` or `Service Descriptors` in one commit, a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
 
-Flow structure (Flogo designer): every REST handler is an operation of the embedded API definition
-`specs/bwce-ai-generator-github-api.yaml` (also served as `/openapi.json`, rendered by `/docs`), one handler per
-flow, named after the flow. Each handler maps the request (`pathParams`, `queryParams`, `body`) to the inputs the
-flow declares and the flow's `code` + `responseBody` outputs to the reply. `root_GET`, `docs_GET` and
-`openapi_json_GET` read their file and return it; the five Kubernetes endpoints are thin flows over `K8sOperation`.
-Shared subflows: `CodeReviewToken`, `RecordCodeReview`, `ExtractSpecCore`, `K8sRequest`, `CodeReviewRequest`;
-`/generate` reuses the
-`/api/templates/suggest` flow for its template search, so the UI's "best match" is the template it generates.
-Startup loads the local configuration first (template registry, IKD ids, operations programs, Kubernetes contexts),
-then creates or upgrades the PostgreSQL tables in one idempotent statement, then ingests the templates into Weaviate.
-To add an endpoint, add the operation to the API definition first (the designer offers Method/Path from it), then
-its flow and handler.
+---
 
-Consolidation in this edition: the extraction pipeline duplicated in `/extract` and the chat is one
-`ExtractSpecCore` subflow; the Return/Reply pairs of `/generate` and `/extract` are one Return each (the MCP tools
-read `responseBody.body`); the pass-through `BuildRepoName` task, the unused `GetAppConfig` lookup, three unused
-properties, duplicate import aliases, the never-bound `LLMProvider` connection and the unused File Write import
-were removed. With access control in Kong, the in-app authentication went too: the login, session, user,
-audit-log and diagnostics endpoints, the `AuthGuard`, `WriteAudit` and `StaticFile` subflows, the guard and audit
-steps in every flow, the JWT import, the auth properties, the MCP server token, the alias mappings loaded at
-startup but never read, and flow inputs nothing used (47 → 36 flows, 31 → 23 endpoints, 71 → 58 properties).
-A second review merged `SetupDatabaseFlow` and `TemplateIngestionFlow` into `StartupFlow`, made `/generate` reuse the
-suggest search, stored the IKD ids under one key, folded the error-body mappers into the error Returns and dropped
-request logs the REST trigger already writes; the generic `HttpCall` subflow became the two OOTB REST subflows above
-(36 → 35 flows, 245 → 229 activities, 58 → 59 properties).
+## Prerequisites
 
-Designer validation: the designer's **Validate** reports no errors in any flow. It resolves every mapped path
-against declared schemas and checks each expression's result type, so: the request-body flow inputs (`content`,
-the MCP tools' `arguments`) carry the API definition's schema; the `APP_OPS` shared data declares every program
-key; query activities list their output columns; `json.jq`/`array.get` results are wrapped in
-`coerce.toArray`/`coerce.toString` where the target is typed; link conditions avoid a leading `!(`, which the
-designer's expression parser rejects; error branches read `$error[<activity>]`. Each flow's `metadata.fe_metadata`
-matches its inputs and outputs (a stale copy made the designer rewrite flow inputs on save). The committed file is
-the designer's own saved form, so opening it does not rewrite it.
+| Component | Default | Notes |
+|-----------|---------|-------|
+| TIBCO Flogo CLI (`fcli`) | build context `flogo-studio-2265` (Flogo 2.26.5) | with the custom extensions from [flogo-custom-extensions](https://github.com/mpandav-tibco/flogo-custom-extensions): Git Repo Scaffolder, Rule Engine, Weaviate VectorDB connector |
+| PostgreSQL | `localhost:5432`, database `flogo_agent_studio`, user `flogo` | tables are created or upgraded at startup |
+| Weaviate | `localhost:18080` | collection `BWCECiTemplates768`, filled from the catalog at startup |
+| LLM and embeddings | Ollama at `localhost:11434` with `qwen2.5:7b` and `nomic-embed-text` | `ollama pull qwen2.5:7b`, `ollama pull nomic-embed-text`; any OpenAI-compatible endpoint works |
+| GitHub token | environment variable `GITHUB_TOKEN` | Contents read/write on the template library and the target repository; `newRepo` also needs Administration read/write to create repositories |
+| SMTP | `localhost:1025` | MailDev for development: `docker compose -f docker-compose.maildev.yml up -d`, inbox at http://localhost:1080 |
+| Kubernetes API (optional) | `K8S_CONTEXTS` | for a local cluster, `kubectl proxy --port=8001` |
+| Code review service (optional) | `CODE_REVIEW_BASE_URL` | until `CODE_REVIEW_USERNAME` and `CODE_REVIEW_PASSWORD` are set, the code review endpoints answer 503 |
 
-Build and run:
+---
+
+## Build and run
 
 ```bash
 fcli build-exe -f bwce-ai-generator-github.flogo -c flogo-studio-2265 -n bwce-ai-generator-github -o .
-FLOGO_APP_PROPS_ENV=auto GITHUB_TOKEN=<fine-grained PAT: contents rw> ./bwce-ai-generator-github
-bash test/e2e-github.sh    # 15 end-to-end checks (writes one folder to the target repo)
-bash test/e2e-ops.sh       # Kubernetes, code review, schemas, IKD (optional: E2E_REPO=<repo> K8S_DEPLOYMENT=<name>)
+codesign --force --sign - ./bwce-ai-generator-github   # macOS only: ad-hoc signature, or the binary is killed at start
+FLOGO_APP_PROPS_ENV=auto GITHUB_TOKEN=<token> ./bwce-ai-generator-github
 ```
 
-`bwce-ai-generator-github.flogo` is maintained directly (Flogo designer / FDA); it is the source of truth. When the
-API changes, edit `specs/bwce-ai-generator-github-api.yaml`, regenerate `static/openapi-github.json`
-(`python3 -c 'import json,sys,yaml; json.dump(yaml.safe_load(open(sys.argv[1])), open(sys.argv[2],"w"), indent=2)'
-specs/bwce-ai-generator-github-api.yaml static/openapi-github.json`) and load that JSON as the REST trigger's API spec.
+Start it from the repository root: it reads `config/`, `rules/` and `static/` relative to the working directory.
+With `FLOGO_APP_PROPS_ENV=auto`, app properties can be overridden with environment variables of the same name (for
+example `TARGET_MODE=newRepo`). UI: http://localhost:9999 · API docs: http://localhost:9999/docs · MCP:
+http://localhost:8081/mcp.
 
-Key properties: `GITHUB_TOKEN` (env only, never stored), `TEMPLATE_REPO_URL`, `TEMPLATE_REF`, `TARGET_MODE`,
-`TARGET_REPO_URL`, `TARGET_OWNER_URL`, `TARGET_BRANCH`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`,
-`TEMPLATE_REGISTRY=config/ci-bwcetemplates.json`, `VECTOR_COLLECTION=BWCECiTemplates768`.
-Operations: `K8S_CONTEXTS`, `K8S_CONTEXT`, `K8S_INSECURE` (`false`), `K8S_CA_CERT` (PEM, base64 PEM or
-`file:///var/run/secrets/kubernetes.io/serviceaccount/ca.crt`; empty = system CAs), `CODE_REVIEW_BASE_URL`,
-`CODE_REVIEW_USERNAME`/`_PASSWORD`/`_USERID`/`_USERTYPE`/`_COOKIE`, `CODE_REVIEW_INSECURE` (`true` = no certificate
-check, the reference default; it replaces the reference's `CODE_REVIEW_VERIFY_SSL` because the REST Invoke binds
-"Disable SSL Verification" to a property, not an expression),
-`CODE_REVIEW_TOKEN_METHOD` (`POST`; `GET` matches the reference but puts the password in the URL, and the REST
-Invoke logs request URLs at INFO),
-`OPS_PROGRAMS=config/ops-programs.json`, `GENERATE_CICD`. Secrets belong in the environment, not in the `.flogo`.
+---
 
-Differences from the reference: sign-in, accounts, roles and the audit log (Entra ID SSO included) are left to Kong;
-the code review network check infers DNS/TCP/TLS from one HTTP probe; rollout status is a snapshot (no blocking
-wait); schema upload takes JSON instead of multipart and requires a previously generated repository (404 otherwise).
+## Configuration
 
-### Access control (Kong)
+| Area | App properties (default) |
+|------|--------------------------|
+| Publishing | `TARGET_MODE` (`subfolder`), `TARGET_REPO_URL`, `TARGET_BRANCH` (`main`), `TARGET_OWNER_URL`, `TEMPLATE_REPO_URL`, `TEMPLATE_REF` (`main`), `GITHUB_TOKEN` (environment only), `GITHUB_API_URL`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GENERATE_CICD` (`true`) |
+| LLM and search | `LLM_BASE_URL`, `LLM_MODEL` (`qwen2.5:7b`), `LLM_EMBEDDING_BASE_URL`, `LLM_EMBEDDING_MODEL` (`nomic-embed-text`), `EXTRACTION_SYSTEM_PROMPT`, `VECTOR_COLLECTION` (`BWCECiTemplates768`), `weaviate.WeaviateTemplateKB.*` (connection) |
+| Registry | `PostgreSQL.GenerationRegistry.*` (host, port, database, user, password, pool) |
+| Files | `TEMPLATE_REGISTRY` (`config/ci-bwcetemplates.json`), `RULES_PATH` (`rules/`), `IKD_INTERFACES_FILE`, `IKD_SCENARIOS_FILE` (`config/ikd/…`), `OPS_PROGRAMS` (`config/ops-programs.json`), `BRAND_LOGO_FILE` |
+| Notification | `SMTP_HOST` (`localhost`), `SMTP_PORT` (`1025`), `NOTIFY_SENDER`, `NOTIFY_RECIPIENTS` |
+| Kubernetes | `K8S_CONTEXTS` (JSON: context → `url`, `namespace`, `token`), `K8S_CONTEXT`, `K8S_INSECURE` (`false`), `K8S_CA_CERT` (PEM, base64 PEM or `file:///var/run/secrets/kubernetes.io/serviceaccount/ca.crt`; empty = system CAs) |
+| Code review | `CODE_REVIEW_BASE_URL` (placeholder; set it per deployment), `CODE_REVIEW_USERNAME`/`_PASSWORD`/`_USERID`/`_USERTYPE`/`_COOKIE`, `CODE_REVIEW_INSECURE` (`true`: no certificate check, the reference default), `CODE_REVIEW_TOKEN_METHOD` (`POST`; `GET` matches the reference but puts the password in the URL, which the REST Invoke logs) |
+| UI and MCP | `QASSIST_URL` (empty: QAssist not configured), `MCP_PORT` (`8081`) |
+
+Secrets (`GITHUB_TOKEN`, database and code review passwords) belong in the environment, not in the `.flogo`.
+
+---
+
+## Tests
+
+```bash
+bash test/e2e-github.sh   # 20 end-to-end checks incl. MCP; publishes one test folder to the target repository
+E2E_REPO=<generated repository> K8S_DEPLOYMENT=<deployment> bash test/e2e-ops.sh   # Kubernetes, code review, schemas, IKD
+```
+
+`e2e-ops.sh` skips what is not available: schema upload and IKD need a generated repository with IKD entries (for
+example the one `e2e-github.sh` just created, `repo_name` in `/tmp/e2e-gen.json`), the Kubernetes checks a reachable
+`K8S_CONTEXTS` endpoint, the code review checks a configured code review service. Remove test generations with
+`curl -X DELETE http://localhost:9999/api/tracker/<repo>`.
+
+---
+
+## Access control (Kong)
 
 The UI and the API are exposed through Kong, which authenticates and authorizes every request. The app trusts what
 Kong forwards: it has no sign-in, accounts, sessions, roles or audit log, and neither the REST port (:9999) nor the
 MCP server (:8081) checks credentials. Reach :9999 only through Kong, and keep :8081 internal or behind Kong as well.
-To limit who may scale or restart deployments or switch the Kubernetes context, restrict the `POST /k8s/...` routes
-in Kong (for example with the ACL plugin). A database created by an earlier version still has the unused account and
-audit tables; drop them with `DROP TABLE IF EXISTS public.app_user, public.login_attempt, public.audit_log;`.
+To limit who may scale or restart deployments, switch the Kubernetes context or clean up repositories, restrict the
+`POST /k8s/...` and `DELETE /api/tracker/...` routes in Kong (for example with the ACL plugin). A database created by
+an earlier version still has the unused account and audit tables; drop them with
+`DROP TABLE IF EXISTS public.app_user, public.login_attempt, public.audit_log;`.
+
+---
+
+## Development
+
+`bwce-ai-generator-github.flogo` is the source of truth; change it in the Flogo designer (VS Code) or with the Flogo
+design CLI.
+
+**Flow structure.** Every REST handler is an operation of the embedded API definition
+`specs/bwce-ai-generator-github-api.yaml`, one handler per flow, named after the flow. Each handler maps the request
+(`pathParams`, `queryParams`, `body`) to the inputs the flow declares, and the flow's `code` + `responseBody` outputs
+to the reply. `root_GET`, `docs_GET` and `openapi_json_GET` read their file and return it; the five Kubernetes
+endpoints are thin flows over `K8sOperation`. Shared subflows: `ExtractSpecCore` (rules, LLM, JSON clean-up for
+`/extract` and the chat), `ScaffoldArtifactsFlow`, `SendNotificationFlow`, `CodeReviewToken`, `RecordCodeReview`,
+`K8sRequest` and `CodeReviewRequest`; `/generate` reuses the `/api/templates/suggest` flow for its template search,
+so the UI's "best match" is the template it generates. The MCP tools `extract_spec` and `generate_code` run the
+`/extract` and `/generate` flows as subflows and `list_templates` reads the same catalog as `/api/templates`, so both
+interfaces behave the same.
+
+**Designer validation.** The designer's **Validate** reports no errors in any flow. It resolves every mapped path
+against declared schemas and checks each expression's result type, so: the request-body flow inputs (`content`, the
+MCP tools' `arguments`) carry the API definition's schema; the `APP_OPS` shared data declares every program key;
+query activities list their output columns; `json.jq`/`array.get` results are wrapped in
+`coerce.toArray`/`coerce.toString` where the target is typed; link conditions avoid a leading `!(`, which the
+designer's expression parser rejects; error branches read `$error[<activity>]`. Each flow's `metadata.fe_metadata`
+matches its inputs and outputs (a stale copy makes the designer rewrite flow inputs on save).
+
+**Changing the API.** Add or change the operation in `specs/bwce-ai-generator-github-api.yaml` first (the designer
+offers Method and Path from it), regenerate `static/openapi-github.json`
+(`python3 -c 'import json,sys,yaml; json.dump(yaml.safe_load(open(sys.argv[1])), open(sys.argv[2],"w"), indent=2)' specs/bwce-ai-generator-github-api.yaml static/openapi-github.json`),
+load that JSON as the REST trigger's API spec, then add the flow and its handler.
+
+### Repository layout
+
+```text
+bwce-ai-generator-github.flogo   the Flogo application
+config/ci-bwcetemplates.json     template catalog (ingested into Weaviate)
+config/ikd/                      IKD interface and scenario id lists
+config/ops-programs.json         jq programs: Kubernetes routes and responses, CI/CD file templates
+rules/                           rule engine packs: nlu-extraction.yaml, spec-validation.yaml
+specs/                           API definition (OpenAPI 3)
+static/                          web UI (chat-github.html), docs page, openapi-github.json, e-mail logo
+test/                            e2e-github.sh, e2e-ops.sh, mcp-call.sh
+docker-compose.maildev.yml       local SMTP server with web inbox
+```
+
+---
+
+## Differences from the reference generator
+
+Sign-in, accounts, roles and the audit log (Entra ID SSO included) are left to Kong; the code review network check
+infers DNS/TCP/TLS from one HTTP probe; rollout status is a snapshot (no blocking wait); schema upload takes JSON
+instead of multipart and requires a previously generated repository (404 otherwise); `CODE_REVIEW_INSECURE` replaces
+the reference's `CODE_REVIEW_VERIFY_SSL`, because the REST Invoke binds "Disable SSL Verification" to a property, not
+an expression.

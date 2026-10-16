@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # ============================================================================
-# BWCE AI Generator — MCP tool caller (demo helper)
+# BWCE AI Generator — MCP tool caller
 # ----------------------------------------------------------------------------
 # Drives the MCP server (Streamable HTTP) end-to-end: initialize -> initialized
-# -> tools/call, and prints the tool's text result. Used by the demo to show
-# the same engine that powers the REST API exposed to AI agents (Claude/Copilot).
+# -> tools/call, and prints the tool's text result (pretty-printed when JSON).
 #
 # Usage:
-#   ./demo/mcp-demo.sh list_templates
-#   ./demo/mcp-demo.sh extract_spec  '{"message":"publish article from s4hana to kafka"}'
-#   ./demo/mcp-demo.sh generate_code '{"spec":{"source_system":"s4hana","target_system":"kafka","business_object":"article","interface_type":"pub","template_type":"S4HANA_PUB_To_KAFKATopic","email":"dev@adidas.com"}}'
+#   test/mcp-call.sh list_templates
+#   test/mcp-call.sh extract_spec  '{"message":"publish article from s4hana to kafka"}'
+#   test/mcp-call.sh generate_code '{"spec":{"source_system":"S4HANA","target_system":"KAFKA","business_object":"Article","interface_type":"pub","product_area":"product_area-csddistribution"},"target_mode":"subfolder"}'
+#   MCP_URL=http://host:8081/mcp test/mcp-call.sh list_templates
 # ============================================================================
 set -uo pipefail
 
@@ -20,11 +20,11 @@ HDR=(-H "Content-Type: application/json" -H "Accept: application/json, text/even
 
 # 1. initialize — the session id comes back in the Mcp-Session-Id response header
 SID="$(curl -s -D - -o /dev/null -m 30 "${HDR[@]}" -X POST "$MCP_URL" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"bwce-demo","version":"1.0"}}}' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"mcp-call","version":"1.0"}}}' \
   | awk -F': ' 'tolower($1)=="mcp-session-id"{print $2}' | tr -d '\r')"
 
 if [[ -z "$SID" ]]; then
-  echo "Could not open an MCP session on $MCP_URL — is the app running? (./demo/start-demo.sh)" >&2
+  echo "Could not open an MCP session on $MCP_URL — is the app running?" >&2
   exit 1
 fi
 
