@@ -282,14 +282,24 @@ Shared Data, XML-to-JSON, Mapper) plus the Git Repo Scaffolder.
 |------|-----------|-------|
 | Auth | `POST /api/login`, `POST /api/logout`, `GET /api/session` | Local accounts (bcrypt via pgcrypto), HS256 JWT in an HttpOnly `session` cookie (also accepted as `Authorization: Bearer`), `X-API-Key` = admin, lockout after `AUTH_LOGIN_MAX_ATTEMPTS` for `AUTH_LOGIN_LOCKOUT_SECONDS`. Every other endpoint answers 401 (`UNAUTHENTICATED`) / 403 (`FORBIDDEN`, audited) like the reference guard. Public: `/`, `/health`, `/api/login`, `/api/logout`, `/api/session` |
 | Admin | `GET/POST/DELETE /api/users`, `GET /api/auditlog?limit=`, `GET /api/auth/diagnostics` | Users and diagnostics are admin-only; the audit log keeps the newest 2000 entries (login, logout, login_failed, login_locked_out, access_denied, user_upsert, user_delete, k8s_*, code_review_run) |
-| Kubernetes | `/k8s/health`, `/k8s/context`, `/k8s/context/switch`, `/k8s/status`, `/k8s/deployments[/{name}[/scale\|/restart\|/rollout]]`, `/k8s/pods[/{name}[/logs\|/port-forward]]`, `/k8s/services`, `/k8s/events` | Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token, ca, insecure); scale/restart/switch are admin-only and audited |
+| Kubernetes | `GET /k8s/{resource}` (health, context, status, deployments, pods, services, events), `GET /k8s/{resource}/{name}`, `GET /k8s/{resource}/{name}/{view}` (rollout, logs, port-forward), `POST /k8s/deployments/{name}/{action}` (scale, restart), `POST /k8s/context/switch` | Same URLs as the reference; the route selects the operation (`k8s.routes` in `config/ops-programs.json`, anything else is 404). Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token, ca, insecure); scale/restart/switch are admin-only and audited |
 | Code review | `POST /api/codereview/token`, `POST /api/codereview/run`, `GET /api/codereview/history`, `GET /api/codereview/network-debug` | intginvent token cached in shared data, one retry with a refreshed token, history (newest 500) in PostgreSQL, report links extracted and query strings redacted |
-| Schemas | `POST /api/schemas/upload/{source\|target\|batch}` | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); XML is validated, files are committed into `<repo>.module/Schemas` or `Service Descriptors` in one commit, a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
+| Schemas | `POST /api/schemas/upload/{kind}` (source, target, batch) | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); XML is validated, files are committed into `<repo>.module/Schemas` or `Service Descriptors` in one commit, a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
 
-Consolidation in this edition: the three identical static-file flows are one `static_GET`; the extraction pipeline
-duplicated in `/extract` and the chat is one `ExtractSpecCore` subflow; the pass-through `BuildRepoName` task,
-the unused `GetAppConfig` lookup, three unused properties and the duplicate import aliases were removed. Shared
-subflows: `AuthGuard`, `WriteAudit`, `HttpCall`, `CodeReviewToken`, `RecordCodeReview`.
+Flow structure (Flogo designer): every REST handler is an operation of the embedded API definition
+`specs/bwce-ai-generator-github-api.yaml` (also served as `/openapi.json`, rendered by `/docs`), one handler per
+flow, named after the flow. Each handler maps the request (`headers`, `pathParams`, `queryParams`, `body`) to flow
+inputs and the flow's `code` + `responseBody` outputs to the reply. Endpoints that share logic are thin flows over a
+subflow: `root_GET`, `docs_GET`, `openapi_json_GET` → `StaticFile`; the five Kubernetes endpoints → `K8sOperation`.
+Shared subflows: `AuthGuard`, `WriteAudit`, `HttpCall`, `CodeReviewToken`, `RecordCodeReview`, `ExtractSpecCore`.
+To add an endpoint, add the operation to the API definition first (the designer offers Method/Path from it), then
+its flow and handler.
+
+Consolidation in this edition: the extraction pipeline duplicated in `/extract` and the chat is one
+`ExtractSpecCore` subflow; the Return/Reply pairs of `/generate` and `/extract` are one Return each (the MCP tools
+read `responseBody.body`); the pass-through `BuildRepoName` task, the unused `GetAppConfig` lookup, three unused
+properties, duplicate import aliases, the never-bound `LLMProvider` connection and the unused File Write import
+were removed.
 
 Build and run:
 
@@ -301,7 +311,10 @@ AUTH_API_KEY=<same> bash test/e2e-github.sh    # 15 end-to-end checks (writes on
 AUTH_API_KEY=<same> bash test/e2e-ops.sh       # auth, admin, Kubernetes, code review, schemas, IKD
 ```
 
-`bwce-ai-generator-github.flogo` is maintained directly (Flogo designer / FDA); it is the source of truth.
+`bwce-ai-generator-github.flogo` is maintained directly (Flogo designer / FDA); it is the source of truth. When the
+API changes, edit `specs/bwce-ai-generator-github-api.yaml`, regenerate `static/openapi-github.json`
+(`python3 -c 'import json,sys,yaml; json.dump(yaml.safe_load(open(sys.argv[1])), open(sys.argv[2],"w"), indent=2)'
+specs/bwce-ai-generator-github-api.yaml static/openapi-github.json`) and load that JSON as the REST trigger's API spec.
 
 Key properties: `GITHUB_TOKEN` (env only, never stored), `TEMPLATE_REPO_URL`, `TEMPLATE_REF`, `TARGET_MODE`,
 `TARGET_REPO_URL`, `TARGET_OWNER_URL`, `TARGET_BRANCH`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`,
