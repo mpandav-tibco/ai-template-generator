@@ -25,7 +25,7 @@ repositories: generation registry and cleanup, IKD registry, schema upload, Kube
   returns the existing registration, and a cleanup endpoint removes a generation again.
 - **Operations** — Kubernetes (status, rollout, logs, scale, restart, context switch), code review, XSD/WSDL schema
   upload, IKD export and a notification e-mail per generation.
-- **Three front doors** — web UI, REST API (OpenAPI definition and docs page), MCP server for AI agents.
+- **Three front doors** — web UI, REST API (its OpenAPI definition served by Flogo), MCP server for AI agents.
 
 ---
 
@@ -144,11 +144,13 @@ on GitHub (deleting a repository cannot be undone and needs extra token rights);
 
 ## REST API
 
-Every operation is defined in `specs/bwce-ai-generator-github-api.yaml` (served as `/openapi.json`, rendered by `/docs`).
+The API definition (OpenAPI 3) is embedded in the app, and Flogo serves it: start the app with
+`FLOGO_EXPOSE_SWAGGER_EP=true` and fetch `GET /api/v2/swagger.json` on the REST port (for Swagger UI, Postman or any
+OpenAPI tool).
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/`, `/docs`, `/openapi.json` | Web UI, API documentation, API definition |
+| GET | `/` | Web UI |
 | GET | `/health` | Liveness and readiness probe |
 | POST | `/api/chat/init`, `/api/chat/message`, `/api/chat/reset` | Conversation that builds the spec (sessions in PostgreSQL) |
 | POST | `/extract` | One-shot spec extraction from free text |
@@ -183,14 +185,8 @@ Cursor: `{ "mcpServers": { "bwce-ai-generator": { "url": "http://localhost:8081/
 | `generate_code` | `spec` (required: `source_system`, `target_system`, `business_object`, `interface_type`), `config_only`, `target_mode` (`subfolder` or `newRepo`) | the `/generate` result as JSON text: same pipeline, registry and notification |
 | `list_templates` | — | the template catalog |
 
-`test/mcp-call.sh` performs the MCP handshake and prints a tool's result:
-
-```bash
-test/mcp-call.sh list_templates
-test/mcp-call.sh extract_spec '{"message":"publish article master data from S4HANA to Kafka"}'
-test/mcp-call.sh generate_code '{"spec":{"source_system":"S4HANA","target_system":"KAFKA","business_object":"Article","interface_type":"pub","product_area":"product_area-csddistribution"},"target_mode":"newRepo"}'
-npx @modelcontextprotocol/inspector    # interactive; connect to http://localhost:8081/mcp (Streamable HTTP)
-```
+Try the tools interactively with the MCP Inspector: `npx @modelcontextprotocol/inspector`, then connect to
+`http://localhost:8081/mcp` (Streamable HTTP).
 
 ---
 
@@ -230,7 +226,7 @@ timeout) takes the error link to `Failed`, so both subflows always return `statu
 | Weaviate | `localhost:18080` | collection `BWCECiTemplates768`, filled from the catalog at startup |
 | LLM and embeddings | Ollama at `localhost:11434` with `qwen2.5:7b` and `nomic-embed-text` | `ollama pull qwen2.5:7b`, `ollama pull nomic-embed-text`; any OpenAI-compatible endpoint works |
 | GitHub token | environment variable `GITHUB_TOKEN` | Contents read/write on the template library and the target repository; `newRepo` also needs Administration read/write to create repositories |
-| SMTP | `localhost:1025` | MailDev for development: `docker compose -f docker-compose.maildev.yml up -d`, inbox at http://localhost:1080 |
+| SMTP | `localhost:1025` | for development, MailDev: `docker run -d -p 1080:1080 -p 1025:1025 maildev/maildev:2.1.0`, inbox at http://localhost:1080 |
 | Kubernetes API (optional) | `K8S_CONTEXTS` | for a local cluster, `kubectl proxy --port=8001` |
 | Code review service (optional) | `CODE_REVIEW_BASE_URL` | until `CODE_REVIEW_USERNAME` and `CODE_REVIEW_PASSWORD` are set, the code review endpoints answer 503 |
 
@@ -241,13 +237,13 @@ timeout) takes the error link to `Failed`, so both subflows always return `statu
 ```bash
 fcli build-exe -f bwce-ai-generator-github.flogo -c flogo-studio-2265 -n bwce-ai-generator-github -o .
 codesign --force --sign - ./bwce-ai-generator-github   # macOS only: ad-hoc signature, or the binary is killed at start
-FLOGO_APP_PROPS_ENV=auto GITHUB_TOKEN=<token> ./bwce-ai-generator-github
+FLOGO_APP_PROPS_ENV=auto FLOGO_EXPOSE_SWAGGER_EP=true GITHUB_TOKEN=<token> ./bwce-ai-generator-github
 ```
 
 Start it from the repository root: it reads `config/`, `rules/` and `static/` relative to the working directory.
 With `FLOGO_APP_PROPS_ENV=auto`, app properties can be overridden with environment variables of the same name (for
-example `TARGET_MODE=newRepo`). UI: http://localhost:9999 · API docs: http://localhost:9999/docs · MCP:
-http://localhost:8081/mcp.
+example `TARGET_MODE=newRepo`). UI: http://localhost:9999 · API definition: http://localhost:9999/api/v2/swagger.json
+(with `FLOGO_EXPOSE_SWAGGER_EP=true`) · MCP: http://localhost:8081/mcp.
 
 ---
 
@@ -268,17 +264,15 @@ Secrets (`GITHUB_TOKEN`, database and code review passwords) belong in the envir
 
 ---
 
-## Tests
+## Verify
 
 ```bash
-bash test/e2e-github.sh   # 20 end-to-end checks incl. MCP; publishes one test folder to the target repository
-E2E_REPO=<generated repository> K8S_DEPLOYMENT=<deployment> bash test/e2e-ops.sh   # Kubernetes, code review, schemas, IKD
+curl -s http://localhost:9999/health
+curl -s http://localhost:9999/api/templates | head -c 300
+curl -s -X POST http://localhost:9999/generate -H 'Content-Type: application/json' \
+  -d '{"spec":{"source_system":"S4HANA","target_system":"KAFKA","business_object":"Article","interface_type":"pub","product_area":"product_area-csddistribution","env":"DEV"}}'
+curl -s -X DELETE http://localhost:9999/api/tracker/<repo_name>    # removes a test generation again
 ```
-
-`e2e-ops.sh` skips what is not available: schema upload and IKD need a generated repository with IKD entries (for
-example the one `e2e-github.sh` just created, `repo_name` in `/tmp/e2e-gen.json`), the Kubernetes checks a reachable
-`K8S_CONTEXTS` endpoint, the code review checks a configured code review service. Remove test generations with
-`curl -X DELETE http://localhost:9999/api/tracker/<repo>`.
 
 ---
 
@@ -299,11 +293,10 @@ an earlier version still has the unused account and audit tables; drop them with
 `bwce-ai-generator-github.flogo` is the source of truth; change it in the Flogo designer (VS Code) or with the Flogo
 design CLI.
 
-**Flow structure.** Every REST handler is an operation of the embedded API definition
-`specs/bwce-ai-generator-github-api.yaml`, one handler per flow, named after the flow. Each handler maps the request
-(`pathParams`, `queryParams`, `body`) to the inputs the flow declares, and the flow's `code` + `responseBody` outputs
-to the reply. `root_GET`, `docs_GET` and `openapi_json_GET` read their file and return it; the five Kubernetes
-endpoints are thin flows over `K8sOperation`. Shared subflows: `ExtractSpecCore` (rules, LLM, JSON clean-up for
+**Flow structure.** Every REST handler is an operation of the embedded API definition, one handler per flow, named
+after the flow. Each handler maps the request (`pathParams`, `queryParams`, `body`) to the inputs the flow declares,
+and the flow's `code` + `responseBody` outputs to the reply. `root_GET` reads the UI file and returns it; the five
+Kubernetes endpoints are thin flows over `K8sOperation`. Shared subflows: `ExtractSpecCore` (rules, LLM, JSON clean-up for
 `/extract` and the chat), `ScaffoldArtifactsFlow`, `SendNotificationFlow`, `CodeReviewToken`, `RecordCodeReview`,
 `K8sRequest` and `CodeReviewRequest`; `/generate` reuses the `/api/templates/suggest` flow for its template search,
 so the UI's "best match" is the template it generates. The MCP tools `extract_spec` and `generate_code` run the
@@ -318,10 +311,9 @@ query activities list their output columns; `json.jq`/`array.get` results are wr
 designer's expression parser rejects; error branches read `$error[<activity>]`. Each flow's `metadata.fe_metadata`
 matches its inputs and outputs (a stale copy makes the designer rewrite flow inputs on save).
 
-**Changing the API.** Add or change the operation in `specs/bwce-ai-generator-github-api.yaml` first (the designer
-offers Method and Path from it), regenerate `static/openapi-github.json`
-(`python3 -c 'import json,sys,yaml; json.dump(yaml.safe_load(open(sys.argv[1])), open(sys.argv[2],"w"), indent=2)' specs/bwce-ai-generator-github-api.yaml static/openapi-github.json`),
-load that JSON as the REST trigger's API spec, then add the flow and its handler.
+**Changing the API.** Add or change the operation in the app's API definition first (Flogo designer, API specs; the
+designer offers Method and Path from it), then add the flow and its handler. Flogo's `/api/v2/swagger.json` serves
+the result.
 
 ### Repository layout
 
@@ -331,10 +323,7 @@ config/ci-bwcetemplates.json     template catalog (ingested into Weaviate)
 config/ikd/                      IKD interface and scenario id lists
 config/ops-programs.json         jq programs: Kubernetes routes and responses, CI/CD file templates
 rules/                           rule engine packs: nlu-extraction.yaml, spec-validation.yaml
-specs/                           API definition (OpenAPI 3)
-static/                          web UI (chat-github.html), docs page, openapi-github.json, e-mail logo
-test/                            e2e-github.sh, e2e-ops.sh, mcp-call.sh
-docker-compose.maildev.yml       local SMTP server with web inbox
+static/                          web UI (chat-github.html), e-mail logo
 ```
 
 ---
