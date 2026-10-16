@@ -420,6 +420,7 @@ components:
         target_owner_url: {type: string, description: Owner of new repositories}
         template_repo_url: {type: string, description: Template library}
         template_ref: {type: string}
+        qassist_url: {type: string, description: "QAssist address for the UI (QASSIST_URL); empty when not configured"}
         records: {type: array, description: "Registry rows; github_url and target_mode say where each repository was published (empty for rows registered before they were recorded)", items: {type: object, additionalProperties: true}}
     CleanupResponse:
       type: object

@@ -1641,7 +1641,6 @@
         let isWaitingForResponse = false;
         let codeReviewTokenReady = false;
         let codeReviewHistoryEntries = [];
-        const QASSIST_AI_URL = 'https://qassist.example.com/';
         const DEFAULT_GENERATION_STEPS = [
             'Input validation','Repository name derivation','GitHub project resolution',
             'IKD registry update','Template resolution','Code generation','Token replacement',
@@ -2479,10 +2478,16 @@
         }
 
         function openQAssist() {
-            const opened = window.open(QASSIST_AI_URL, '_blank', 'noopener,noreferrer');
-            if (!opened) {
-                alert('Popup blocked. Please allow popups for this site to open QAssist in a new tab.');
+            const url = safeUrl(trackerConfig.qassist_url);
+            if (!url) {
+                alert('QAssist is not configured: set the QASSIST_URL property of the app.');
+                return;
             }
+            // window.open() with noopener always returns null, so a popup-blocked check on it misfires
+            const link = Object.assign(document.createElement('a'), { href: url, target: '_blank', rel: 'noopener noreferrer' });
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
         }
 
         async function ensureCodeReviewToken() {
