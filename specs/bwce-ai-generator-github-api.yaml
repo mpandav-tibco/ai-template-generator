@@ -118,9 +118,8 @@ paths:
         required: true
         content: {application/json: {schema: {$ref: "#/components/schemas/GenerateRequest"}}}
       responses:
-        "200": {description: Generation result, content: {application/json: {schema: {$ref: "#/components/schemas/GenerateResponse"}}}}
-        "400": {description: Validation errors, content: {application/json: {schema: {$ref: "#/components/schemas/GenerateResponse"}}}}
-        "409": {description: Repository already generated, content: {application/json: {schema: {$ref: "#/components/schemas/GenerateResponse"}}}}
+        "200": {description: Generation result (duplicate=true with the existing registration when the repository was already generated), content: {application/json: {schema: {$ref: "#/components/schemas/GenerateResponse"}}}}
+        "400": {description: Validation errors (rules or IKD registry), content: {application/json: {schema: {$ref: "#/components/schemas/GenerateResponse"}}}}
         "500": {description: Error, content: {application/json: {schema: {$ref: "#/components/schemas/ErrorResponse"}}}}
   /api/tracker:
     get:

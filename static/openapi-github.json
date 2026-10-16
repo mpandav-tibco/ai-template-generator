@@ -328,7 +328,7 @@
         },
         "responses": {
           "200": {
-            "description": "Generation result",
+            "description": "Generation result (duplicate=true with the existing registration when the repository was already generated)",
             "content": {
               "application/json": {
                 "schema": {
@@ -338,17 +338,7 @@
             }
           },
           "400": {
-            "description": "Validation errors",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GenerateResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Repository already generated",
+            "description": "Validation errors (rules or IKD registry)",
             "content": {
               "application/json": {
                 "schema": {

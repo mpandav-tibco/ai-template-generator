@@ -276,8 +276,11 @@ activity. Its output is byte-identical to the reference Python generator for the
 
 All logic is Flogo flows; data-shaped logic (Kubernetes response mapping, request planning, CI/CD rendering) runs
 as **jq programs** (TIBCO `json.jq`) loaded at startup from `config/ops-programs.json` into shared data, so one
-generic flow serves many endpoints. Only OOTB activities are used (REST, PostgreSQL, Shared Data, XML-to-JSON,
-Mapper) plus the Git Repo Scaffolder.
+generic flow serves many endpoints. Only OOTB activities are used (PostgreSQL, Shared Data, XML-to-JSON, Mapper)
+plus the Git Repo Scaffolder and the HTTP Request activity
+([flogo-custom-extensions](https://github.com/mpandav-tibco/flogo-custom-extensions/tree/main/activity/httprequest)):
+the OOTB REST Invoke only takes a fixed method and URL in the designer, while the Kubernetes and code review calls
+build them at runtime.
 
 | Area | Endpoints | Notes |
 |------|-----------|-------|
@@ -290,7 +293,10 @@ Flow structure (Flogo designer): every REST handler is an operation of the embed
 flow, named after the flow. Each handler maps the request (`pathParams`, `queryParams`, `body`) to the inputs the
 flow declares and the flow's `code` + `responseBody` outputs to the reply. `root_GET`, `docs_GET` and
 `openapi_json_GET` read their file and return it; the five Kubernetes endpoints are thin flows over `K8sOperation`.
-Shared subflows: `HttpCall`, `CodeReviewToken`, `RecordCodeReview`, `ExtractSpecCore`.
+Shared subflows: `CodeReviewToken`, `RecordCodeReview`, `ExtractSpecCore`; `/generate` reuses the
+`/api/templates/suggest` flow for its template search, so the UI's "best match" is the template it generates.
+Startup loads the local configuration first (template registry, IKD ids, operations programs, Kubernetes contexts),
+then creates or upgrades the PostgreSQL tables in one idempotent statement, then ingests the templates into Weaviate.
 To add an endpoint, add the operation to the API definition first (the designer offers Method/Path from it), then
 its flow and handler.
 
@@ -302,6 +308,15 @@ were removed. With access control in Kong, the in-app authentication went too: t
 audit-log and diagnostics endpoints, the `AuthGuard`, `WriteAudit` and `StaticFile` subflows, the guard and audit
 steps in every flow, the JWT import, the auth properties, the MCP server token, the alias mappings loaded at
 startup but never read, and flow inputs nothing used (47 → 36 flows, 31 → 23 endpoints, 71 → 58 properties).
+A second review merged `SetupDatabaseFlow` and `TemplateIngestionFlow` into `StartupFlow`, replaced `HttpCall`
+with the HTTP Request activity, made `/generate` reuse the suggest search, stored the IKD ids under one key, folded
+the error-body mappers into the error Returns and dropped request logs the REST trigger already writes
+(36 → 33 flows, 245 → 213 activities, 58 → 57 properties).
+
+Designer safety: every mapper, shared-data and subflow activity carries the schema the designer shows in its
+mapper, and each flow's `metadata.fe_metadata` matches its inputs and outputs (a stale copy made the designer
+rewrite flow inputs on save). With `files.autoSave` on, opening the app in the designer saves its normalised copy;
+run the checks below afterwards.
 
 Build and run:
 
