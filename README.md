@@ -264,12 +264,13 @@ activity. Its output is byte-identical to the reference Python generator for the
 | Repository name | `[in<area>-]src-object-target[-uid][-country]-itype`, product-area prefix map and `REST_SERVICE`/`SOAP_SERVICE` → `service`, max 50 chars (400 otherwise) |
 | Template selection | Requested template if it exists in the catalog, otherwise Weaviate **hybrid** (BM25 + vector, α 0.25) over the 37-template catalog; the chat transcript is passed as `context` so transport hints ("from SFTP") count |
 | Output layout | `<TARGET_REPO_URL>/<repo>/code/<repo>/…` + `<repo>/configs/generation.properties`, `generation-metadata.json` + CI/CD files (below) |
-| Target modes | `TARGET_MODE=subfolder` (one shared repo, default) or `newRepo` (one repository per integration under `TARGET_OWNER_URL`) |
+| Target modes | `TARGET_MODE=subfolder` (one shared repo, default) or `newRepo` (one private repository per integration under `TARGET_OWNER_URL`); a `/generate` request can override it with `target_mode`, and the UI offers both after the product-area step |
 | Config-only | `config_only:true` refreshes only `configs/` and keeps the code |
-| Extra endpoints | `GET /api/tracker` (registry rows with GitHub links), `POST /api/templates/suggest` (ranked templates) |
+| Same repository again | The name is derived from the spec, so the same spec maps to the same repository: `/generate` answers `duplicate:true` with the existing registration and changes nothing. In the UI, a new request after a generation starts a new conversation |
+| Extra endpoints | `GET /api/tracker` (registry rows with where each repository was published, plus the template source), `DELETE /api/tracker/{repo_name}` (cleanup: deletes the folder from the shared repository in one commit and the registry rows; a repository of its own is kept on GitHub), `POST /api/templates/suggest` (ranked templates) |
 | CI/CD files | `.github/workflows/ci.yml`, `Jenkinsfile`, `k8s/deployment-<env>.yaml`, `config/runtime-<env>.json` — byte-identical to the reference `CICDScaffolder`; templates live in `config/ops-programs.json` (`cicd.templates`), off with `GENERATE_CICD=false` |
 | IKD registry | Every generation registers `<interface_id>:<repo>` / `<scenario_id>:<repo>` (replacing the repo's previous entry, skipped for config-only) in `ikd_registry`; `GET /api/ikd?kind=InterfaceIDs\|ScenarioIDs` returns the reference `IKD_*.txt` content |
-| UI | `static/chat-github.html` — chat, templates, tracker + schema upload, Kubernetes and code review tabs |
+| UI | `static/chat-github.html` — the customer's reference UI on the Flogo API: chat with `/templates`, `/suggest`, `/analyze`, `/generate`, `/newrepo`, `/shared`, `/upload <repo>` and `/cleanup <repo>`, schema upload, Repos Generated with repository actions (deployment status, code review, cleanup; Jenkins and Fortanix steps need the customer's systems), code review |
 | Access control | Done by Kong in front of the app; the app has no sign-in, accounts, roles or audit log (see below) |
 
 ### Operations (ported from the reference generator)

@@ -58,5 +58,13 @@ grep -q valid_email_domain /tmp/e2e-mail.json && [ "$code" = 400 ] && ok "disall
 # 8. tracker lists the generation with its GitHub location
 t=$(curl -s $B/api/tracker | jq_ "[r['repo_name'] for r in d['records']][:5]")
 case "$t" in *"$repo"*) ok "tracker lists $repo";; *) bad "tracker" "$t";; esac
+loc=$(curl -s $B/api/tracker | jq_ "next((r.get('target_mode') or '')+'|'+(r.get('github_url') or '') for r in d['records'] if r['repo_name']=='$repo')")
+case "$loc" in "subfolder|"*"/tree/main/$repo") ok "registry records where $repo was published";; *) bad "registry location" "$loc";; esac
+
+# 9. cleanup rejects invalid names and unknown repositories (the deleting path is not run by this suite)
+code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE $B/api/tracker/.hidden)
+[ "$code" = 400 ] && ok "cleanup rejects an invalid repository name (400)" || bad "cleanup invalid name" "$code"
+code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE $B/api/tracker/not-generated-xyz)
+[ "$code" = 404 ] && ok "cleanup of an unknown repository -> 404" || bad "cleanup unknown repository" "$code"
 
 echo; echo "$P passed, $F failed"

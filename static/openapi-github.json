@@ -381,6 +381,68 @@
         }
       }
     },
+    "/api/tracker/{repo_name}": {
+      "delete": {
+        "operationId": "api_tracker_repo_DELETE",
+        "summary": "Clean up a generated repository",
+        "description": "Removes the repository's folder from the shared repository (one commit) and its generation and IKD registry rows. A repository that was created on its own is kept on GitHub; only its registry rows are removed.",
+        "tags": [
+          "Generation"
+        ],
+        "parameters": [
+          {
+            "name": "repo_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cleanup result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CleanupResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a repository name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not in the generation registry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ikd": {
       "get": {
         "operationId": "ikd_GET",
@@ -1388,6 +1450,14 @@
           "context": {
             "type": "string",
             "description": "Conversation text used for template selection"
+          },
+          "target_mode": {
+            "type": "string",
+            "enum": [
+              "subfolder",
+              "newRepo"
+            ],
+            "description": "Where to publish: a folder in the shared repository (TARGET_REPO_URL) or a new private repository under TARGET_OWNER_URL. Default: the TARGET_MODE property"
           }
         }
       },
@@ -1416,6 +1486,13 @@
           "generation_id": {
             "type": "string"
           },
+          "target_mode": {
+            "type": "string",
+            "enum": [
+              "subfolder",
+              "newRepo"
+            ]
+          },
           "errors": {
             "type": "array",
             "items": {
@@ -1436,12 +1513,61 @@
           "target_branch": {
             "type": "string"
           },
+          "target_owner_url": {
+            "type": "string",
+            "description": "Owner of new repositories"
+          },
+          "template_repo_url": {
+            "type": "string",
+            "description": "Template library"
+          },
+          "template_ref": {
+            "type": "string"
+          },
           "records": {
             "type": "array",
+            "description": "Registry rows; github_url and target_mode say where each repository was published (empty for rows registered before they were recorded)",
             "items": {
               "type": "object",
               "additionalProperties": true
             }
+          }
+        }
+      },
+      "CleanupResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "repo_name": {
+            "type": "string"
+          },
+          "target_mode": {
+            "type": "string",
+            "enum": [
+              "subfolder",
+              "newRepo"
+            ]
+          },
+          "github_url": {
+            "type": "string"
+          },
+          "folder_removed": {
+            "type": "boolean",
+            "description": "The folder was deleted from the shared repository"
+          },
+          "commit_sha": {
+            "type": "string"
+          },
+          "registry_rows": {
+            "type": "integer"
+          },
+          "ikd_rows": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
           }
         }
       },
