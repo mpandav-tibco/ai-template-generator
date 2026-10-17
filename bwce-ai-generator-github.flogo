@@ -1552,7 +1552,7 @@
             "handlerType": "Tool",
             "resourceUri": "",
             "handlerName": "generate_code",
-            "handlerDescription": "Generate BWCE integration code from extracted spec",
+            "handlerDescription": "Generates the BWCE integration repository for a complete spec and publishes it to GitHub, with the same gates as POST /generate (validation, IKD check, duplicate check). The result's repo_name identifies the repository for upload_schemas, code_review_run and delete_repository: call those after this tool has returned.",
             "toolTitle": "",
             "readOnlyToolHint": false,
             "destructiveToolHint": false,
@@ -1586,8 +1586,8 @@
             "output": {
               "arguments": {
                 "type": "json",
-                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"description\": \"Integration spec, e.g. from extract_spec\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"product_area\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}}, \"required\": [\"source_system\", \"target_system\", \"business_object\", \"interface_type\"]}, \"config_only\": {\"type\": \"boolean\", \"description\": \"Refresh only configs/ of an existing repository\"}, \"target_mode\": {\"type\": \"string\", \"enum\": [\"subfolder\", \"newRepo\"], \"description\": \"Publish to a folder of the shared repository (subfolder) or to a new repository (newRepo); default: the TARGET_MODE property\"}}, \"required\": [\"spec\"]}",
-                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"description\": \"Integration spec, e.g. from extract_spec\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"product_area\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}}, \"required\": [\"source_system\", \"target_system\", \"business_object\", \"interface_type\"]}, \"config_only\": {\"type\": \"boolean\", \"description\": \"Refresh only configs/ of an existing repository\"}, \"target_mode\": {\"type\": \"string\", \"enum\": [\"subfolder\", \"newRepo\"], \"description\": \"Publish to a folder of the shared repository (subfolder) or to a new repository (newRepo); default: the TARGET_MODE property\"}}, \"required\": [\"spec\"]}"
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"description\": \"Integration spec, e.g. from extract_spec\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"product_area\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}}, \"required\": [\"source_system\", \"target_system\", \"business_object\", \"interface_type\"]}, \"config_only\": {\"type\": \"boolean\", \"description\": \"Refresh only configs/ of an existing repository\"}, \"target_mode\": {\"type\": \"string\", \"enum\": [\"subfolder\", \"newRepo\"], \"description\": \"Publish to a folder of the shared repository (subfolder) or to a new repository (newRepo); default: the TARGET_MODE property\"}, \"context\": {\"type\": \"string\", \"description\": \"Conversation text used for template selection, e.g. the user's request (hints like 'from SFTP' count)\"}}, \"required\": [\"spec\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"description\": \"Integration spec, e.g. from extract_spec\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"product_area\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"need_secret\": {\"type\": \"boolean\"}}, \"required\": [\"source_system\", \"target_system\", \"business_object\", \"interface_type\"]}, \"config_only\": {\"type\": \"boolean\", \"description\": \"Refresh only configs/ of an existing repository\"}, \"target_mode\": {\"type\": \"string\", \"enum\": [\"subfolder\", \"newRepo\"], \"description\": \"Publish to a folder of the shared repository (subfolder) or to a new repository (newRepo); default: the TARGET_MODE property\"}, \"context\": {\"type\": \"string\", \"description\": \"Conversation text used for template selection, e.g. the user's request (hints like 'from SFTP' count)\"}}, \"required\": [\"spec\"]}"
               }
             }
           },
@@ -1639,6 +1639,664 @@
             }
           },
           "name": "MCPListTemplates"
+        },
+        {
+          "description": "MCP tool 'chat' (flow MCPChatTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "chat",
+            "handlerDescription": "Builds the integration spec in a conversation, like the web UI chat: send the user's message and get the reply, the spec so far, missing_fields and ready_to_generate. Omit session_id to start a new conversation and pass the returned session_id on the following turns. When ready_to_generate is true, call generate_code with the spec.",
+            "toolTitle": "",
+            "readOnlyToolHint": false,
+            "destructiveToolHint": false,
+            "idempotentToolHint": false,
+            "openWorldToolHint": true,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPChatTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\", \"description\": \"The user's message, for example 'publish S4HANA article IDocs to a Kafka topic'\"}, \"session_id\": {\"type\": \"string\", \"description\": \"Conversation id from a previous chat result; omit it to start a new conversation\"}}, \"required\": [\"message\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\", \"description\": \"The user's message, for example 'publish S4HANA article IDocs to a Kafka topic'\"}, \"session_id\": {\"type\": \"string\", \"description\": \"Conversation id from a previous chat result; omit it to start a new conversation\"}}, \"required\": [\"message\"]}"
+              }
+            }
+          },
+          "name": "MCPChatTool"
+        },
+        {
+          "description": "MCP tool 'chat_reset' (flow MCPChatResetTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "chat_reset",
+            "handlerDescription": "Ends a chat conversation: deletes its stored session and the spec collected in it.",
+            "toolTitle": "",
+            "readOnlyToolHint": false,
+            "destructiveToolHint": true,
+            "idempotentToolHint": true,
+            "openWorldToolHint": false,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPChatResetTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\", \"description\": \"Conversation id to end\"}}, \"required\": [\"session_id\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\", \"description\": \"Conversation id to end\"}}, \"required\": [\"session_id\"]}"
+              }
+            }
+          },
+          "name": "MCPChatResetTool"
+        },
+        {
+          "description": "MCP tool 'suggest_templates' (flow MCPSuggestTemplatesTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "suggest_templates",
+            "handlerDescription": "Ranks the BWCE templates for a partial spec with the same hybrid search (BM25 and vector) that generate_code uses. Give any of the spec fields and/or free text.",
+            "toolTitle": "",
+            "readOnlyToolHint": true,
+            "destructiveToolHint": false,
+            "idempotentToolHint": true,
+            "openWorldToolHint": false,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPSuggestTemplatesTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\", \"description\": \"Source system, for example S4HANA\"}, \"target_system\": {\"type\": \"string\", \"description\": \"Target system, for example KAFKA\"}, \"business_object\": {\"type\": \"string\", \"description\": \"Business object, for example article\"}, \"interface_type\": {\"type\": \"string\", \"description\": \"Interface type, for example pub or sub\"}, \"query\": {\"type\": \"string\", \"description\": \"Free text, for example the conversation so far\"}}}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\", \"description\": \"Source system, for example S4HANA\"}, \"target_system\": {\"type\": \"string\", \"description\": \"Target system, for example KAFKA\"}, \"business_object\": {\"type\": \"string\", \"description\": \"Business object, for example article\"}, \"interface_type\": {\"type\": \"string\", \"description\": \"Interface type, for example pub or sub\"}, \"query\": {\"type\": \"string\", \"description\": \"Free text, for example the conversation so far\"}}}"
+              }
+            }
+          },
+          "name": "MCPSuggestTemplatesTool"
+        },
+        {
+          "description": "MCP tool 'list_repositories' (flow MCPListRepositoriesTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "list_repositories",
+            "handlerDescription": "Lists the generated repositories (newest 100) from the generation registry: count (number of records), and per repository its repo_name, template, spec fields, IKD ids, where it was published (target_mode, github_url) and when; plus the template source and publishing settings.",
+            "toolTitle": "",
+            "readOnlyToolHint": true,
+            "destructiveToolHint": false,
+            "idempotentToolHint": true,
+            "openWorldToolHint": false,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPListRepositoriesTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}"
+              }
+            }
+          },
+          "name": "MCPListRepositoriesTool"
+        },
+        {
+          "description": "MCP tool 'delete_repository' (flow MCPDeleteRepositoryTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "delete_repository",
+            "handlerDescription": "Cleans up a generated repository: its folder is deleted from the shared GitHub repository in one commit (a repository created on its own is kept on GitHub), and its generation and IKD registry entries are removed. Cannot be undone.",
+            "toolTitle": "",
+            "readOnlyToolHint": false,
+            "destructiveToolHint": true,
+            "idempotentToolHint": true,
+            "openWorldToolHint": true,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPDeleteRepositoryTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\", \"description\": \"Name of a generated repository (see list_repositories)\"}}, \"required\": [\"repo_name\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\", \"description\": \"Name of a generated repository (see list_repositories)\"}}, \"required\": [\"repo_name\"]}"
+              }
+            }
+          },
+          "name": "MCPDeleteRepositoryTool"
+        },
+        {
+          "description": "MCP tool 'get_ikd_registry' (flow MCPGetIKDRegistryTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "get_ikd_registry",
+            "handlerDescription": "Exports the IKD registry in the reference IKD_*.txt format: one '<id>:<repository>' line per registered interface or scenario id.",
+            "toolTitle": "",
+            "readOnlyToolHint": true,
+            "destructiveToolHint": false,
+            "idempotentToolHint": true,
+            "openWorldToolHint": false,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPGetIKDRegistryTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"kind\": {\"type\": \"string\", \"description\": \"Which registry to export\", \"enum\": [\"InterfaceIDs\", \"ScenarioIDs\"]}}, \"required\": [\"kind\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"kind\": {\"type\": \"string\", \"description\": \"Which registry to export\", \"enum\": [\"InterfaceIDs\", \"ScenarioIDs\"]}}, \"required\": [\"kind\"]}"
+              }
+            }
+          },
+          "name": "MCPGetIKDRegistryTool"
+        },
+        {
+          "description": "MCP tool 'upload_schemas' (flow MCPUploadSchemasTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "upload_schemas",
+            "handlerDescription": "Commits schema files into a generated repository's BW module in one commit: XSD files to code/<repo>/<repo>.module/Schemas, WSDL and OpenAPI/Swagger files to code/<repo>/<repo>.module/Service Descriptors. Source schemas are .xsd (each gets the integration message wrapper); target schemas are .xsd, .wsdl or OpenAPI/Swagger (.json, .yaml, .yml). XSD and WSDL files must be well-formed XML. In the result, each uploaded_files[].path is the repository name followed by the path inside the generated repository, and github_url is the repository, or its folder, on GitHub.",
+            "toolTitle": "",
+            "readOnlyToolHint": false,
+            "destructiveToolHint": false,
+            "idempotentToolHint": true,
+            "openWorldToolHint": true,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPUploadSchemasTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"repository_name\": {\"type\": \"string\", \"description\": \"repo_name of a generated repository, as returned by generate_code or list_repositories\"}, \"source_schemas\": {\"type\": \"array\", \"description\": \"Source schemas (.xsd)\", \"items\": {\"type\": \"object\", \"required\": [\"filename\", \"content\"], \"properties\": {\"filename\": {\"type\": \"string\", \"description\": \"File name, for example Article.xsd\"}, \"content\": {\"type\": \"string\", \"description\": \"File text\"}}}}, \"target_schemas\": {\"type\": \"array\", \"description\": \"Target schemas (.xsd, .wsdl, .json, .yaml or .yml)\", \"items\": {\"type\": \"object\", \"required\": [\"filename\", \"content\"], \"properties\": {\"filename\": {\"type\": \"string\", \"description\": \"File name, for example Article.xsd\"}, \"content\": {\"type\": \"string\", \"description\": \"File text\"}}}}}, \"required\": [\"repository_name\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"repository_name\": {\"type\": \"string\", \"description\": \"repo_name of a generated repository, as returned by generate_code or list_repositories\"}, \"source_schemas\": {\"type\": \"array\", \"description\": \"Source schemas (.xsd)\", \"items\": {\"type\": \"object\", \"required\": [\"filename\", \"content\"], \"properties\": {\"filename\": {\"type\": \"string\", \"description\": \"File name, for example Article.xsd\"}, \"content\": {\"type\": \"string\", \"description\": \"File text\"}}}}, \"target_schemas\": {\"type\": \"array\", \"description\": \"Target schemas (.xsd, .wsdl, .json, .yaml or .yml)\", \"items\": {\"type\": \"object\", \"required\": [\"filename\", \"content\"], \"properties\": {\"filename\": {\"type\": \"string\", \"description\": \"File name, for example Article.xsd\"}, \"content\": {\"type\": \"string\", \"description\": \"File text\"}}}}}, \"required\": [\"repository_name\"]}"
+              }
+            }
+          },
+          "name": "MCPUploadSchemasTool"
+        },
+        {
+          "description": "MCP tool 'k8s_get' (flow MCPK8sGetTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "k8s_get",
+            "handlerDescription": "Reads Kubernetes state in the active context. resource alone: health, context (active and available contexts), status (overview), or a list of deployments, pods, services or events. With name (deployments or pods): that deployment or pod. With name and view: deployments + rollout (rollout status), pods + logs, pods + port-forward (the kubectl command).",
+            "toolTitle": "",
+            "readOnlyToolHint": true,
+            "destructiveToolHint": false,
+            "idempotentToolHint": true,
+            "openWorldToolHint": true,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPK8sGetTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"resource\": {\"type\": \"string\", \"description\": \"What to read\", \"enum\": [\"health\", \"context\", \"status\", \"deployments\", \"pods\", \"services\", \"events\"]}, \"name\": {\"type\": \"string\", \"description\": \"Deployment or pod name (resource deployments or pods)\"}, \"view\": {\"type\": \"string\", \"description\": \"With name: rollout (deployments), logs or port-forward (pods)\", \"enum\": [\"rollout\", \"logs\", \"port-forward\"]}, \"app_label\": {\"type\": \"string\", \"description\": \"status: value of the app label\"}, \"label_selector\": {\"type\": \"string\", \"description\": \"deployments, pods, services: label selector, for example app=demo\"}, \"limit\": {\"type\": \"integer\", \"description\": \"events: newest N (1-1000, default 10)\"}, \"tail\": {\"type\": \"integer\", \"description\": \"logs: last N lines (1-10000, default 100)\"}, \"previous\": {\"type\": \"boolean\", \"description\": \"logs: of the previous container\"}, \"local_port\": {\"type\": \"integer\", \"description\": \"port-forward: local port (default 8080)\"}, \"pod_port\": {\"type\": \"integer\", \"description\": \"port-forward: pod port (default 8080)\"}}, \"required\": [\"resource\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"resource\": {\"type\": \"string\", \"description\": \"What to read\", \"enum\": [\"health\", \"context\", \"status\", \"deployments\", \"pods\", \"services\", \"events\"]}, \"name\": {\"type\": \"string\", \"description\": \"Deployment or pod name (resource deployments or pods)\"}, \"view\": {\"type\": \"string\", \"description\": \"With name: rollout (deployments), logs or port-forward (pods)\", \"enum\": [\"rollout\", \"logs\", \"port-forward\"]}, \"app_label\": {\"type\": \"string\", \"description\": \"status: value of the app label\"}, \"label_selector\": {\"type\": \"string\", \"description\": \"deployments, pods, services: label selector, for example app=demo\"}, \"limit\": {\"type\": \"integer\", \"description\": \"events: newest N (1-1000, default 10)\"}, \"tail\": {\"type\": \"integer\", \"description\": \"logs: last N lines (1-10000, default 100)\"}, \"previous\": {\"type\": \"boolean\", \"description\": \"logs: of the previous container\"}, \"local_port\": {\"type\": \"integer\", \"description\": \"port-forward: local port (default 8080)\"}, \"pod_port\": {\"type\": \"integer\", \"description\": \"port-forward: pod port (default 8080)\"}}, \"required\": [\"resource\"]}"
+              }
+            }
+          },
+          "name": "MCPK8sGetTool"
+        },
+        {
+          "description": "MCP tool 'k8s_deployment_action' (flow MCPK8sDeploymentActionTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "k8s_deployment_action",
+            "handlerDescription": "Scales (with replicas) or restarts a deployment in the active Kubernetes context.",
+            "toolTitle": "",
+            "readOnlyToolHint": false,
+            "destructiveToolHint": true,
+            "idempotentToolHint": false,
+            "openWorldToolHint": true,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPK8sDeploymentActionTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\", \"description\": \"Deployment name\"}, \"action\": {\"type\": \"string\", \"description\": \"scale or restart\", \"enum\": [\"scale\", \"restart\"]}, \"replicas\": {\"type\": \"integer\", \"minimum\": 0, \"maximum\": 1000, \"description\": \"Required for scale\"}}, \"required\": [\"name\", \"action\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\", \"description\": \"Deployment name\"}, \"action\": {\"type\": \"string\", \"description\": \"scale or restart\", \"enum\": [\"scale\", \"restart\"]}, \"replicas\": {\"type\": \"integer\", \"minimum\": 0, \"maximum\": 1000, \"description\": \"Required for scale\"}}, \"required\": [\"name\", \"action\"]}"
+              }
+            }
+          },
+          "name": "MCPK8sDeploymentActionTool"
+        },
+        {
+          "description": "MCP tool 'k8s_switch_context' (flow MCPK8sSwitchContextTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "k8s_switch_context",
+            "handlerDescription": "Switches the active Kubernetes context (one of K8S_CONTEXTS) for all later Kubernetes calls of the app, from the UI, the REST API and MCP.",
+            "toolTitle": "",
+            "readOnlyToolHint": false,
+            "destructiveToolHint": false,
+            "idempotentToolHint": true,
+            "openWorldToolHint": false,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPK8sSwitchContextTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"context\": {\"type\": \"string\", \"description\": \"Context name (see k8s_get with resource context)\"}}, \"required\": [\"context\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"context\": {\"type\": \"string\", \"description\": \"Context name (see k8s_get with resource context)\"}}, \"required\": [\"context\"]}"
+              }
+            }
+          },
+          "name": "MCPK8sSwitchContextTool"
+        },
+        {
+          "description": "MCP tool 'code_review_run' (flow MCPCodeReviewRunTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "code_review_run",
+            "handlerDescription": "Runs a code review of a generated repository on the code review service and returns its status and report links; the run is recorded in the history.",
+            "toolTitle": "",
+            "readOnlyToolHint": false,
+            "destructiveToolHint": false,
+            "idempotentToolHint": false,
+            "openWorldToolHint": true,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPCodeReviewRunTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"repoName\": {\"type\": \"string\", \"description\": \"Repository to review\"}, \"productName\": {\"type\": \"string\", \"description\": \"Product area, for example product_area-csddistribution\"}, \"version\": {\"type\": \"string\", \"description\": \"Version to review, for example 1.0.0\"}, \"checkbwdesign\": {\"type\": \"boolean\", \"description\": \"Also check the BW design (default false)\"}}, \"required\": [\"repoName\", \"productName\", \"version\"]}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"repoName\": {\"type\": \"string\", \"description\": \"Repository to review\"}, \"productName\": {\"type\": \"string\", \"description\": \"Product area, for example product_area-csddistribution\"}, \"version\": {\"type\": \"string\", \"description\": \"Version to review, for example 1.0.0\"}, \"checkbwdesign\": {\"type\": \"boolean\", \"description\": \"Also check the BW design (default false)\"}}, \"required\": [\"repoName\", \"productName\", \"version\"]}"
+              }
+            }
+          },
+          "name": "MCPCodeReviewRunTool"
+        },
+        {
+          "description": "MCP tool 'code_review_history' (flow MCPCodeReviewHistoryTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "code_review_history",
+            "handlerDescription": "Code review runs, newest first.",
+            "toolTitle": "",
+            "readOnlyToolHint": true,
+            "destructiveToolHint": false,
+            "idempotentToolHint": true,
+            "openWorldToolHint": false,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPCodeReviewHistoryTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}"
+              }
+            }
+          },
+          "name": "MCPCodeReviewHistoryTool"
+        },
+        {
+          "description": "MCP tool 'code_review_network_check' (flow MCPCodeReviewNetworkCheckTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "code_review_network_check",
+            "handlerDescription": "Checks the connection to the code review service: DNS, TCP, TLS and HTTP.",
+            "toolTitle": "",
+            "readOnlyToolHint": true,
+            "destructiveToolHint": false,
+            "idempotentToolHint": true,
+            "openWorldToolHint": true,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPCodeReviewNetworkCheckTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}"
+              }
+            }
+          },
+          "name": "MCPCodeReviewNetworkCheckTool"
+        },
+        {
+          "description": "MCP tool 'code_review_token' (flow MCPCodeReviewTokenTool)",
+          "settings": {
+            "handlerType": "Tool",
+            "resourceUri": "",
+            "handlerName": "code_review_token",
+            "handlerDescription": "Prepares the code review session: fetches the service token (or reuses the cached one) and returns the user and user type, never the token. code_review_run does this by itself.",
+            "toolTitle": "",
+            "readOnlyToolHint": false,
+            "destructiveToolHint": false,
+            "idempotentToolHint": true,
+            "openWorldToolHint": true,
+            "scope": ""
+          },
+          "action": {
+            "ref": "github.com/project-flogo/flow",
+            "settings": {
+              "flowURI": "res://flow:MCPCodeReviewTokenTool"
+            },
+            "input": {
+              "arguments": "=$.arguments"
+            },
+            "output": {
+              "response": "=$.response"
+            }
+          },
+          "reply": {
+            "outputSchema": ""
+          },
+          "schemas": {
+            "reply": {
+              "response": {
+                "type": "json",
+                "value": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}",
+                "fe_metadata": "{\r\n  \"type\": \"object\",\r\n  \"properties\": {\r\n    \"data\": {\r\n      \"type\": \"string\"\r\n    },\r\n    \"audience\": {\r\n      \"type\": \"array\",\r\n      \"items\": {\r\n        \"type\": \"string\"\r\n      }\r\n    },\r\n    \"priority\": {\r\n      \"type\": \"number\"\r\n    },\r\n    \"error\": {\r\n      \"type\": \"string\"\r\n    }\r\n  }\r\n}"
+              }
+            },
+            "output": {
+              "arguments": {
+                "type": "json",
+                "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}",
+                "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}"
+              }
+            }
+          },
+          "name": "MCPCodeReviewTokenTool"
         }
       ]
     }
@@ -5848,15 +6506,15 @@
           {
             "id": "BuildExtractResult",
             "name": "BuildExtractResult",
-            "description": "Builds the MCP response from the extracted spec.",
+            "description": "The JSON body as data, or as error when the status is not 2xx/3xx (the agent sees isError)",
             "activity": {
               "ref": "#mapper",
               "input": {
                 "input": {
                   "mapping": {
                     "response": {
-                      "data": "=coerce.toString($activity[ExtractSpecSubflow].responseBody.body)",
-                      "error": ""
+                      "data": "=($activity[ExtractSpecSubflow].code >= 400 || $activity[ExtractSpecSubflow].code < 200) ? \"\" : coerce.toString($activity[ExtractSpecSubflow].responseBody.body)",
+                      "error": "=($activity[ExtractSpecSubflow].code >= 400 || $activity[ExtractSpecSubflow].code < 200) ? coerce.toString($activity[ExtractSpecSubflow].responseBody.body) : \"\""
                     }
                   }
                 }
@@ -5979,7 +6637,8 @@
                     "content": {
                       "spec": "=$flow.arguments.spec",
                       "config_only": "=$flow.arguments.config_only",
-                      "target_mode": "=$flow.arguments.target_mode"
+                      "target_mode": "=$flow.arguments.target_mode",
+                      "context": "=$flow.arguments.context"
                     }
                   }
                 }
@@ -5988,15 +6647,15 @@
                 "input": {
                   "input": {
                     "type": "json",
-                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}}}}}",
-                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}}}}}"
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}, \"context\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}, \"context\": {\"type\": \"string\"}}}}}"
                   }
                 },
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}}}}}",
-                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}}}}}"
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}, \"context\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}, \"context\": {\"type\": \"string\"}}}}}"
                   }
                 }
               },
@@ -6045,15 +6704,15 @@
           {
             "id": "BuildGenResult",
             "name": "BuildGenResult",
-            "description": "Builds the MCP response from the generate result.",
+            "description": "The JSON body as data, or as error when the status is not 2xx/3xx (the agent sees isError)",
             "activity": {
               "ref": "#mapper",
               "input": {
                 "input": {
                   "mapping": {
                     "response": {
-                      "data": "=coerce.toString($activity[GenerateSubflow].responseBody.body)",
-                      "error": ""
+                      "data": "=($activity[GenerateSubflow].code >= 400 || $activity[GenerateSubflow].code < 200) ? \"\" : coerce.toString($activity[GenerateSubflow].responseBody.body)",
+                      "error": "=($activity[GenerateSubflow].code >= 400 || $activity[GenerateSubflow].code < 200) ? coerce.toString($activity[GenerateSubflow].responseBody.body) : \"\""
                     }
                   }
                 }
@@ -6099,7 +6758,7 @@
               "type": "object",
               "schema": {
                 "type": "json",
-                "value": "{\"spec\":{\"type\":\"object\",\"properties\":{\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"boolean\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"product_area\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"bw_profile\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"need_secret\":{\"type\":\"boolean\"},\"country_code\":{\"type\":\"string\"},\"unique_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"github_project\":{\"type\":\"string\"}}},\"config_only\":{\"type\":\"boolean\"},\"target_mode\":{\"type\":\"string\"}}"
+                "value": "{\"spec\":{\"type\":\"object\",\"properties\":{\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"template_type\":{\"type\":\"string\"},\"cdm\":{\"type\":\"boolean\"},\"interface_id\":{\"type\":\"string\"},\"scenario_id\":{\"type\":\"string\"},\"product_area\":{\"type\":\"string\"},\"env\":{\"type\":\"string\"},\"bw_profile\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"k8s_domain\":{\"type\":\"string\"},\"need_secret\":{\"type\":\"boolean\"},\"country_code\":{\"type\":\"string\"},\"unique_id\":{\"type\":\"string\"},\"bitbucket_project\":{\"type\":\"string\"},\"github_project\":{\"type\":\"string\"}}},\"config_only\":{\"type\":\"boolean\"},\"target_mode\":{\"type\":\"string\"},\"context\":{\"type\":\"string\"}}"
               }
             }
           ],
@@ -6114,7 +6773,7 @@
             }
           ],
           "fe_metadata": {
-            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"product_area\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"need_secret\": {\"type\": \"boolean\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"github_project\": {\"type\": \"string\"}}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}}}}}",
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"spec\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"template_type\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"boolean\"}, \"interface_id\": {\"type\": \"string\"}, \"scenario_id\": {\"type\": \"string\"}, \"product_area\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"bw_profile\": {\"type\": \"string\"}, \"email\": {\"type\": \"string\"}, \"k8s_domain\": {\"type\": \"string\"}, \"need_secret\": {\"type\": \"boolean\"}, \"country_code\": {\"type\": \"string\"}, \"unique_id\": {\"type\": \"string\"}, \"bitbucket_project\": {\"type\": \"string\"}, \"github_project\": {\"type\": \"string\"}}}, \"config_only\": {\"type\": \"boolean\"}, \"target_mode\": {\"type\": \"string\"}, \"context\": {\"type\": \"string\"}}}}}",
             "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
           }
         }
@@ -6241,6 +6900,1688 @@
             {
               "name": "arguments",
               "type": "object"
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPChatTool",
+      "data": {
+        "name": "MCPChatTool",
+        "description": "MCP tool 'chat': Builds the integration spec in a conversation, like the web UI chat: send the user's message and get the reply, the spec so far, missing_fields and ready_to_generate. Omit session_id to start a new conversation and pass the returned session_id on the following turns. When ready_to_generate is true, call generate_code with the spec.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "BuildChatArgs",
+            "type": "label",
+            "label": "StartActivity to BuildChatArgs"
+          },
+          {
+            "id": 2,
+            "from": "BuildChatArgs",
+            "to": "Call",
+            "type": "label",
+            "label": "BuildChatArgs to Call"
+          },
+          {
+            "id": 3,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "BuildChatArgs",
+            "name": "BuildChatArgs",
+            "description": "The chat request: the given session_id, or a new one to start a conversation",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "content": {
+                      "session_id": "=(coerce.toString($flow.arguments.session_id) != \"\") ? coerce.toString($flow.arguments.session_id) : utils.uuid()",
+                      "message": "=coerce.toString($flow.arguments.message)"
+                    }
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs api_chat/message_POST (the chat feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:api_chat/message_POST",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "content": "=$activity[BuildChatArgs].output.content"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}, \"message\": {\"type\": \"string\"}}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkJ1aWxkQ2hhdEFyZ3MiOnsieCI6MjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6NDUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo2NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"message\":{\"type\":\"string\"},\"session_id\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"session_id\": {\"type\": \"string\"}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPChatResetTool",
+      "data": {
+        "name": "MCPChatResetTool",
+        "description": "MCP tool 'chat_reset': Ends a chat conversation: deletes its stored session and the spec collected in it.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs api_chat/reset_POST (the chat_reset feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:api_chat/reset_POST",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "content": "=$flow.arguments"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"session_id\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"session_id\": {\"type\": \"string\"}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPSuggestTemplatesTool",
+      "data": {
+        "name": "MCPSuggestTemplatesTool",
+        "description": "MCP tool 'suggest_templates': Ranks the BWCE templates for a partial spec with the same hybrid search (BM25 and vector) that generate_code uses. Give any of the spec fields and/or free text.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs api_templates_suggest_POST (the suggest_templates feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:api_templates_suggest_POST",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "source_system": "=$flow.arguments.source_system",
+                "target_system": "=$flow.arguments.target_system",
+                "business_object": "=$flow.arguments.business_object",
+                "interface_type": "=$flow.arguments.interface_type",
+                "query": "=$flow.arguments.query"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"query\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"query\": {\"type\": \"string\"}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"source_system\":{\"type\":\"string\"},\"target_system\":{\"type\":\"string\"},\"business_object\":{\"type\":\"string\"},\"interface_type\":{\"type\":\"string\"},\"query\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"query\": {\"type\": \"string\"}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPListRepositoriesTool",
+      "data": {
+        "name": "MCPListRepositoriesTool",
+        "description": "MCP tool 'list_repositories': Lists the generated repositories (newest 100) from the generation registry: count (number of records), and per repository its repo_name, template, spec fields, IKD ids, where it was published (target_mode, github_url) and when; plus the template source and publishing settings.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs api_tracker_GET (the list_repositories feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:api_tracker_GET",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {},
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPDeleteRepositoryTool",
+      "data": {
+        "name": "MCPDeleteRepositoryTool",
+        "description": "MCP tool 'delete_repository': Cleans up a generated repository: its folder is deleted from the shared GitHub repository in one commit (a repository created on its own is kept on GitHub), and its generation and IKD registry entries are removed. Cannot be undone.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs api_tracker_repo_DELETE (the delete_repository feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:api_tracker_repo_DELETE",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "params": "=$flow.arguments"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"params\": {\"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"params\": {\"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\"}}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"repo_name\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\"}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPGetIKDRegistryTool",
+      "data": {
+        "name": "MCPGetIKDRegistryTool",
+        "description": "MCP tool 'get_ikd_registry': Exports the IKD registry in the reference IKD_*.txt format: one '<id>:<repository>' line per registered interface or scenario id.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs ikd_GET (the get_ikd_registry feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:ikd_GET",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "kind": "=$flow.arguments.kind"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"kind\": {\"type\": \"string\"}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"kind\": {\"type\": \"string\"}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"kind\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"kind\": {\"type\": \"string\"}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPUploadSchemasTool",
+      "data": {
+        "name": "MCPUploadSchemasTool",
+        "description": "MCP tool 'upload_schemas': Commits schema files into a generated repository's BW module in one commit: XSD files to code/<repo>/<repo>.module/Schemas, WSDL and OpenAPI/Swagger files to code/<repo>/<repo>.module/Service Descriptors. Source schemas are .xsd (each gets the integration message wrapper); target schemas are .xsd, .wsdl or OpenAPI/Swagger (.json, .yaml, .yml). XSD and WSDL files must be well-formed XML. In the result, each uploaded_files[].path is the repository name followed by the path inside the generated repository, and github_url is the repository, or its folder, on GitHub.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs schemas_upload_POST (the upload_schemas feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:schemas_upload_POST",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "op": "batch",
+                "content": "=$flow.arguments"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"op\": {\"type\": \"string\"}, \"content\": {\"type\": \"object\", \"properties\": {}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"op\": {\"type\": \"string\"}, \"content\": {\"type\": \"object\", \"properties\": {}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"repository_name\":{\"type\":\"string\"},\"source_schemas\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"filename\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"}}}},\"target_schemas\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"filename\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"}}}}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"repository_name\": {\"type\": \"string\"}, \"source_schemas\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"filename\": {\"type\": \"string\"}, \"content\": {\"type\": \"string\"}}}}, \"target_schemas\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"properties\": {\"filename\": {\"type\": \"string\"}, \"content\": {\"type\": \"string\"}}}}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPK8sGetTool",
+      "data": {
+        "name": "MCPK8sGetTool",
+        "description": "MCP tool 'k8s_get': Reads Kubernetes state in the active context. resource alone: health, context (active and available contexts), status (overview), or a list of deployments, pods, services or events. With name (deployments or pods): that deployment or pod. With name and view: deployments + rollout (rollout status), pods + logs, pods + port-forward (the kubectl command).",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs the Kubernetes operation for the route built from the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:K8sOperation",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "route": "=coerce.toString(array.get(json.jq($flow.arguments, \"\\\"GET /k8s/\\\" + (.resource // \\\"\\\") + (if (.name // \\\"\\\") != \\\"\\\" then \\\"/{name}\\\" else \\\"\\\" end) + (if (.view // \\\"\\\") != \\\"\\\" then \\\"/\\\" + .view else \\\"\\\" end)\"), 0))",
+                "params": "=$flow.arguments",
+                "query": "=$flow.arguments"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"route\": {\"type\": \"string\"}, \"content\": {\"type\": \"object\", \"properties\": {}}, \"query\": {\"type\": \"object\", \"properties\": {}}, \"params\": {\"type\": \"object\", \"properties\": {}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"route\": {\"type\": \"string\"}, \"content\": {\"type\": \"object\", \"properties\": {}}, \"query\": {\"type\": \"object\", \"properties\": {}}, \"params\": {\"type\": \"object\", \"properties\": {}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"resource\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"view\":{\"type\":\"string\"},\"app_label\":{\"type\":\"string\"},\"label_selector\":{\"type\":\"string\"},\"limit\":{\"type\":\"integer\"},\"tail\":{\"type\":\"integer\"},\"previous\":{\"type\":\"boolean\"},\"local_port\":{\"type\":\"integer\"},\"pod_port\":{\"type\":\"integer\"}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"resource\": {\"type\": \"string\"}, \"name\": {\"type\": \"string\"}, \"view\": {\"type\": \"string\"}, \"app_label\": {\"type\": \"string\"}, \"label_selector\": {\"type\": \"string\"}, \"limit\": {\"type\": \"integer\"}, \"tail\": {\"type\": \"integer\"}, \"previous\": {\"type\": \"boolean\"}, \"local_port\": {\"type\": \"integer\"}, \"pod_port\": {\"type\": \"integer\"}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPK8sDeploymentActionTool",
+      "data": {
+        "name": "MCPK8sDeploymentActionTool",
+        "description": "MCP tool 'k8s_deployment_action': Scales (with replicas) or restarts a deployment in the active Kubernetes context.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs the Kubernetes operation for the route built from the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:K8sOperation",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "route": "=string.concat(\"POST /k8s/deployments/{name}/\", coerce.toString($flow.arguments.action))",
+                "params": "=$flow.arguments",
+                "content": "=$flow.arguments"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"route\": {\"type\": \"string\"}, \"content\": {\"type\": \"object\", \"properties\": {}}, \"query\": {\"type\": \"object\", \"properties\": {}}, \"params\": {\"type\": \"object\", \"properties\": {}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"route\": {\"type\": \"string\"}, \"content\": {\"type\": \"object\", \"properties\": {}}, \"query\": {\"type\": \"object\", \"properties\": {}}, \"params\": {\"type\": \"object\", \"properties\": {}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"name\":{\"type\":\"string\"},\"action\":{\"type\":\"string\"},\"replicas\":{\"type\":\"integer\"}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\"}, \"action\": {\"type\": \"string\"}, \"replicas\": {\"type\": \"integer\"}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPK8sSwitchContextTool",
+      "data": {
+        "name": "MCPK8sSwitchContextTool",
+        "description": "MCP tool 'k8s_switch_context': Switches the active Kubernetes context (one of K8S_CONTEXTS) for all later Kubernetes calls of the app, from the UI, the REST API and MCP.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs the Kubernetes operation for the route built from the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:K8sOperation",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "route": "POST /k8s/context/switch",
+                "content": "=$flow.arguments"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"route\": {\"type\": \"string\"}, \"content\": {\"type\": \"object\", \"properties\": {}}, \"query\": {\"type\": \"object\", \"properties\": {}}, \"params\": {\"type\": \"object\", \"properties\": {}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"route\": {\"type\": \"string\"}, \"content\": {\"type\": \"object\", \"properties\": {}}, \"query\": {\"type\": \"object\", \"properties\": {}}, \"params\": {\"type\": \"object\", \"properties\": {}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"context\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"context\": {\"type\": \"string\"}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPCodeReviewRunTool",
+      "data": {
+        "name": "MCPCodeReviewRunTool",
+        "description": "MCP tool 'code_review_run': Runs a code review of a generated repository on the code review service and returns its status and report links; the run is recorded in the history.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs codereview_run_POST (the code_review_run feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:codereview_run_POST",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {
+                "content": "=$flow.arguments"
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"repoName\": {\"type\": \"string\"}, \"productName\": {\"type\": \"string\"}, \"version\": {\"type\": \"string\"}, \"checkbwdesign\": {\"type\": \"boolean\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"content\": {\"type\": \"object\", \"properties\": {\"repoName\": {\"type\": \"string\"}, \"productName\": {\"type\": \"string\"}, \"version\": {\"type\": \"string\"}, \"checkbwdesign\": {\"type\": \"boolean\"}}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"repoName\":{\"type\":\"string\"},\"productName\":{\"type\":\"string\"},\"version\":{\"type\":\"string\"},\"checkbwdesign\":{\"type\":\"boolean\"}}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {\"repoName\": {\"type\": \"string\"}, \"productName\": {\"type\": \"string\"}, \"version\": {\"type\": \"string\"}, \"checkbwdesign\": {\"type\": \"boolean\"}}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPCodeReviewHistoryTool",
+      "data": {
+        "name": "MCPCodeReviewHistoryTool",
+        "description": "MCP tool 'code_review_history': Code review runs, newest first.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs codereview_history_GET (the code_review_history feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:codereview_history_GET",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {},
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPCodeReviewNetworkCheckTool",
+      "data": {
+        "name": "MCPCodeReviewNetworkCheckTool",
+        "description": "MCP tool 'code_review_network_check': Checks the connection to the code review service: DNS, TCP, TLS and HTTP.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs codereview_netdebug_GET (the code_review_network_check feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:codereview_netdebug_GET",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {},
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{}"
+              }
+            }
+          ],
+          "output": [
+            {
+              "name": "response",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{\"data\":{\"type\":\"string\"},\"error\":{\"type\":\"string\"}}"
+              }
+            }
+          ],
+          "fe_metadata": {
+            "input": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"arguments\": {\"type\": \"object\", \"properties\": {}}}}",
+            "output": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"response\": {\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"string\"}, \"error\": {\"type\": \"string\"}}}}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "flow:MCPCodeReviewTokenTool",
+      "data": {
+        "name": "MCPCodeReviewTokenTool",
+        "description": "MCP tool 'code_review_token': Prepares the code review session: fetches the service token (or reuses the cached one) and returns the user and user type, never the token. code_review_run does this by itself.",
+        "links": [
+          {
+            "id": 1,
+            "from": "StartActivity",
+            "to": "Call",
+            "type": "label",
+            "label": "StartActivity to Call"
+          },
+          {
+            "id": 2,
+            "from": "Call",
+            "to": "ReturnResult",
+            "type": "label",
+            "label": "Call to ReturnResult"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "StartActivity",
+            "name": "StartActivity",
+            "description": "Flow entry point.",
+            "activity": {
+              "ref": "#noop"
+            }
+          },
+          {
+            "id": "Call",
+            "name": "Call",
+            "description": "Runs codereview_token_POST (the code_review_token feature) with the tool arguments",
+            "settings": {
+              "retryOnError": {
+                "count": 0,
+                "interval": 0
+              }
+            },
+            "activity": {
+              "ref": "#subflow",
+              "settings": {
+                "flowURI": "res://flow:codereview_token_POST",
+                "detached": false,
+                "execTimeout": 0
+              },
+              "input": {},
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}",
+                    "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {\"code\": {\"type\": \"integer\"}, \"responseBody\": {\"type\": \"object\", \"properties\": {\"body\": {\"type\": \"any\"}, \"headers\": {\"type\": \"object\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "ReturnResult",
+            "name": "ReturnResult",
+            "description": "Returns the result: the JSON body as data, or as error when the status is not 2xx/3xx",
+            "activity": {
+              "ref": "#actreturn",
+              "settings": {
+                "mappings": {
+                  "response": {
+                    "mapping": {
+                      "data": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? \"\" : coerce.toString($activity[Call].responseBody.body)",
+                      "error": "=($activity[Call].code >= 400 || $activity[Call].code < 200) ? coerce.toString($activity[Call].responseBody.body) : \"\""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkNhbGwiOnsieCI6MjUwLCJ5Ijo0NX0sIlJldHVyblJlc3VsdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "metadata": {
+          "input": [
+            {
+              "name": "arguments",
+              "type": "object",
+              "schema": {
+                "type": "json",
+                "value": "{}"
+              }
             }
           ],
           "output": [
