@@ -4679,7 +4679,7 @@
           {
             "id": "ScaffoldArtifacts",
             "name": "ScaffoldArtifacts",
-            "description": "Invokes the ScaffoldArtifactsFlow subflow to write the repository artifacts (handles the config_only branch internally).",
+            "description": "Invokes the ScaffoldArtifactsFlow subflow to write the repository artifacts (handles the config_only branch internally). Target: the requested target_mode or TARGET_MODE; for a config-only refresh of a registered repository, where it was published",
             "settings": {
               "retryOnError": {
                 "count": 0,
@@ -4708,7 +4708,7 @@
                 "bw_profile": "=$activity[NormalizeSpec].output.bw_profile",
                 "k8s_domain": "=$activity[NormalizeSpec].output.k8s_domain",
                 "config_only": "=$activity[NormalizeSpec].output.config_only",
-                "target_mode": "=$activity[NormalizeSpec].output.target_mode"
+                "target_mode": "=(array.count($activity[CheckDuplicate].Output.records) > 0 && coerce.toString($activity[CheckDuplicate].Output.records[0].target_mode) != \"\") ? coerce.toString($activity[CheckDuplicate].Output.records[0].target_mode) : $activity[NormalizeSpec].output.target_mode"
               },
               "schemas": {
                 "input": {
@@ -4943,7 +4943,7 @@
                         "country_code": "=$activity[NormalizeSpec].output.country_code",
                         "unique_id": "=$activity[NormalizeSpec].output.unique_id",
                         "github_url": "=$activity[ScaffoldArtifacts].folder_url",
-                        "target_mode": "=$activity[NormalizeSpec].output.target_mode"
+                        "target_mode": "=(array.count($activity[CheckDuplicate].Output.records) > 0 && coerce.toString($activity[CheckDuplicate].Output.records[0].target_mode) != \"\") ? coerce.toString($activity[CheckDuplicate].Output.records[0].target_mode) : $activity[NormalizeSpec].output.target_mode"
                       }
                     ]
                   }
@@ -5134,7 +5134,7 @@
                     "template_source": "=$activity[ResolveTemplateName].output.template_source",
                     "product_area": "=$activity[NormalizeSpec].output.product_area",
                     "code_path": "=string.concat($activity[NormalizeSpec].output.repo_name, \"/code/\", $activity[NormalizeSpec].output.repo_name)",
-                    "target_mode": "=$activity[NormalizeSpec].output.target_mode"
+                    "target_mode": "=(array.count($activity[CheckDuplicate].Output.records) > 0 && coerce.toString($activity[CheckDuplicate].Output.records[0].target_mode) != \"\") ? coerce.toString($activity[CheckDuplicate].Output.records[0].target_mode) : $activity[NormalizeSpec].output.target_mode"
                   }
                 }
               },

@@ -193,8 +193,8 @@ off with `GENERATE_CICD=false`). `config_only: true` refreshes only `configs/` a
 | `newRepo` | new private repository `<repo>` under `TARGET_OWNER_URL` |
 
 `TARGET_MODE` sets the default; a request overrides it with `target_mode` (REST `/generate`, MCP `generate_code`, UI).
-The registry stores where each repository went, so links, duplicate answers, schema uploads and cleanup keep
-following the repository when the default changes later.
+The registry stores where each repository went, so links, duplicate answers, config-only refreshes, schema uploads and
+cleanup keep following the repository when the default changes later.
 
 The repository name is derived from the spec, so **the same spec maps to the same repository**: `/generate` answers
 `duplicate: true` with the existing registration and changes nothing. In the UI, a new request after a generation
