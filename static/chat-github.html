@@ -1206,9 +1206,12 @@
             margin-top: 8px;
         }
         .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .schema-upload-status { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 11.5px; }
+        .schema-upload-status { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 11.5px; overflow-wrap: anywhere; }
         .schema-upload-status.success { background: var(--good-bg); color: var(--good); }
         .schema-upload-status.error   { background: var(--bad-bg); color: var(--bad); }
+        .schema-upload-status a { color: inherit; text-decoration: underline; }
+        .schema-destination { font-size: 11px; color: var(--text-muted); margin: -4px 0 10px; overflow-wrap: anywhere; }
+        .schema-destination code { font-size: 10.5px; color: var(--text-secondary); }
 
         /* ── Code review panel ─────────────────────────────────── */
         .code-review-wrap {
@@ -1609,6 +1612,7 @@
 
                     <div class="schema-upload-section" id="schema-upload-section">
                         <div class="schema-section-header">📁 Upload schemas (optional)</div>
+                        <div class="schema-destination" id="schema-destination">Files are committed to the module's <code>Schemas</code> folder.</div>
 
                         <div class="schema-upload-box">
                             <label class="schema-upload-label">Source schema (XSD)</label>
@@ -1619,10 +1623,10 @@
                         </div>
 
                         <div class="schema-upload-box">
-                            <label class="schema-upload-label">Target schema (XSD/WSDL)</label>
+                            <label class="schema-upload-label">Target schema (XSD/WSDL/OpenAPI)</label>
                             <div class="file-input-wrapper">
-                                <input type="file" id="target-schema-input" accept=".xsd,.wsdl" onchange="handleTargetFileSelect(event)">
-                                <div class="file-input-display" id="target-file-display">Click to browse or drag XSD/WSDL file</div>
+                                <input type="file" id="target-schema-input" accept=".xsd,.wsdl,.json,.yaml,.yml" onchange="handleTargetFileSelect(event)">
+                                <div class="file-input-display" id="target-file-display">Click to browse or drag XSD/WSDL/OpenAPI file</div>
                             </div>
                         </div>
 
@@ -2392,12 +2396,12 @@
                 const results = [];
                 if (sourceSchemaFile) {
                     const r = await uploadSchemaFile('source', sourceSchemaFile);
-                    if (r.ok) { const j = await r.json(); results.push(`✓ Source: ${escapeHtml(j.message)}`); }
+                    if (r.ok) { const j = await r.json(); results.push(`✓ Source: ${escapeHtml(j.message)}${uploadedFileLinks(j)}`); }
                     else { let m = 'Upload failed'; try { const e = await r.json(); m = e.detail || m; } catch(_){} results.push(`❌ Source: ${escapeHtml(m)}`); }
                 }
                 if (targetSchemaFile) {
                     const r = await uploadSchemaFile('target', targetSchemaFile);
-                    if (r.ok) { const j = await r.json(); results.push(`✓ Target: ${escapeHtml(j.message)}`); }
+                    if (r.ok) { const j = await r.json(); results.push(`✓ Target: ${escapeHtml(j.message)}${uploadedFileLinks(j)}`); }
                     else { let m = 'Upload failed'; try { const e = await r.json(); m = e.detail || m; } catch(_){} results.push(`❌ Target: ${escapeHtml(m)}`); }
                 }
                 const hasError = results.some(r => r.startsWith('❌'));
@@ -2408,7 +2412,7 @@
                     document.getElementById('target-schema-input').value = '';
                     document.getElementById('source-file-display').textContent = 'Click to browse or drag XSD file';
                     document.getElementById('source-file-display').classList.remove('has-file');
-                    document.getElementById('target-file-display').textContent = 'Click to browse or drag XSD/WSDL file';
+                    document.getElementById('target-file-display').textContent = 'Click to browse or drag XSD/WSDL/OpenAPI file';
                     document.getElementById('target-file-display').classList.remove('has-file');
                 }
             } catch (e) {
@@ -2426,9 +2430,22 @@
             });
         }
 
+        // uploaded_files[].path starts with the repository name; the rest is the path inside the generated repository
+        function uploadedFileLinks(j) {
+            return (j.uploaded_files || []).map(f => {
+                const sub = String(f.path || '').split('/').slice(1).join('/');
+                const name = escapeHtml(sub.split('/').pop());
+                const href = repoPath({ github_url: j.github_url }, sub);
+                return href ? `<br>📄 <a href="${escapeHtml(href)}" title="${escapeHtml(sub)}" target="_blank" rel="noopener noreferrer">${name}</a>` : `<br>📄 ${name}`;
+            }).join('');
+        }
+
         function showSchemaUploadSection(repositoryName) {
             if (repositoryName !== currentRepositoryName) document.getElementById('schema-upload-status').innerHTML = '';
             currentRepositoryName = repositoryName;
+            const repo = escapeHtml(repositoryName);
+            document.getElementById('schema-destination').innerHTML =
+                `XSD, WSDL and OpenAPI/Swagger files go to the module's Schemas folder: <code>code/${repo}/${repo}.module/Schemas</code>`;
             document.getElementById('schema-upload-section').classList.add('visible');
             setConfigDrawer(true);
         }
