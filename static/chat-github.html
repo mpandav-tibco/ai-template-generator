@@ -901,6 +901,31 @@
         .message-meta .meta-author { color: var(--text-secondary); font-weight: 600; }
         .message-meta .meta-rt { color: var(--accent-2); font-weight: 600; }
 
+        .thinking-bubble {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            max-width: none;
+            color: var(--text-secondary);
+        }
+        .thinking-dots { display: inline-flex; gap: 4px; flex-shrink: 0; }
+        .thinking-dots span {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: thinkingDot 1.2s infinite ease-in-out both;
+        }
+        .thinking-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .thinking-dots span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes thinkingDot {
+            0%, 80%, 100% { opacity: 0.35; transform: scale(0.7); }
+            40% { opacity: 1; transform: scale(1); }
+        }
+        .thinking-time { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+        @media (prefers-reduced-motion: reduce) {
+            .thinking-dots span { animation: none; opacity: 0.8; }
+        }
+
         .product-area-wrap {
             margin-top: 10px;
             display: flex;
@@ -1081,6 +1106,7 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 14px var(--accent-soft);
         }
+        .send-btn:disabled { opacity: 0.5; cursor: progress; transform: none; box-shadow: none; }
         .composer-help {
             margin-top: 8px;
             font-size: 11px;
@@ -1787,6 +1813,9 @@
             addMessage('user', message);
             input.value = '';
             isWaitingForResponse = true;
+            const sendButton = document.querySelector('.send-btn');
+            sendButton.disabled = true;
+            showThinking(thinkingLabels(normalized));
             const sentAt = performance.now();
             const reply = (text, opts = {}) => addMessage('assistant', text, { ...opts, responseMs: performance.now() - sentAt });
 
@@ -1832,7 +1861,9 @@
                 console.error('Error sending message:', error);
                 reply(`❌ Error processing message: ${error.message}`);
             } finally {
+                hideThinking();
                 isWaitingForResponse = false;
+                sendButton.disabled = false;
                 document.getElementById('messageInput').focus();
             }
         }
@@ -2123,7 +2154,60 @@
 
             wrap.appendChild(col);
             messagesDiv.appendChild(wrap);
+            keepThinkingLast();
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        /* The assistant's "thinking" chip: shown while a chat turn runs, always below the newest message. */
+        let thinking = null;
+        const THINKING_STAGE_MS = [0, 3000, 10000];
+
+        function thinkingLabels(normalized) {
+            if (normalized === '/templates' || normalized === '/analyze') return ['Loading the template catalog'];
+            if (normalized === '/suggest') return ['Searching the template library'];
+            if (normalized === '/generate' || normalized === 'generate' || normalized === '/done') {
+                return ['Generating and publishing the repository'];
+            }
+            if (normalized.startsWith('/cleanup')) return ['Cleaning up the repository'];
+            return ['Thinking', 'Extracting the integration details', 'Still working, the language model can take a moment'];
+        }
+
+        function showThinking(labels) {
+            hideThinking();
+            const wrap = document.createElement('div');
+            wrap.className = 'message assistant thinking';
+            wrap.innerHTML =
+                '<div class="ai-avatar">AI</div><div class="message-col"><div class="message-bubble thinking-bubble">' +
+                '<span class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></span>' +
+                '<span class="thinking-label" role="status"></span><span class="thinking-time" aria-hidden="true"></span>' +
+                '</div></div>';
+            const label = wrap.querySelector('.thinking-label');
+            const time = wrap.querySelector('.thinking-time');
+            const started = performance.now();
+            const tick = () => {
+                const ms = performance.now() - started;
+                const stage = THINKING_STAGE_MS.filter(t => ms >= t).length - 1;
+                const text = `${labels[Math.min(stage, labels.length - 1)]}…`;
+                if (label.textContent !== text) label.textContent = text;
+                time.textContent = ms >= 2000 ? `${Math.floor(ms / 1000)}s` : '';
+            };
+            tick();
+            thinking = { el: wrap, timer: setInterval(tick, 1000) };
+            keepThinkingLast();
+        }
+
+        function keepThinkingLast() {
+            if (!thinking) return;
+            const messagesDiv = document.getElementById('messages');
+            if (messagesDiv.lastElementChild !== thinking.el) messagesDiv.appendChild(thinking.el);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function hideThinking() {
+            if (!thinking) return;
+            clearInterval(thinking.timer);
+            thinking.el.remove();
+            thinking = null;
         }
 
         function statusClass(status) {
@@ -2193,6 +2277,7 @@
             bubble.appendChild(card);
             wrap.appendChild(bubble);
             messagesDiv.appendChild(wrap);
+            keepThinkingLast();
 
             renderActivityList(activityCard, DEFAULT_GENERATION_STEPS.map((step) => ({
                 step, status: 'pending', detail: ''
@@ -2219,6 +2304,7 @@
                 bubble.appendChild(card);
                 wrap.appendChild(bubble);
                 messagesDiv.appendChild(wrap);
+                keepThinkingLast();
             }
 
             card.innerHTML = '';
