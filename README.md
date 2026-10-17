@@ -54,7 +54,7 @@ Then open the web UI at http://localhost:9999 or connect an MCP client to http:/
 | [Getting started](docs/getting-started.md) | prerequisites, build and run locally, verify |
 | [How it works](docs/how-it-works.md) | architecture, startup, from conversation to repository, generation gates, where the code is published, cleanup |
 | [Flows](docs/flows.md) | the 48 flows, what starts each one and what it does |
-| [Web UI](docs/web-ui.md) | chat and commands, generated repositories, code review, Kubernetes |
+| [Web UI](docs/web-ui.md) | chat and commands, generated repositories, code review, Kubernetes, with screenshots |
 | [REST API](docs/rest-api.md) | operations and the OpenAPI definition |
 | [MCP server](docs/mcp.md) | client setup and the 17 tools |
 | [Operations](docs/operations.md) | Kubernetes, code review and schema upload: endpoints and sequences |
