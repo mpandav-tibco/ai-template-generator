@@ -505,6 +505,62 @@
         .tracker-table tbody tr { cursor: pointer; }
         .tracker-table tr.is-selected td { background: var(--accent-soft); }
 
+        /* ── Kubernetes view ───────────────────────────────────────── */
+        .k8s-input {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 7px 9px;
+            font-size: 12px;
+            font-family: inherit;
+            outline: none;
+        }
+        .k8s-header { gap: 16px; align-items: flex-start; }
+        .k8s-header .tracker-actions { flex-wrap: wrap; justify-content: flex-end; }
+        .k8s-header .tracker-btn { white-space: nowrap; }
+        .k8s-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 18px; }
+        .k8s-tile { background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 14px; }
+        .k8s-tile-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); font-weight: 700; }
+        .k8s-tile-value { font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 4px 0; }
+        .k8s-section-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 18px 0 8px; }
+        .k8s-section-title span { font-weight: 500; color: var(--text-muted); }
+        .k8s-table tbody tr { cursor: default; }
+        .k8s-table td { vertical-align: middle; }
+        .k8s-muted { font-size: 11px; color: var(--text-muted); margin-top: 2px; overflow-wrap: anywhere; }
+        .tracker-badge.k8s-ok { background: var(--good-bg); color: var(--good); }
+        .tracker-badge.k8s-bad { background: var(--bad-bg); color: var(--bad); }
+        .tracker-badge.k8s-warn { background: transparent; color: var(--warn); box-shadow: inset 0 0 0 1px var(--warn); }
+        .tracker-badge.k8s-none { background: var(--bg-card); color: var(--text-muted); }
+        .k8s-row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .k8s-act {
+            padding: 4px 9px;
+            border-radius: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .k8s-act:hover { background: var(--accent-soft); border-color: var(--accent); }
+        .k8s-replicas { width: 64px; padding: 4px 6px; font-size: 11px; }
+        .k8s-output { background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; }
+        .k8s-output-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-primary); }
+        .k8s-output pre {
+            margin: 0;
+            max-height: 420px;
+            overflow: auto;
+            font-size: 11.5px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
         /* ── Repo Actions drawer (right slide-in) ─────────────────── */
         .repo-actions-overlay {
             position: fixed;
@@ -1506,6 +1562,7 @@
                     <button class="quick-btn" onclick="quickPrompt('/generate')">⚡ Generate now</button>
                     <button class="quick-btn" onclick="openCodeReview()">🧪 Code Review</button>
                     <button class="quick-btn" onclick="openQAssist()">📝 QAssist</button>
+                    <button class="quick-btn" onclick="switchView('k8s')">☸️ Kubernetes</button>
                 </div>
 
                 <div class="rail-section">Generated</div>
@@ -1550,6 +1607,7 @@
                 <button class="view-tab" data-view="tracker" onclick="switchView('tracker')">📋 Repos Generated <span class="tab-count" id="tracker-count">0</span></button>
                 <button class="view-tab" data-view="code-review" onclick="openCodeReview()">🧪 Code Review</button>
                 <button class="view-tab" data-view="qassist" onclick="openQAssist()">📝 QAssist</button>
+                <button class="view-tab" data-view="k8s" onclick="switchView('k8s')">☸️ Kubernetes</button>
             </div>
 
             <!-- Chat view -->
@@ -1623,6 +1681,40 @@
                             <div class="cr-history-wrap" id="cr-history-wrap"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Kubernetes view -->
+            <div class="view" id="view-k8s">
+                <div class="tracker-wrap">
+                    <div class="tracker-header k8s-header">
+                        <div>
+                            <div class="tracker-title">☸️ Kubernetes</div>
+                            <div class="tracker-sub" id="k8s-meta">Loading…</div>
+                        </div>
+                        <div class="tracker-actions">
+                            <select id="k8s-context" class="k8s-input" aria-label="Kubernetes context"></select>
+                            <button class="tracker-btn" onclick="switchK8sContext()">Switch context</button>
+                            <input id="k8s-selector" class="k8s-input" type="text" placeholder="Label selector, e.g. app=demo-app" aria-label="Label selector" onkeydown="if (event.key === 'Enter') refreshK8s()">
+                            <button class="tracker-btn" onclick="refreshK8s()">🔄 Refresh</button>
+                        </div>
+                    </div>
+                    <div class="k8s-summary" id="k8s-summary"></div>
+                    <div class="k8s-output" id="k8s-output" hidden>
+                        <div class="k8s-output-head">
+                            <span id="k8s-output-title"></span>
+                            <span class="k8s-row-actions" id="k8s-output-actions"></span>
+                        </div>
+                        <pre id="k8s-output-body"></pre>
+                    </div>
+                    <div class="k8s-section-title">Deployments</div>
+                    <div id="k8s-deployments"></div>
+                    <div class="k8s-section-title">Pods</div>
+                    <div id="k8s-pods"></div>
+                    <div class="k8s-section-title">Services</div>
+                    <div id="k8s-services"></div>
+                    <div class="k8s-section-title">Recent events <span>in the namespace</span></div>
+                    <div id="k8s-events"></div>
                 </div>
             </div>
 
@@ -2724,7 +2816,7 @@
         }
 
         // ── View switching ─────────────────────────────────────────
-        const KNOWN_VIEWS = ['chat', 'tracker', 'code-review'];
+        const KNOWN_VIEWS = ['chat', 'tracker', 'code-review', 'k8s'];
 
         function switchView(view, options = {}) {
             document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
@@ -2733,6 +2825,7 @@
             if (composer) composer.style.display = (view === 'chat') ? '' : 'none';
             if (view !== 'chat') setConfigDrawer(false);
             if (view === 'tracker') refreshTracker();
+            if (view === 'k8s') refreshK8s();
 
             // Reflect the view in the URL, so a link to a particular tab is a real link.
             if (!options.fromUrl) {
@@ -3246,6 +3339,258 @@
             steps.push('🔎 Code review: run it from Code Review (the button above opens it for this repository).',
                 REPO_ACTION_NOTES.deploy(entry), await deploymentStatus(entry.repository_name));
             showRepoResult(steps.join('\n\n'));
+        }
+
+        // ── Kubernetes view ───────────────────────────────────────
+        /* The /k8s endpoints (the same operations as the MCP k8s tools); cluster credentials stay in the app. */
+        let k8sCurrentContext = '';
+        let k8sNamespace = '';
+        let k8sLastStatus = null;
+
+        function k8sAge(ts) {
+            const ms = Date.now() - new Date(ts).getTime();
+            if (!ts || isNaN(ms)) return '—';
+            const minutes = Math.max(0, Math.floor(ms / 60000));
+            if (minutes < 60) return `${minutes}m`;
+            const hours = Math.floor(minutes / 60);
+            return hours < 48 ? `${hours}h` : `${Math.floor(hours / 24)}d`;
+        }
+
+        /* kind: ok | warn | bad | none */
+        function k8sBadge(kind, label) {
+            return `<span class="tracker-badge k8s-${kind}">${escapeHtml(label)}</span>`;
+        }
+
+        function k8sTable(headers, rows, empty) {
+            if (!rows.length) return `<div class="tracker-empty">${escapeHtml(empty)}</div>`;
+            return `<table class="tracker-table k8s-table"><thead><tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead>` +
+                `<tbody>${rows.join('')}</tbody></table>`;
+        }
+
+        /* Row actions carry the resource name in data attributes; one delegated listener runs them. */
+        function k8sAction(act, name, label) {
+            return `<button class="k8s-act" data-act="${act}" data-name="${escapeHtml(name)}">${label}</button>`;
+        }
+
+        async function refreshK8s() {
+            const meta = document.getElementById('k8s-meta');
+            const selector = document.getElementById('k8s-selector').value.trim();
+            const query = selector ? `?label_selector=${encodeURIComponent(selector)}` : '';
+            const [health, context, status] = await Promise.allSettled([
+                api('GET', '/k8s/health'), api('GET', '/k8s/context'), api('GET', `/k8s/status${query}`)]);
+            if (context.status === 'fulfilled') renderK8sContexts(context.value);
+            const failure = [health, status].find(r => r.status === 'rejected');
+            const unhealthy = health.status === 'fulfilled' && !health.value.success;
+            if (failure || unhealthy) {
+                const message = failure ? failure.reason.message : (health.value.message || health.value.status || 'unavailable');
+                meta.textContent = failure && failure.reason.status === 503
+                    ? message : `Cluster not reachable (context ${k8sCurrentContext || '?'}): ${message}`;
+                document.getElementById('k8s-summary').innerHTML = '';
+                ['k8s-deployments', 'k8s-pods', 'k8s-services', 'k8s-events'].forEach(id => {
+                    document.getElementById(id).innerHTML = '<div class="tracker-empty">No data</div>';
+                });
+                return;
+            }
+            const h = health.value;
+            k8sNamespace = h.namespace || '';
+            meta.textContent = `context ${h.current_context} · namespace ${h.namespace} · Kubernetes ${h.server_version || '?'} · ` +
+                `${h.status}` + (selector ? ` · selector ${selector}` : '') + ` · refreshed ${new Date().toLocaleTimeString()}`;
+            renderK8sStatus(status.value);
+        }
+
+        function renderK8sContexts(c) {
+            k8sCurrentContext = c.context || '';
+            const names = (c.contexts && c.contexts.length) ? c.contexts : [k8sCurrentContext];
+            document.getElementById('k8s-context').innerHTML = names.map(n =>
+                `<option value="${escapeHtml(n)}"${n === k8sCurrentContext ? ' selected' : ''}>` +
+                `${escapeHtml(n)}${n === k8sCurrentContext ? ' (current)' : ''}</option>`).join('');
+        }
+
+        function renderK8sStatus(s) {
+            k8sLastStatus = s;
+            const summary = s.summary || {};
+            const tile = (label, part) => {
+                const total = Number(part && part.total) || 0;
+                const ready = Number(part && part.ready) || 0;
+                const badge = !part || part.health === undefined ? ''
+                    : total === 0 ? k8sBadge('none', 'None') : k8sBadge(part.health === 'Healthy' ? 'ok' : 'bad', part.health);
+                const value = part && part.ready !== undefined ? `${ready}/${total} ready` : `${total}`;
+                return `<div class="k8s-tile"><div class="k8s-tile-label">${escapeHtml(label)}</div>` +
+                    `<div class="k8s-tile-value">${escapeHtml(value)}</div>${badge}</div>`;
+            };
+            document.getElementById('k8s-summary').innerHTML =
+                tile('Deployments', summary.deployments) + tile('Pods', summary.pods) + tile('Services', summary.services);
+
+            const deployments = (s.deployments || []).map(d => `<tr>
+                <td><div class="tracker-repo">${escapeHtml(d.name)}</div><div class="k8s-muted">${escapeHtml(d.image || '')}</div></td>
+                <td>${d.is_ready ? k8sBadge('ok', 'Ready') : k8sBadge('bad', 'Not ready')}</td>
+                <td>${Number(d.replicas_ready) || 0}/${Number(d.replicas_desired) || 0}</td>
+                <td>${Number(d.replicas_updated) || 0}</td>
+                <td>${Number(d.replicas_available) || 0}</td>
+                <td>${k8sAge(d.created_at)}</td>
+                <td><div class="k8s-row-actions">${k8sAction('rollout', d.name, '📡 Rollout')}` +
+                `<input class="k8s-input k8s-replicas" type="number" min="0" max="1000" value="${Number(d.replicas_desired) || 0}" ` +
+                `aria-label="Replicas for ${escapeHtml(d.name)}">${k8sAction('scale', d.name, '↕️ Scale')}` +
+                `${k8sAction('restart', d.name, '🔁 Restart')}</div></td>
+            </tr>`);
+            document.getElementById('k8s-deployments').innerHTML = k8sTable(
+                ['Deployment', 'Status', 'Ready', 'Up-to-date', 'Available', 'Age', 'Actions'], deployments, 'No deployments');
+
+            const pods = (s.pods || []).map(p => {
+                const statuses = p.container_statuses || [];
+                const containers = (p.containers || []).length || statuses.length;
+                const phase = p.phase || 'Unknown';
+                const kind = phase === 'Running' && p.is_ready ? 'ok' : (phase === 'Pending' || phase === 'Running' ? 'warn' : 'bad');
+                return `<tr>
+                <td><div class="tracker-repo">${escapeHtml(p.name)}</div><div class="k8s-muted">${escapeHtml((p.containers || []).map(c => c.image).join(', '))}</div></td>
+                <td>${k8sBadge(kind, phase)}</td>
+                <td>${statuses.filter(c => c.ready).length}/${containers}</td>
+                <td>${Number(p.restart_count) || 0}</td>
+                <td>${escapeHtml(p.node || '—')}</td>
+                <td>${k8sAge(p.created_at)}</td>
+                <td><div class="k8s-row-actions">${k8sAction('logs', p.name, '📜 Logs')}` +
+                `${Number(p.restart_count) > 0 ? k8sAction('previous-logs', p.name, '⏮️ Previous logs') : ''}` +
+                `${k8sAction('port-forward', p.name, '🔌 Port-forward')}</div></td>
+            </tr>`;
+            });
+            document.getElementById('k8s-pods').innerHTML = k8sTable(
+                ['Pod', 'Phase', 'Ready', 'Restarts', 'Node', 'Age', 'Actions'], pods, 'No pods');
+
+            const services = (s.services || []).map(v => {
+                const ports = (v.ports || []).map(p =>
+                    `${p.port}${p.targetPort !== undefined && p.targetPort !== p.port ? `→${p.targetPort}` : ''}/${p.protocol || 'TCP'}`);
+                const external = [v.load_balancer_ip, ...(v.external_ips || [])].filter(Boolean);
+                return `<tr>
+                <td><div class="tracker-repo">${escapeHtml(v.name)}</div><div class="k8s-muted">${escapeHtml(Object.entries(v.selector || {}).map(([k, x]) => `${k}=${x}`).join(', '))}</div></td>
+                <td>${escapeHtml(v.type || '')}</td>
+                <td>${escapeHtml(v.cluster_ip || '—')}</td>
+                <td>${escapeHtml(ports.join(', ') || '—')}</td>
+                <td>${escapeHtml(external.join(', ') || '—')}</td>
+            </tr>`;
+            });
+            document.getElementById('k8s-services').innerHTML = k8sTable(
+                ['Service', 'Type', 'Cluster IP', 'Ports', 'External'], services, 'No services');
+
+            const events = (s.recent_events || []).map(e => `<tr>
+                <td>${k8sBadge(e.type === 'Normal' ? 'none' : 'warn', e.type || '?')}</td>
+                <td>${escapeHtml(e.reason || '')}</td>
+                <td>${escapeHtml(e.involved_object ? `${e.involved_object.kind}/${e.involved_object.name}` : '')}</td>
+                <td>${escapeHtml(e.message || '')}</td>
+                <td>${Number(e.count) || 1}</td>
+                <td>${k8sAge(e.last_timestamp || e.first_timestamp)}</td>
+            </tr>`);
+            document.getElementById('k8s-events').innerHTML = k8sTable(
+                ['Type', 'Reason', 'Object', 'Message', 'Count', 'Last seen'], events, 'No recent events');
+        }
+
+        function showK8sOutput(title, text, actions = []) {
+            const box = document.getElementById('k8s-output');
+            document.getElementById('k8s-output-title').textContent = title;
+            document.getElementById('k8s-output-body').textContent = text;
+            const host = document.getElementById('k8s-output-actions');
+            host.innerHTML = '';
+            [...actions, { label: '✕ Close', run: () => { box.hidden = true; } }].forEach(a => {
+                const button = document.createElement('button');
+                button.className = 'k8s-act';
+                button.textContent = a.label;
+                button.addEventListener('click', a.run);
+                host.appendChild(button);
+            });
+            box.hidden = false;
+            box.scrollIntoView({ block: 'nearest' });
+        }
+
+        async function showK8sLogs(pod, previous, tail) {
+            const title = `📜 ${pod}${previous ? ' (previous container)' : ''} · last ${tail} lines`;
+            showK8sOutput(title, 'Loading…');
+            try {
+                const d = await api('GET', `/k8s/pods/${encodeURIComponent(pod)}/logs?tail=${tail}&previous=${previous}`);
+                const other = tail < 1000 ? 1000 : 200;
+                showK8sOutput(title, d.logs || '(no log lines)', [
+                    { label: '🔄 Reload', run: () => showK8sLogs(pod, previous, tail) },
+                    { label: `Last ${other}`, run: () => showK8sLogs(pod, previous, other) }]);
+            } catch (e) {
+                showK8sOutput(title, `❌ ${e.message}`);
+            }
+        }
+
+        /* The container port of the service that selects the pod (8080 when none matches). */
+        function k8sPodPort(podName) {
+            const s = k8sLastStatus || {};
+            const labels = ((s.pods || []).find(p => p.name === podName) || {}).labels || {};
+            for (const service of s.services || []) {
+                const selector = Object.entries(service.selector || {});
+                const target = Number(((service.ports || [])[0] || {}).targetPort);
+                if (selector.length && selector.every(([k, v]) => labels[k] === v) && Number.isInteger(target) && target > 0) return target;
+            }
+            return 8080;
+        }
+
+        async function runK8sAction(act, name, button) {
+            const path = encodeURIComponent(name);
+            try {
+                if (act === 'rollout') {
+                    showK8sOutput(`📡 Rollout of ${name}`, 'Checking…');
+                    const d = await api('GET', `/k8s/deployments/${path}/rollout`);
+                    showK8sOutput(`📡 Rollout of ${name}`, `${d.message}\n${d.status}`);
+                } else if (act === 'scale') {
+                    const field = button.closest('tr').querySelector('.k8s-replicas');
+                    const replicas = Number(field.value);
+                    if (field.value.trim() === '' || !Number.isInteger(replicas) || replicas < 0 || replicas > 1000) {
+                        showToast('Replicas must be a whole number from 0 to 1000');
+                        return;
+                    }
+                    if (!confirm(`Scale ${name} to ${replicas} replica(s)?`)) return;
+                    const d = await api('POST', `/k8s/deployments/${path}/scale`, { replicas });
+                    showK8sOutput(`↕️ Scale ${name}`, d.message || `Scaled to ${replicas}`);
+                    refreshK8s();
+                } else if (act === 'restart') {
+                    if (!confirm(`Restart ${name}? Its pods are replaced one by one (rolling restart).`)) return;
+                    const d = await api('POST', `/k8s/deployments/${path}/restart`, {});
+                    showK8sOutput(`🔁 Restart ${name}`, d.message || 'Restart requested');
+                    refreshK8s();
+                } else if (act === 'logs' || act === 'previous-logs') {
+                    await showK8sLogs(name, act === 'previous-logs', 200);
+                } else if (act === 'port-forward') {
+                    const podPort = k8sPodPort(name);
+                    const localPort = podPort >= 1024 ? podPort : 8080;
+                    const d = await api('GET', `/k8s/pods/${path}/port-forward?local_port=${localPort}&pod_port=${podPort}`);
+                    const command = k8sNamespace ? d.command.replace(/^kubectl /, `kubectl -n ${k8sNamespace} `) : d.command;
+                    showK8sOutput(`🔌 Port-forward to ${name}`,
+                        `${command}\n\nRun it in a terminal whose kubectl points at context ${k8sCurrentContext}, then open http://localhost:${localPort}.`, [{
+                            label: '📋 Copy command',
+                            run: () => navigator.clipboard.writeText(command).then(
+                                () => showToast('Command copied'), () => showToast('Copy failed: select the command and copy it'))
+                        }]);
+                }
+            } catch (e) {
+                showK8sOutput(`❌ ${act} ${name}`, e.message);
+            }
+        }
+
+        document.addEventListener('click', event => {
+            const button = event.target.closest('#view-k8s [data-act]');
+            if (button) runK8sAction(button.dataset.act, button.dataset.name, button);
+        });
+
+        async function switchK8sContext() {
+            const target = document.getElementById('k8s-context').value;
+            if (!target || target === k8sCurrentContext) {
+                showToast(`Already using context ${target}`);
+                return;
+            }
+            if (!confirm(`Switch the Kubernetes context from "${k8sCurrentContext}" to "${target}"?\n\n` +
+                    'This applies to every user of this app (web UI and MCP tools) until it is switched back or the app restarts.')) {
+                document.getElementById('k8s-context').value = k8sCurrentContext;
+                return;
+            }
+            try {
+                const d = await api('POST', '/k8s/context/switch', { context: target });
+                showToast(d.message || `Switched to ${target}`);
+            } catch (e) {
+                showK8sOutput(`❌ Switch to ${target}`, e.message);
+            }
+            refreshK8s();
         }
 
         let toastTimer = null;

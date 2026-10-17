@@ -328,6 +328,11 @@ flowchart LR
   code review, links to the generated Kubernetes, configuration and Jenkins files, and cleanup. The Jenkins and
   Fortanix steps need the customer's systems.
 - **Code Review** and **QAssist** (opens `QASSIST_URL`).
+- **Kubernetes** — the cluster of the current context: health, a context picker (switching asks for confirmation
+  and applies to every user until it is switched back or the app restarts), deployments (rollout status, scale,
+  rolling restart), pods (logs, logs of the previous container, the `kubectl port-forward` command), services and
+  recent events, optionally filtered by a label selector. It uses the `/k8s` endpoints, so without `K8S_CONTEXTS` it
+  shows that Kubernetes is not configured.
 
 ---
 
@@ -451,7 +456,7 @@ timeout) takes the error link to `Failed`, so both subflows always return `statu
 
 | Area | Endpoints | Notes |
 |------|-----------|-------|
-| Kubernetes | `GET /k8s/{resource}` (health, context, status, deployments, pods, services, events), `GET /k8s/{resource}/{name}`, `GET /k8s/{resource}/{name}/{view}` (rollout, logs, port-forward), `POST /k8s/deployments/{name}/{action}` (scale, restart), `POST /k8s/context/switch` | Same URLs as the reference; the route selects the operation (`k8s.routes` in `config/ops-programs.json`, anything else is 404). Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token; TLS for all contexts from `K8S_INSECURE` and `K8S_CA_CERT`); restrict the `POST` routes (scale, restart, switch) in Kong if only operators may use them |
+| Kubernetes | `GET /k8s/{resource}` (health, context, status, deployments, pods, services, events), `GET /k8s/{resource}/{name}`, `GET /k8s/{resource}/{name}/{view}` (rollout, logs, port-forward), `POST /k8s/deployments/{name}/{action}` (scale, restart), `POST /k8s/context/switch` | Same URLs as the reference; the route selects the operation (`k8s.routes` in `config/ops-programs.json`, anything else is 404). Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token; TLS for all contexts from `K8S_INSECURE` and `K8S_CA_CERT`); `GET /k8s/context` also lists the configured context names (`contexts`, never their URLs or tokens); restrict the `POST` routes (scale, restart, switch) in Kong if only operators may use them |
 | Code review | `POST /api/codereview/token`, `POST /api/codereview/run`, `GET /api/codereview/history`, `GET /api/codereview/network-debug` | intginvent token cached in shared data, one retry with a refreshed token, history (newest 500) in PostgreSQL, report links extracted and query strings redacted |
 | Schemas | `POST /api/schemas/upload/{kind}` (source, target, batch) | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); source: `.xsd`; target: `.xsd`, `.wsdl` or OpenAPI/Swagger (`.json`, `.yaml`, `.yml`); XSD/WSDL must be well-formed XML and OpenAPI/Swagger files must declare `openapi` or `swagger`; every file is committed in one commit, XSDs into `code/<repo>/<repo>.module/Schemas`, WSDL and OpenAPI/Swagger files into `code/<repo>/<repo>.module/Service Descriptors`; a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
 
