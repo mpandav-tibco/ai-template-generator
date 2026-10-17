@@ -728,6 +728,13 @@ query activities list their output columns; `json.jq`/`array.get` results are wr
 designer's expression parser rejects; error branches read `$error[<activity>]`. Each flow's `metadata.fe_metadata`
 matches its inputs and outputs (a stale copy makes the designer rewrite flow inputs on save).
 
+**Saving in the designer.** A save in the Flogo designer (2.26.8) rewrites the connection properties. Check the diff
+of `properties` and `connections` afterwards and keep: `weaviate.WeaviateTemplateKB.Timeout_Seconds` and
+`Retry_Backoff_Ms` (the designer renames them to names with parentheses, which Kubernetes environment variables
+cannot set), `weaviate.WeaviateTemplateKB.Scheme` and the connection's `scheme` bound to it (the designer replaces
+the binding with `http`, so an https Weaviate could no longer be configured), and the `=$property[...]` form of the
+PostgreSQL `tlsconfig` and `tlsparam` settings.
+
 **Changing the API.** Add or change the operation in the app's API definition first (Flogo designer, API specs; the
 designer offers Method and Path from it), then add the flow and its handler. Flogo's `/api/v2/swagger.json` serves
 the result.
