@@ -59,16 +59,96 @@ flowchart LR
     FLOWS --> LLM & WV & PG & GH & SMTP & K8S & CR
 ```
 
-Startup (`StartupFlow`) loads the template catalog, the IKD id lists, the operations programs and the Kubernetes
-contexts into shared data, creates or upgrades the PostgreSQL tables (`generation_log`, `chat_session`,
-`ikd_registry`, `code_review_history`) in one idempotent statement and ingests the catalog into Weaviate.
-
 ---
 
-## How a generation works
+## How it works
 
-`POST /generate` (also behind the UI's Generate step and the MCP tool `generate_code`) is a chain of gates; nothing
-is written until every gate has passed.
+### Startup
+
+When the app starts, `StartupFlow` prepares everything the request flows read, so no request reads a configuration
+file or creates a table:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant E as Flogo engine
+    participant S as StartupFlow
+    participant F as config files
+    participant SD as Shared data
+    participant PG as PostgreSQL
+    participant WV as Weaviate
+    E->>S: app start (startup hook)
+    S->>F: read the template catalog, IKD id lists, operations programs
+    S->>SD: APP_CONFIG (catalog), APP_IKD (ids), APP_OPS (jq programs), APP_K8S (contexts from K8S_CONTEXTS)
+    S->>PG: create or upgrade the tables in one idempotent statement
+    S->>WV: create the template collection if missing
+    S->>WV: ingest the catalog (embeddings)
+    S-->>E: log startup complete
+```
+
+### From conversation to repository
+
+The typical journey in the web UI: the chat collects the integration spec turn by turn, then `POST /generate`
+publishes the repository. API clients do the same with `POST /extract` (one shot) and `POST /generate`; AI agents use
+the [MCP tools](#mcp-server).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant UI as Web UI
+    participant CH as api_chat flows
+    participant EX as ExtractSpecCore
+    participant LLM as LLM
+    participant PG as PostgreSQL
+    participant SG as api_templates_suggest_POST
+    participant WV as Weaviate
+    participant GEN as generate_POST
+    participant SC as ScaffoldArtifactsFlow
+    participant GH as GitHub
+    participant NT as SendNotificationFlow
+    U->>UI: open the web UI
+    UI->>CH: POST /api/chat/init
+    CH->>PG: create the session (chat_session)
+    CH-->>UI: session id and greeting
+    loop until no required field is missing
+        U->>UI: describe the integration
+        UI->>CH: POST /api/chat/message
+        CH->>PG: load the session spec
+        CH->>EX: extract from the message
+        EX->>EX: rule engine pre-extraction
+        EX->>LLM: extraction prompt
+        LLM-->>EX: JSON fields
+        EX-->>CH: extracted fields
+        CH->>CH: merge into the spec, list missing fields
+        CH->>PG: save the session
+        CH-->>UI: reply, spec, missing fields
+    end
+    opt suggest templates
+        UI->>SG: POST /api/templates/suggest
+        SG->>WV: hybrid search
+        SG-->>UI: ranked templates
+    end
+    U->>UI: choose the publish target and generate
+    UI->>GEN: POST /generate with spec and target_mode
+    GEN->>GEN: validation rules and IKD check
+    GEN->>PG: duplicate check
+    GEN->>SG: template search, unless a template was requested
+    SG->>WV: hybrid search
+    GEN->>SC: scaffold
+    SC->>GH: fetch the template at TEMPLATE_REF
+    SC->>GH: one commit with code, configs and CI/CD files
+    SC-->>GEN: GitHub URL and commit
+    GEN->>PG: register the generation and its IKD ids
+    GEN->>NT: notify
+    NT->>NT: e-mail to the integration team (SMTP)
+    GEN-->>UI: repository, GitHub URL and steps
+```
+
+### Generation gates
+
+`POST /generate` (the UI's Generate step and the MCP tool `generate_code`) is a chain of gates; nothing is written
+until every gate has passed.
 
 ```mermaid
 flowchart TD
@@ -126,6 +206,108 @@ repository.
 **Cleanup:** `DELETE /api/tracker/{repo_name}` (UI: `/cleanup <repo>` or **🧹 Clean up repository**) deletes the
 folder from the shared repository in one commit and removes the registry and IKD rows. A repository of its own is kept
 on GitHub (deleting a repository cannot be undone and needs extra token rights); delete it there by hand.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant UI as Web UI
+    participant CL as api_tracker_repo_DELETE
+    participant PG as PostgreSQL
+    participant GH as GitHub
+    U->>UI: cleanup command or Clean up repository, then confirm
+    UI->>CL: DELETE /api/tracker/repo_name
+    CL->>PG: find the registration and where it was published
+    alt folder of the shared repository
+        CL->>GH: one commit that deletes the folder
+        CL->>PG: delete the generation and IKD rows
+        CL-->>UI: folder and rows removed
+    else repository of its own
+        CL->>PG: delete the generation and IKD rows
+        CL-->>UI: rows removed, repository kept on GitHub
+    end
+```
+
+---
+
+## Flows
+
+The app has 34 flows. Each REST operation and MCP tool starts one flow (an arrow to a group means every flow in it has
+its own operation); the rounded boxes are subflows, called only by other flows:
+
+```mermaid
+flowchart LR
+    BOOT(("startup")) --> StartupFlow
+    REST(("REST :9999")) --> ui & conv & reg & k8s & cr
+    MCP(("MCP :8081")) --> MCPExtractSpecTool & MCPGenerateTool & MCPListTemplates
+
+    subgraph ui["UI and health"]
+        root_GET
+        health_GET
+    end
+    subgraph conv["Conversation, templates and generation"]
+        chatinit["api_chat/init_POST"]
+        chatmsg["api_chat/message_POST"] --> ExtractSpecCore([ExtractSpecCore])
+        chatreset["api_chat/reset_POST"]
+        extract_POST --> ExtractSpecCore
+        api_templates_GET
+        api_templates_suggest_POST
+        generate_POST --> api_templates_suggest_POST
+        generate_POST --> ScaffoldArtifactsFlow([ScaffoldArtifactsFlow]) & SendNotificationFlow([SendNotificationFlow])
+    end
+    subgraph reg["Registry, IKD and schemas"]
+        api_tracker_GET
+        api_tracker_repo_DELETE
+        ikd_GET
+        schemas_upload_POST
+    end
+    subgraph k8s["Kubernetes"]
+        k8sflows["k8s_GET, k8s_item_GET, k8s_view_GET,<br/>k8s_deployment_action_POST,<br/>k8s_context_switch_POST"] --> K8sOperation([K8sOperation]) --> K8sRequest([K8sRequest])
+    end
+    subgraph cr["Code review"]
+        crtoken[codereview_token_POST] --> CodeReviewToken([CodeReviewToken])
+        crrun[codereview_run_POST] --> CodeReviewToken
+        crrun --> CodeReviewRequest([CodeReviewRequest]) & RecordCodeReview([RecordCodeReview])
+        crhist[codereview_history_GET]
+        crnet[codereview_netdebug_GET] --> CodeReviewRequest
+        CodeReviewToken --> CodeReviewRequest
+    end
+    MCPExtractSpecTool --> extract_POST
+    MCPGenerateTool --> generate_POST
+```
+
+| Area | Flow | Started by | Role |
+|------|------|------------|------|
+| Startup | `StartupFlow` | app startup hook | Loads the catalog, IKD ids, operations programs and Kubernetes contexts into shared data, creates or upgrades the PostgreSQL tables, creates the Weaviate collection and ingests the catalog |
+| UI | `root_GET` | `GET /` | Returns the web UI (`static/chat-github.html`) |
+| UI | `health_GET` | `GET /health` | Liveness and readiness answer |
+| Conversation | `api_chat/init_POST` | `POST /api/chat/init` | Creates a session (id and greeting) in `chat_session` |
+| Conversation | `api_chat/message_POST` | `POST /api/chat/message` | One chat turn: loads the session, extracts fields (`ExtractSpecCore`), merges them into the spec (a field keeps its first value, as in the reference), lists the missing fields, saves the session and replies |
+| Conversation | `api_chat/reset_POST` | `POST /api/chat/reset` | Deletes the session |
+| Conversation | `extract_POST` | `POST /extract`, MCP `extract_spec` | One-shot extraction merged with an optional `current_spec`; reports the missing fields |
+| Conversation | `ExtractSpecCore` | subflow of `api_chat/message_POST` and `extract_POST` | Rule engine pre-extraction (`rules/nlu-extraction.yaml`), LLM extraction (`EXTRACTION_SYSTEM_PROMPT`), JSON clean-up and parsing |
+| Templates | `api_templates_GET` | `GET /api/templates` | The catalog from shared data |
+| Templates | `api_templates_suggest_POST` | `POST /api/templates/suggest`, subflow of `generate_POST` | Weaviate hybrid search (BM25 and vector) over the catalog; ranked suggestions |
+| Generation | `generate_POST` | `POST /generate`, MCP `generate_code` | The generation pipeline: naming, validation, IKD check, duplicate check, template selection, scaffolding, registry and IKD registration, e-mail ([gates](#generation-gates)) |
+| Generation | `ScaffoldArtifactsFlow` | subflow of `generate_POST` | Renders the CI/CD files and runs the Git Repo Scaffolder: materializes the template and publishes everything in one commit, to a folder of the shared repository or a new repository |
+| Generation | `SendNotificationFlow` | subflow of `generate_POST` | HTML e-mail (full repository or config-only variant) with the logo and an attachment, sent over SMTP |
+| Registry | `api_tracker_GET` | `GET /api/tracker` | The newest 100 registrations with their GitHub location, plus the template source and UI settings |
+| Registry | `api_tracker_repo_DELETE` | `DELETE /api/tracker/{repo_name}` | [Cleanup](#where-the-code-is-published): deletes the folder in one commit (shared repository) and the registry and IKD rows |
+| Registry | `ikd_GET` | `GET /api/ikd` | The IKD registry in the reference `IKD_*.txt` format |
+| Schemas | `schemas_upload_POST` | `POST /api/schemas/upload/{kind}` | Plans the upload, finds the registration, checks the XML and commits the files ([sequence](#schema-upload)) |
+| Kubernetes | `k8s_GET`, `k8s_item_GET`, `k8s_view_GET`, `k8s_deployment_action_POST`, `k8s_context_switch_POST` | `GET`/`POST /k8s/...` | Pass the route and its parameters to `K8sOperation` |
+| Kubernetes | `K8sOperation` | subflow of the `k8s_*` flows | Routes to an operation, plans the API calls (jq programs), runs them through `K8sRequest` and shapes the reference response; a context switch updates `APP_K8S` |
+| Kubernetes | `K8sRequest` | subflow of `K8sOperation` | REST Invoke `GET` or `PATCH` to the Kubernetes API; never fails (a transport error comes back with status 0) |
+| Code review | `codereview_token_POST` | `POST /api/codereview/token` | Returns the cached or a fresh session token |
+| Code review | `codereview_run_POST` | `POST /api/codereview/run` | Checks the request, gets the token, runs the review with one retry on a fresh token, records the run ([sequence](#code-review)) |
+| Code review | `codereview_history_GET` | `GET /api/codereview/history` | Run history, newest first |
+| Code review | `codereview_netdebug_GET` | `GET /api/codereview/network-debug` | Probes the service and reports DNS, TCP, TLS and HTTP reachability |
+| Code review | `CodeReviewToken` | subflow | Token cache in `APP_CODEREVIEW`; fetches `getsession.jsp` when missing or forced; 503 while the credentials are not set |
+| Code review | `CodeReviewRequest` | subflow | REST Invoke `Probe`, `Get`, `PostForm` or `PostJson` to the service; never fails |
+| Code review | `RecordCodeReview` | subflow | Appends a run to `code_review_history` (keeps the newest 500) |
+| MCP | `MCPExtractSpecTool` | MCP `extract_spec` | Runs `extract_POST` as a subflow |
+| MCP | `MCPGenerateTool` | MCP `generate_code` | Runs `generate_POST` as a subflow (with `target_mode`) |
+| MCP | `MCPListTemplates` | MCP `list_templates` | The catalog from shared data |
 
 ---
 
@@ -185,6 +367,28 @@ Cursor: `{ "mcpServers": { "bwce-ai-generator": { "url": "http://localhost:8081/
 | `generate_code` | `spec` (required: `source_system`, `target_system`, `business_object`, `interface_type`), `config_only`, `target_mode` (`subfolder` or `newRepo`) | the `/generate` result as JSON text: same pipeline, registry and notification |
 | `list_templates` | — | the template catalog |
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor A as AI agent
+    participant M as MCP server (port 8081)
+    participant T as MCP tool flows
+    participant X as extract_POST
+    participant G as generate_POST
+    A->>M: initialize, then tools/list
+    M-->>A: extract_spec, generate_code, list_templates
+    A->>M: tools/call extract_spec with the user's request
+    M->>T: MCPExtractSpecTool
+    T->>X: subflow, same as POST /extract
+    X-->>T: spec and missing fields
+    T-->>A: result as JSON text
+    A->>M: tools/call generate_code with spec and target_mode
+    M->>T: MCPGenerateTool
+    T->>G: subflow, same gates, publication, registry and e-mail as POST /generate
+    G-->>T: result
+    T-->>A: result as JSON text
+```
+
 Try the tools interactively with the MCP Inspector: `npx @modelcontextprotocol/inspector`, then connect to
 `http://localhost:8081/mcp` (Streamable HTTP).
 
@@ -192,7 +396,8 @@ Try the tools interactively with the MCP Inspector: `npx @modelcontextprotocol/i
 
 ## Operations
 
-All logic is Flogo flows; data-shaped logic (Kubernetes response mapping, request planning, CI/CD rendering) runs
+All logic is Flogo flows; data-shaped logic (Kubernetes request planning and response mapping, code review, schema
+upload planning, CI/CD rendering) runs
 as **jq programs** (TIBCO `json.jq`) loaded at startup from `config/ops-programs.json` into shared data, so one
 generic flow serves many endpoints. Only OOTB activities are used (REST Invoke, PostgreSQL, Shared Data,
 XML-to-JSON, Mapper) plus the Git Repo Scaffolder. Outbound HTTP goes through two subflows built from the OOTB
@@ -214,6 +419,83 @@ timeout) takes the error link to `Failed`, so both subflows always return `statu
 | Kubernetes | `GET /k8s/{resource}` (health, context, status, deployments, pods, services, events), `GET /k8s/{resource}/{name}`, `GET /k8s/{resource}/{name}/{view}` (rollout, logs, port-forward), `POST /k8s/deployments/{name}/{action}` (scale, restart), `POST /k8s/context/switch` | Same URLs as the reference; the route selects the operation (`k8s.routes` in `config/ops-programs.json`, anything else is 404). Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token; TLS for all contexts from `K8S_INSECURE` and `K8S_CA_CERT`); restrict the `POST` routes (scale, restart, switch) in Kong if only operators may use them |
 | Code review | `POST /api/codereview/token`, `POST /api/codereview/run`, `GET /api/codereview/history`, `GET /api/codereview/network-debug` | intginvent token cached in shared data, one retry with a refreshed token, history (newest 500) in PostgreSQL, report links extracted and query strings redacted |
 | Schemas | `POST /api/schemas/upload/{kind}` (source, target, batch) | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); source: `.xsd`; target: `.xsd`, `.wsdl` or OpenAPI/Swagger (`.json`, `.yaml`, `.yml`); XSD/WSDL must be well-formed XML and OpenAPI/Swagger files must declare `openapi` or `swagger`; every file is committed in one commit, XSDs into `code/<repo>/<repo>.module/Schemas`, WSDL and OpenAPI/Swagger files into `code/<repo>/<repo>.module/Service Descriptors`; a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
+
+### Schema upload
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant UI as Web UI
+    participant SU as schemas_upload_POST
+    participant PG as PostgreSQL
+    participant GH as GitHub
+    U->>UI: pick the files, Upload schemas
+    UI->>SU: POST /api/schemas/upload/source, target or batch
+    SU->>SU: plan (schemas program): name, type and size checks, folder per file type, wrapper for a source XSD
+    SU->>PG: find the repository's registration (template, location)
+    SU->>SU: XML check of XSD and WSDL files
+    SU->>GH: one commit (XSD to Schemas, WSDL and OpenAPI to Service Descriptors)
+    SU-->>UI: uploaded files with their folder and commit
+```
+
+### Kubernetes
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as UI or API client
+    participant K as k8s flow
+    participant KO as K8sOperation
+    participant KR as K8sRequest
+    participant API as Kubernetes API
+    C->>K: for example GET /k8s/deployments/NAME/rollout
+    K->>KO: route, path and query parameters, body
+    KO->>KO: route to an operation and plan the API calls (k8s programs)
+    alt immediate operation (context, port-forward command, context switch)
+        KO-->>C: answer without calling the cluster
+    else API calls
+        loop each planned call
+            KO->>KR: method, URL, body
+            KR->>API: REST Invoke (TLS per K8S_INSECURE and K8S_CA_CERT)
+            API-->>KR: response
+            KR-->>KO: status, JSON, error
+        end
+        KO->>KO: shape the reference response
+        KO-->>C: code and body
+    end
+```
+
+### Code review
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as UI or API client
+    participant RUN as codereview_run_POST
+    participant TK as CodeReviewToken
+    participant RQ as CodeReviewRequest
+    participant SVC as Code review service
+    participant PG as PostgreSQL
+    C->>RUN: POST /api/codereview/run
+    RUN->>TK: session token
+    alt cached in shared data
+        TK-->>RUN: token
+    else missing
+        TK->>RQ: getsession.jsp
+        RQ->>SVC: request
+        SVC-->>RQ: session
+        TK-->>RUN: new token (cached)
+    end
+    RUN->>RQ: review request
+    RQ->>SVC: process_codequality.jsp
+    opt transport error or HTTP status 400 or higher
+        RUN->>TK: fresh token
+        RUN->>RQ: one retry
+    end
+    RUN->>PG: record the run (RecordCodeReview, newest 500 kept)
+    RUN-->>C: status and report links
+```
 
 ---
 
@@ -297,14 +579,10 @@ an earlier version still has the unused account and audit tables; drop them with
 design CLI.
 
 **Flow structure.** Every REST handler is an operation of the embedded API definition, one handler per flow, named
-after the flow. Each handler maps the request (`pathParams`, `queryParams`, `body`) to the inputs the flow declares,
-and the flow's `code` + `responseBody` outputs to the reply. `root_GET` reads the UI file and returns it; the five
-Kubernetes endpoints are thin flows over `K8sOperation`. Shared subflows: `ExtractSpecCore` (rules, LLM, JSON clean-up for
-`/extract` and the chat), `ScaffoldArtifactsFlow`, `SendNotificationFlow`, `CodeReviewToken`, `RecordCodeReview`,
-`K8sRequest` and `CodeReviewRequest`; `/generate` reuses the `/api/templates/suggest` flow for its template search,
-so the UI's "best match" is the template it generates. The MCP tools `extract_spec` and `generate_code` run the
-`/extract` and `/generate` flows as subflows and `list_templates` reads the same catalog as `/api/templates`, so both
-interfaces behave the same.
+after the flow (see [Flows](#flows)). Each handler maps the request (`pathParams`, `queryParams`, `body`) to the inputs
+the flow declares, and the flow's `code` + `responseBody` outputs to the reply. Data-shaped logic (Kubernetes,
+code review, schema upload, CI/CD files) is jq programs in `config/ops-programs.json`, loaded into shared data at
+startup (see [Operations](#operations)).
 
 **Designer validation.** The designer's **Validate** reports no errors in any flow. It resolves every mapped path
 against declared schemas and checks each expression's result type, so: the request-body flow inputs (`content`, the
@@ -324,7 +602,7 @@ the result.
 bwce-ai-generator-github.flogo   the Flogo application
 config/ci-bwcetemplates.json     template catalog (ingested into Weaviate)
 config/ikd/                      IKD interface and scenario id lists
-config/ops-programs.json         jq programs: Kubernetes routes and responses, CI/CD file templates
+config/ops-programs.json         jq programs: Kubernetes, code review, schema upload, CI/CD file templates
 rules/                           rule engine packs: nlu-extraction.yaml, spec-validation.yaml
 static/                          web UI (chat-github.html), e-mail logo
 ```

@@ -426,7 +426,7 @@
           "name": "extract_POST"
         },
         {
-          "description": "Generates a BWCE integration repository from a validated spec (POST /generate). Validates the spec, selects the best-matching template via Weaviate vector search, records the generation in PostgreSQL, and returns the result.",
+          "description": "Generates a BWCE integration repository from a spec (POST /generate): validation rules, IKD cross-check and duplicate check, template selection (the requested template or hybrid search), code generation and GitHub publication in one commit, registry and IKD registration, team e-mail.",
           "settings": {
             "APISpecPath": "/generate",
             "Method": "POST",
@@ -491,7 +491,7 @@
           "name": "generate_POST"
         },
         {
-          "description": "Lists generated repositories from the generation registry (GET /api/tracker)",
+          "description": "Lists the generated repositories with their GitHub location from the generation registry, plus the template source and UI settings (GET /api/tracker).",
           "settings": {
             "APISpecPath": "/api/tracker",
             "Method": "GET",
@@ -1389,7 +1389,7 @@
           "name": "k8s_context_switch_POST"
         },
         {
-          "description": "DELETE /api/tracker/{repo_name}: Clean up a generated repository",
+          "description": "Cleans up a generated repository (DELETE /api/tracker/{repo_name}): deletes its folder from the shared repository in one commit and its registry and IKD rows; a repository of its own is kept on GitHub.",
           "settings": {
             "APISpecPath": "/api/tracker/{repo_name}",
             "Method": "DELETE",
@@ -3419,7 +3419,7 @@
       "id": "flow:generate_POST",
       "data": {
         "name": "generate_POST",
-        "description": "Generates a BWCE integration repository from a validated spec (POST /generate). Validates the spec, selects the best-matching template via Weaviate vector search, records the generation in PostgreSQL, and returns the result.",
+        "description": "Generates a BWCE integration repository from a spec (POST /generate): validation rules, IKD cross-check and duplicate check, template selection (the requested template or hybrid search), code generation and GitHub publication in one commit, registry and IKD registration, team e-mail.",
         "links": [
           {
             "id": 1,
@@ -6144,7 +6144,7 @@
       "id": "flow:ScaffoldArtifactsFlow",
       "data": {
         "name": "ScaffoldArtifactsFlow",
-        "description": "Generates the integration from the template library and publishes it to the shared GitHub repository in one commit",
+        "description": "Materializes the selected template (token replacement, path renames), adds the configuration and CI/CD files and publishes everything to GitHub in one commit: a folder of the shared repository or a new repository (target_mode).",
         "links": [
           {
             "id": 1,
@@ -6602,7 +6602,7 @@
       "id": "flow:api_tracker_GET",
       "data": {
         "name": "api_tracker_GET",
-        "description": "Lists generated repositories from the generation registry (GET /api/tracker)",
+        "description": "Lists the generated repositories with their GitHub location from the generation registry, plus the template source and UI settings (GET /api/tracker).",
         "links": [
           {
             "id": 1,
@@ -11850,7 +11850,7 @@
       "id": "flow:api_tracker_repo_DELETE",
       "data": {
         "name": "api_tracker_repo_DELETE",
-        "description": "DELETE /api/tracker/{repo_name}: Clean up a generated repository",
+        "description": "Cleans up a generated repository (DELETE /api/tracker/{repo_name}): deletes its folder from the shared repository in one commit and its registry and IKD rows; a repository of its own is kept on GitHub.",
         "links": [
           {
             "id": 1,
@@ -13206,7 +13206,7 @@
                     }
                   }
                 },
-                "description": "Generates a BWCE integration repository from a validated spec (POST /generate). Validates the spec, selects the best-matching template via Weaviate vector search, records the generation in PostgreSQL, and returns the result.",
+                "description": "Generates a BWCE integration repository from a spec (POST /generate): validation rules, IKD cross-check and duplicate check, template selection (the requested template or hybrid search), code generation and GitHub publication in one commit, registry and IKD registration, team e-mail.",
                 "requestBody": {
                   "description": "",
                   "required": false,
@@ -13247,7 +13247,7 @@
                     }
                   }
                 },
-                "description": "Lists generated repositories from the generation registry (GET /api/tracker)"
+                "description": "Lists the generated repositories with their GitHub location from the generation registry, plus the template source and UI settings (GET /api/tracker)."
               }
             },
             "/api/templates/suggest": {
@@ -14145,7 +14145,7 @@
                     }
                   }
                 },
-                "description": "DELETE /api/tracker/{repo_name}: Clean up a generated repository"
+                "description": "Cleans up a generated repository (DELETE /api/tracker/{repo_name}): deletes its folder from the shared repository in one commit and its registry and IKD rows; a repository of its own is kept on GitHub."
               }
             }
           },
