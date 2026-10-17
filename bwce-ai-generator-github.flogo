@@ -2826,9 +2826,16 @@
           {
             "id": 7,
             "from": "SaveSession",
+            "to": "LogChatTurn",
+            "type": "label",
+            "label": "SaveSession to LogChatTurn"
+          },
+          {
+            "id": 8,
+            "from": "LogChatTurn",
             "to": "ReplyChat",
             "type": "label",
-            "label": "SaveSession to ReplyChat"
+            "label": "LogChatTurn to ReplyChat"
           }
         ],
         "tasks": [
@@ -3409,6 +3416,30 @@
             }
           },
           {
+            "id": "LogChatTurn",
+            "name": "LogChatTurn",
+            "description": "Logs the state of the chat session after this message",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CHAT] session=\", coerce.toString($activity[BuildChatResponse].output.session_id), \", status=\", coerce.toString($activity[BuildChatResponse].output.status), \", ready=\", coerce.toString($activity[BuildChatResponse].output.ready_to_generate), \", missing=\", coerce.toString($activity[BuildChatResponse].output.missing_fields)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReplyChat",
             "name": "ReplyChat",
             "description": "Returns the assistant message, merged spec and readiness to the client.",
@@ -3427,7 +3458,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkdldFNlc3Npb24iOnsieCI6MjUwLCJ5Ijo0NX0sIkV4dHJhY3RTcGVjIjp7IngiOjQ1MCwieSI6NDV9LCJNZXJnZVNwZWMiOnsieCI6NjUwLCJ5Ijo0NX0sIkNvbXB1dGVNaXNzaW5nIjp7IngiOjI1MCwieSI6MTk1fSwiQnVpbGRDaGF0UmVzcG9uc2UiOnsieCI6NDUwLCJ5IjoxOTV9LCJTYXZlU2Vzc2lvbiI6eyJ4Ijo2NTAsInkiOjE5NX0sIlJlcGx5Q2hhdCI6eyJ4IjoyNTAsInkiOjM0NX19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkdldFNlc3Npb24iOnsieCI6MjUwLCJ5Ijo0NX0sIkV4dHJhY3RTcGVjIjp7IngiOjQ1MCwieSI6NDV9LCJNZXJnZVNwZWMiOnsieCI6NjUwLCJ5Ijo0NX0sIkNvbXB1dGVNaXNzaW5nIjp7IngiOjI1MCwieSI6MTk1fSwiQnVpbGRDaGF0UmVzcG9uc2UiOnsieCI6NDUwLCJ5IjoxOTV9LCJTYXZlU2Vzc2lvbiI6eyJ4Ijo2NTAsInkiOjE5NX0sIlJlcGx5Q2hhdCI6eyJ4Ijo1MDAsInkiOjM0NX0sIkxvZ0NoYXRUdXJuIjp7IngiOjI1MCwieSI6MzQ1fX0=",
         "errorHandler": {
           "tasks": [
             {
@@ -3792,9 +3823,16 @@
           {
             "id": 4,
             "from": "BuildExtractResponse",
+            "to": "LogExtractResult",
+            "type": "label",
+            "label": "BuildExtractResponse to LogExtractResult"
+          },
+          {
+            "id": 5,
+            "from": "LogExtractResult",
             "to": "ReturnSpec",
             "type": "label",
-            "label": "BuildExtractResponse to ReturnSpec"
+            "label": "LogExtractResult to ReturnSpec"
           }
         ],
         "tasks": [
@@ -3949,6 +3987,30 @@
             }
           },
           {
+            "id": "LogExtractResult",
+            "name": "LogExtractResult",
+            "description": "Logs whether the extracted spec is complete",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[EXTRACT] ready=\", coerce.toString($activity[BuildExtractResponse].output.ready_to_generate), \", missing=\", coerce.toString($activity[BuildExtractResponse].output.missing)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnSpec",
             "name": "ReturnSpec",
             "description": "Returns the extracted spec (REST reply and MCP extract_spec result)",
@@ -3967,7 +4029,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkV4dHJhY3RTcGVjIjp7IngiOjI1MCwieSI6NDV9LCJNZXJnZVNwZWMiOnsieCI6NDUwLCJ5Ijo0NX0sIkJ1aWxkRXh0cmFjdFJlc3BvbnNlIjp7IngiOjY1MCwieSI6NDV9LCJSZXR1cm5TcGVjIjp7IngiOjg4NywieSI6NDd9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkV4dHJhY3RTcGVjIjp7IngiOjI1MCwieSI6NDV9LCJNZXJnZVNwZWMiOnsieCI6NDUwLCJ5Ijo0NX0sIkJ1aWxkRXh0cmFjdFJlc3BvbnNlIjp7IngiOjY1MCwieSI6NDV9LCJSZXR1cm5TcGVjIjp7IngiOjExMzcsInkiOjQ3fSwiTG9nRXh0cmFjdFJlc3VsdCI6eyJ4Ijo4ODcsInkiOjQ3fX0=",
         "errorHandler": {
           "tasks": [
             {
@@ -4086,12 +4148,19 @@
           {
             "id": 3,
             "from": "NormalizeSpec",
-            "to": "ValidateSpec",
+            "to": "LogGenerateRequest",
             "type": "label",
-            "label": "NormalizeSpec to ValidateSpec"
+            "label": "NormalizeSpec to LogGenerateRequest"
           },
           {
             "id": 4,
+            "from": "LogGenerateRequest",
+            "to": "ValidateSpec",
+            "type": "label",
+            "label": "LogGenerateRequest to ValidateSpec"
+          },
+          {
+            "id": 5,
             "from": "ValidateSpec",
             "to": "GetIKD",
             "type": "expression",
@@ -4099,14 +4168,14 @@
             "value": "$activity[ValidateSpec].errorCount == 0"
           },
           {
-            "id": 5,
+            "id": 6,
             "from": "GetIKD",
             "to": "CrossCheckIKD",
             "type": "label",
             "label": "GetIKDScenarios to CrossCheckIKD"
           },
           {
-            "id": 6,
+            "id": 7,
             "from": "CrossCheckIKD",
             "to": "BuildIKDErrorResponse",
             "type": "expression",
@@ -4114,14 +4183,21 @@
             "value": "$activity[CrossCheckIKD].output.ikd_valid == false"
           },
           {
-            "id": 7,
+            "id": 8,
             "from": "BuildIKDErrorResponse",
-            "to": "ReturnIKDError",
+            "to": "LogIKDRejected",
             "type": "label",
-            "label": "BuildIKDErrorResponse to ReturnIKDError"
+            "label": "BuildIKDErrorResponse to LogIKDRejected"
           },
           {
-            "id": 8,
+            "id": 9,
+            "from": "LogIKDRejected",
+            "to": "ReturnIKDError",
+            "type": "label",
+            "label": "LogIKDRejected to ReturnIKDError"
+          },
+          {
+            "id": 10,
             "from": "CrossCheckIKD",
             "to": "CheckDuplicate",
             "type": "expression",
@@ -4129,7 +4205,7 @@
             "value": "$activity[CrossCheckIKD].output.ikd_valid == true"
           },
           {
-            "id": 9,
+            "id": 11,
             "from": "CheckDuplicate",
             "to": "SelectTemplate",
             "type": "expression",
@@ -4137,63 +4213,70 @@
             "value": "array.count($activity[CheckDuplicate].Output.records) == 0 || $activity[NormalizeSpec].output.config_only == true"
           },
           {
-            "id": 10,
+            "id": 12,
             "from": "SelectTemplate",
             "to": "GetCatalog",
             "type": "label",
             "label": "SelectTemplate to GetCatalog"
           },
           {
-            "id": 11,
+            "id": 13,
             "from": "GetCatalog",
             "to": "ResolveTemplateName",
             "type": "label",
             "label": "GetCatalog to ResolveTemplateName"
           },
           {
-            "id": 12,
+            "id": 14,
             "from": "ResolveTemplateName",
             "to": "ScaffoldArtifacts",
             "type": "label",
             "label": "ResolveTemplateName to ScaffoldArtifacts"
           },
           {
-            "id": 13,
+            "id": 15,
             "from": "ScaffoldArtifacts",
             "to": "RegisterGeneration",
             "type": "label",
             "label": "ScaffoldArtifacts to RegisterGeneration"
           },
           {
-            "id": 14,
+            "id": 16,
             "from": "RegisterGeneration",
             "to": "RegisterIKD",
             "type": "label",
             "label": "RegisterGeneration to RegisterIKD"
           },
           {
-            "id": 15,
+            "id": 17,
             "from": "RegisterIKD",
             "to": "NotifyTeam",
             "type": "label",
             "label": "RegisterIKD to NotifyTeam"
           },
           {
-            "id": 16,
+            "id": 18,
             "from": "NotifyTeam",
             "to": "BuildGenerateResponse",
             "type": "label",
             "label": "NotifyTeam to BuildGenerateResponse"
           },
           {
-            "id": 17,
+            "id": 19,
             "from": "BuildGenerateResponse",
-            "to": "ReturnGenerate",
+            "to": "LogGenerated",
             "type": "label",
-            "label": "BuildGenerateResponse to ReturnGenerate"
+            "label": "BuildGenerateResponse to LogGenerated"
           },
           {
-            "id": 18,
+            "id": 20,
+            "from": "LogGenerated",
+            "to": "ReturnGenerate",
+            "type": "label",
+            "label": "LogGenerated to ReturnGenerate"
+          },
+          {
+            "id": 21,
             "from": "CheckDuplicate",
             "to": "BuildDuplicateResponse",
             "type": "expression",
@@ -4201,14 +4284,21 @@
             "value": "array.count($activity[CheckDuplicate].Output.records) > 0 && $activity[NormalizeSpec].output.config_only == false"
           },
           {
-            "id": 19,
+            "id": 22,
             "from": "BuildDuplicateResponse",
-            "to": "ReturnDuplicate",
+            "to": "LogDuplicate",
             "type": "label",
-            "label": "BuildDuplicateResponse to ReturnDuplicate"
+            "label": "BuildDuplicateResponse to LogDuplicate"
           },
           {
-            "id": 20,
+            "id": 23,
+            "from": "LogDuplicate",
+            "to": "ReturnDuplicate",
+            "type": "label",
+            "label": "LogDuplicate to ReturnDuplicate"
+          },
+          {
+            "id": 24,
             "from": "ValidateSpec",
             "to": "BuildValidationError",
             "type": "expression",
@@ -4216,11 +4306,18 @@
             "value": "$activity[ValidateSpec].errorCount > 0"
           },
           {
-            "id": 21,
+            "id": 25,
             "from": "BuildValidationError",
+            "to": "LogValidationFailed",
+            "type": "label",
+            "label": "BuildValidationError to LogValidationFailed"
+          },
+          {
+            "id": 26,
+            "from": "LogValidationFailed",
             "to": "ReturnValidationError",
             "type": "label",
-            "label": "BuildValidationError to ReturnValidationError"
+            "label": "LogValidationFailed to ReturnValidationError"
           }
         ],
         "tasks": [
@@ -4326,6 +4423,30 @@
             }
           },
           {
+            "id": "LogGenerateRequest",
+            "name": "LogGenerateRequest",
+            "description": "Logs the normalized generation request",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[GENERATE] request: repo=\", coerce.toString($activity[NormalizeSpec].output.repo_name), \", flow=\", coerce.toString($activity[NormalizeSpec].output.source_system), \" -> \", coerce.toString($activity[NormalizeSpec].output.target_system), \", object=\", coerce.toString($activity[NormalizeSpec].output.business_object), \", type=\", coerce.toString($activity[NormalizeSpec].output.interface_type), \", env=\", coerce.toString($activity[NormalizeSpec].output.env), \", config_only=\", coerce.toString($activity[NormalizeSpec].output.config_only)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ValidateSpec",
             "name": "ValidateSpec",
             "description": "Validates the incoming spec against required-field rules before generation.",
@@ -4420,6 +4541,30 @@
                 },
                 "output": {
                   "output": "schema://IKDErrorResponse"
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "LogIKDRejected",
+            "name": "LogIKDRejected",
+            "description": "Logs IKD ids that are not in the registry",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[GENERATE] rejected (HTTP 400): repo=\", coerce.toString($activity[NormalizeSpec].output.repo_name), \": \", coerce.toString($activity[BuildIKDErrorResponse].output.message)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
                 }
               },
               "feSchemaMap": {}
@@ -5120,6 +5265,30 @@
             }
           },
           {
+            "id": "LogGenerated",
+            "name": "LogGenerated",
+            "description": "Logs the published repository",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[GENERATE] done: repo=\", coerce.toString($activity[BuildGenerateResponse].output.repo_name), \", template=\", coerce.toString($activity[BuildGenerateResponse].output.template_name), \" (\", coerce.toString($activity[BuildGenerateResponse].output.template_source), \", score \", coerce.toString($activity[BuildGenerateResponse].output.template_match_score), \"), target_mode=\", coerce.toString($activity[BuildGenerateResponse].output.target_mode), \", write_mode=\", coerce.toString($activity[BuildGenerateResponse].output.write_mode), \", config_only=\", coerce.toString($activity[BuildGenerateResponse].output.config_only), \", files=\", coerce.toString($activity[BuildGenerateResponse].output.files_total), \", pushed=\", coerce.toString($activity[BuildGenerateResponse].output.pushed), \", commit=\", coerce.toString($activity[BuildGenerateResponse].output.commit_sha), \", url=\", coerce.toString($activity[BuildGenerateResponse].output.github_url), \", scaffold_ms=\", coerce.toString($activity[BuildGenerateResponse].output.scaffold_ms)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnGenerate",
             "name": "ReturnGenerate",
             "description": "Returns the generation result",
@@ -5164,6 +5333,30 @@
                 },
                 "output": {
                   "output": "schema://DuplicateResponse"
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "LogDuplicate",
+            "name": "LogDuplicate",
+            "description": "Logs that the repository is already registered",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[GENERATE] duplicate: repo=\", coerce.toString($activity[BuildDuplicateResponse].output.repo_name), \" is already registered (\", coerce.toString($activity[BuildDuplicateResponse].output.existing_status), \") at \", coerce.toString($activity[BuildDuplicateResponse].output.github_url), \"; nothing written\"), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
                 }
               },
               "feSchemaMap": {}
@@ -5216,6 +5409,30 @@
             }
           },
           {
+            "id": "LogValidationFailed",
+            "name": "LogValidationFailed",
+            "description": "Logs a spec that failed the validation rules",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[GENERATE] rejected (HTTP 400): repo=\", coerce.toString($activity[NormalizeSpec].output.repo_name), \" failed \", coerce.toString($activity[ValidateSpec].errorCount), \" validation rule(s)\"), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnValidationError",
             "name": "ReturnValidationError",
             "description": "Returns 400 with the rule-engine findings",
@@ -5234,7 +5451,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJEZXJpdmVOYW1pbmciOnsieCI6MzUwLCJ5Ijo1MH0sIk5vcm1hbGl6ZVNwZWMiOnsieCI6NjAwLCJ5Ijo1MH0sIlZhbGlkYXRlU3BlYyI6eyJ4Ijo4NTAsInkiOjUwfSwiR2V0SUtEIjp7IngiOjExMDAsInkiOjUwfSwiQ3Jvc3NDaGVja0lLRCI6eyJ4IjoxMzUwLCJ5Ijo1MH0sIkJ1aWxkSUtERXJyb3JSZXNwb25zZSI6eyJ4IjoxNjAwLCJ5Ijo1MH0sIlJldHVybklLREVycm9yIjp7IngiOjE4NTAsInkiOjUwfSwiQ2hlY2tEdXBsaWNhdGUiOnsieCI6MTYwMCwieSI6MjAwfSwiU2VsZWN0VGVtcGxhdGUiOnsieCI6MTg1MCwieSI6MjAwfSwiR2V0Q2F0YWxvZyI6eyJ4IjoyMTAwLCJ5IjoyMDB9LCJSZXNvbHZlVGVtcGxhdGVOYW1lIjp7IngiOjIzNTAsInkiOjIwMH0sIlNjYWZmb2xkQXJ0aWZhY3RzIjp7IngiOjI2MDAsInkiOjIwMH0sIlJlZ2lzdGVyR2VuZXJhdGlvbiI6eyJ4IjoyODUwLCJ5IjoyMDB9LCJSZWdpc3RlcklLRCI6eyJ4IjozMTAwLCJ5IjoyMDB9LCJOb3RpZnlUZWFtIjp7IngiOjMzNTAsInkiOjIwMH0sIkJ1aWxkR2VuZXJhdGVSZXNwb25zZSI6eyJ4IjozNjAwLCJ5IjoyMDB9LCJSZXR1cm5HZW5lcmF0ZSI6eyJ4IjozODUwLCJ5IjoyMDB9LCJCdWlsZER1cGxpY2F0ZVJlc3BvbnNlIjp7IngiOjE4NTAsInkiOjM1MH0sIlJldHVybkR1cGxpY2F0ZSI6eyJ4IjoyMTAwLCJ5IjozNTB9LCJCdWlsZFZhbGlkYXRpb25FcnJvciI6eyJ4IjoxMTAwLCJ5IjoyMDB9LCJSZXR1cm5WYWxpZGF0aW9uRXJyb3IiOnsieCI6MTM1MCwieSI6MjAwfX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJEZXJpdmVOYW1pbmciOnsieCI6MzUwLCJ5Ijo1MH0sIk5vcm1hbGl6ZVNwZWMiOnsieCI6NjAwLCJ5Ijo1MH0sIlZhbGlkYXRlU3BlYyI6eyJ4IjoxMTAwLCJ5Ijo1MH0sIkdldElLRCI6eyJ4IjoxMzUwLCJ5Ijo1MH0sIkNyb3NzQ2hlY2tJS0QiOnsieCI6MTYwMCwieSI6NTB9LCJCdWlsZElLREVycm9yUmVzcG9uc2UiOnsieCI6MTg1MCwieSI6NTB9LCJSZXR1cm5JS0RFcnJvciI6eyJ4IjoyMzUwLCJ5Ijo1MH0sIkNoZWNrRHVwbGljYXRlIjp7IngiOjE4NTAsInkiOjIwMH0sIlNlbGVjdFRlbXBsYXRlIjp7IngiOjIxMDAsInkiOjIwMH0sIkdldENhdGFsb2ciOnsieCI6MjM1MCwieSI6MjAwfSwiUmVzb2x2ZVRlbXBsYXRlTmFtZSI6eyJ4IjoyNjAwLCJ5IjoyMDB9LCJTY2FmZm9sZEFydGlmYWN0cyI6eyJ4IjoyODUwLCJ5IjoyMDB9LCJSZWdpc3RlckdlbmVyYXRpb24iOnsieCI6MzEwMCwieSI6MjAwfSwiUmVnaXN0ZXJJS0QiOnsieCI6MzM1MCwieSI6MjAwfSwiTm90aWZ5VGVhbSI6eyJ4IjozNjAwLCJ5IjoyMDB9LCJCdWlsZEdlbmVyYXRlUmVzcG9uc2UiOnsieCI6Mzg1MCwieSI6MjAwfSwiUmV0dXJuR2VuZXJhdGUiOnsieCI6NDM1MCwieSI6MjAwfSwiQnVpbGREdXBsaWNhdGVSZXNwb25zZSI6eyJ4IjoxODUwLCJ5IjozNTB9LCJSZXR1cm5EdXBsaWNhdGUiOnsieCI6MjM1MCwieSI6MzUwfSwiQnVpbGRWYWxpZGF0aW9uRXJyb3IiOnsieCI6MTEwMCwieSI6MjAwfSwiUmV0dXJuVmFsaWRhdGlvbkVycm9yIjp7IngiOjE2MDAsInkiOjIwMH0sIkxvZ0dlbmVyYXRlUmVxdWVzdCI6eyJ4Ijo4NTAsInkiOjUwfSwiTG9nR2VuZXJhdGVkIjp7IngiOjQxMDAsInkiOjIwMH0sIkxvZ0R1cGxpY2F0ZSI6eyJ4IjoyMTAwLCJ5IjozNTB9LCJMb2dWYWxpZGF0aW9uRmFpbGVkIjp7IngiOjEzNTAsInkiOjIwMH0sIkxvZ0lLRFJlamVjdGVkIjp7IngiOjIxMDAsInkiOjUwfX0=",
         "errorHandler": {
           "tasks": [
             {
@@ -5376,6 +5593,13 @@
             "to": "LogTemplateError",
             "type": "error",
             "label": "ReadEmailTemplate to LogTemplateError"
+          },
+          {
+            "id": 7,
+            "from": "SendNotification",
+            "to": "LogNotified",
+            "type": "label",
+            "label": "SendNotification to LogNotified"
           }
         ],
         "tasks": [
@@ -5576,6 +5800,30 @@
             }
           },
           {
+            "id": "LogNotified",
+            "name": "LogNotified",
+            "description": "Logs the e-mail that was sent",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[NOTIFY] e-mail '\", coerce.toString($activity[RenderEmail].output.subject), \"' sent to \", $property[\"NOTIFY_RECIPIENTS\"], \" via \", $property[\"SMTP_HOST\"]), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "LogTemplateError",
             "name": "LogTemplateError",
             "description": "The template could not be read: logs a warning and sends no e-mail; the generation itself has succeeded",
@@ -5600,7 +5848,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlYWRFbWFpbFRlbXBsYXRlIjp7IngiOjI1MCwieSI6NDV9LCJHZXRPcHMiOnsieCI6NDUwLCJ5Ijo0NX0sIkJ1aWxkRW1haWxNb2RlbCI6eyJ4Ijo2NTAsInkiOjQ1fSwiUmVuZGVyRW1haWwiOnsieCI6ODUwLCJ5Ijo0NX0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6MTA1MCwieSI6NDV9LCJMb2dUZW1wbGF0ZUVycm9yIjp7IngiOjQ1MCwieSI6MTk1fX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlYWRFbWFpbFRlbXBsYXRlIjp7IngiOjI1MCwieSI6NDV9LCJHZXRPcHMiOnsieCI6NDUwLCJ5Ijo0NX0sIkJ1aWxkRW1haWxNb2RlbCI6eyJ4Ijo2NTAsInkiOjQ1fSwiUmVuZGVyRW1haWwiOnsieCI6ODUwLCJ5Ijo0NX0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6MTA1MCwieSI6NDV9LCJMb2dUZW1wbGF0ZUVycm9yIjp7IngiOjQ1MCwieSI6MTk1fSwiTG9nTm90aWZpZWQiOnsieCI6MTMwMCwieSI6NDV9fQ==",
         "metadata": {
           "input": [
             {
@@ -5673,124 +5921,131 @@
           {
             "id": 1,
             "from": "StartActivity",
-            "to": "ReadTemplateRegistry",
+            "to": "LogConfiguration",
             "type": "label",
-            "label": "StartActivity to ReadTemplateRegistry"
+            "label": "StartActivity to LogConfiguration"
           },
           {
             "id": 2,
+            "from": "LogConfiguration",
+            "to": "ReadTemplateRegistry",
+            "type": "label",
+            "label": "LogConfiguration to ReadTemplateRegistry"
+          },
+          {
+            "id": 3,
             "from": "ReadTemplateRegistry",
             "to": "ParseTemplateRegistry",
             "type": "label",
             "label": "ReadTemplateRegistry to ParseTemplateRegistry"
           },
           {
-            "id": 3,
+            "id": 4,
             "from": "ParseTemplateRegistry",
             "to": "StoreConfigToSharedData",
             "type": "label",
             "label": "ParseTemplateRegistry to StoreConfigToSharedData"
           },
           {
-            "id": 4,
+            "id": 5,
             "from": "StoreConfigToSharedData",
             "to": "ReadIKDInterfaces",
             "type": "label",
             "label": "StoreConfigToSharedData to ReadIKDInterfaces"
           },
           {
-            "id": 5,
+            "id": 6,
             "from": "ReadIKDInterfaces",
             "to": "ParseIKDInterfaces",
             "type": "label",
             "label": "ReadIKDInterfaces to ParseIKDInterfaces"
           },
           {
-            "id": 6,
+            "id": 7,
             "from": "ParseIKDInterfaces",
             "to": "ReadIKDScenarios",
             "type": "label",
             "label": "ParseIKDInterfaces to ReadIKDScenarios"
           },
           {
-            "id": 7,
+            "id": 8,
             "from": "ReadIKDScenarios",
             "to": "ParseIKDScenarios",
             "type": "label",
             "label": "ReadIKDScenarios to ParseIKDScenarios"
           },
           {
-            "id": 8,
+            "id": 9,
             "from": "ParseIKDScenarios",
             "to": "StoreIKD",
             "type": "label",
             "label": "ParseIKDScenarios to StoreIKD"
           },
           {
-            "id": 9,
+            "id": 10,
             "from": "StoreIKD",
             "to": "ReadOps",
             "type": "label",
             "label": "StoreIKD to ReadOps"
           },
           {
-            "id": 10,
+            "id": 11,
             "from": "ReadOps",
             "to": "ParseOps",
             "type": "label",
             "label": "ReadOps to ParseOps"
           },
           {
-            "id": 11,
+            "id": 12,
             "from": "ParseOps",
             "to": "StoreOps",
             "type": "label",
             "label": "ParseOps to StoreOps"
           },
           {
-            "id": 12,
+            "id": 13,
             "from": "StoreOps",
             "to": "K8sConfig",
             "type": "label",
             "label": "StoreOps to K8sConfig"
           },
           {
-            "id": 13,
+            "id": 14,
             "from": "K8sConfig",
             "to": "K8sInit",
             "type": "label",
             "label": "K8sConfig to K8sInit"
           },
           {
-            "id": 14,
+            "id": 15,
             "from": "K8sInit",
             "to": "StoreK8s",
             "type": "label",
             "label": "K8sInit to StoreK8s"
           },
           {
-            "id": 15,
+            "id": 16,
             "from": "StoreK8s",
             "to": "CreateSchema",
             "type": "label",
             "label": "StoreK8s to CreateSchema"
           },
           {
-            "id": 16,
+            "id": 17,
             "from": "CreateSchema",
             "to": "CreateCollection",
             "type": "label",
             "label": "CreateSchema to CreateCollection"
           },
           {
-            "id": 17,
+            "id": 18,
             "from": "CreateCollection",
             "to": "IngestTemplates",
             "type": "label",
             "label": "CreateCollection to IngestTemplates"
           },
           {
-            "id": 18,
+            "id": 19,
             "from": "IngestTemplates",
             "to": "LogStartupComplete",
             "type": "label",
@@ -5804,6 +6059,30 @@
             "description": "Flow entry point.",
             "activity": {
               "ref": "#noop"
+            }
+          },
+          {
+            "id": "LogConfiguration",
+            "name": "LogConfiguration",
+            "description": "Logs the configuration this instance runs with (no secrets)",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[STARTUP] configuration: target_mode=\", $property[\"TARGET_MODE\"], \", target_repo=\", $property[\"TARGET_REPO_URL\"], \", target_owner=\", $property[\"TARGET_OWNER_URL\"], \", templates=\", $property[\"TEMPLATE_REPO_URL\"], \"@\", $property[\"TEMPLATE_REF\"], \", llm=\", $property[\"LLM_PROVIDER\"], \"/\", $property[\"LLM_MODEL\"], \" at \", $property[\"LLM_BASE_URL\"], \", embeddings=\", $property[\"LLM_EMBEDDING_PROVIDER\"], \"/\", $property[\"LLM_EMBEDDING_MODEL\"], \", weaviate=\", $property[\"weaviate.WeaviateTemplateKB.Scheme\"], \"://\", $property[\"weaviate.WeaviateTemplateKB.Host\"], \":\", coerce.toString($property[\"weaviate.WeaviateTemplateKB.Port\"]), \"/\", $property[\"VECTOR_COLLECTION\"], \", registry=postgres://\", $property[\"PostgreSQL.GenerationRegistry.Host\"], \":\", coerce.toString($property[\"PostgreSQL.GenerationRegistry.Port\"]), \"/\", $property[\"PostgreSQL.GenerationRegistry.Database_Name\"], \", smtp=\", $property[\"SMTP_HOST\"], \":\", coerce.toString($property[\"SMTP_PORT\"]), \", k8s_context=\", $property[\"K8S_CONTEXT\"], \", code_review=\", $property[\"CODE_REVIEW_BASE_URL\"], \", ports rest=\", coerce.toString($property[\"REST_PORT\"]), \" mcp=\", coerce.toString($property[\"MCP_PORT\"])), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
             }
           },
           {
@@ -6295,7 +6574,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlYWRUZW1wbGF0ZVJlZ2lzdHJ5Ijp7IngiOjI1MCwieSI6NDV9LCJQYXJzZVRlbXBsYXRlUmVnaXN0cnkiOnsieCI6NDUwLCJ5Ijo0NX0sIlN0b3JlQ29uZmlnVG9TaGFyZWREYXRhIjp7IngiOjY1MCwieSI6NDV9LCJSZWFkSUtESW50ZXJmYWNlcyI6eyJ4IjoyNTAsInkiOjE5NX0sIlBhcnNlSUtESW50ZXJmYWNlcyI6eyJ4Ijo0NTAsInkiOjE5NX0sIlJlYWRJS0RTY2VuYXJpb3MiOnsieCI6NjUwLCJ5IjoxOTV9LCJQYXJzZUlLRFNjZW5hcmlvcyI6eyJ4IjoyNTAsInkiOjM0NX0sIlN0b3JlSUtEIjp7IngiOjQ1MCwieSI6MzQ1fSwiUmVhZE9wcyI6eyJ4Ijo2NTAsInkiOjM0NX0sIlBhcnNlT3BzIjp7IngiOjI1MCwieSI6NDk1fSwiU3RvcmVPcHMiOnsieCI6NDUwLCJ5Ijo0OTV9LCJLOHNDb25maWciOnsieCI6NjUwLCJ5Ijo0OTV9LCJLOHNJbml0Ijp7IngiOjI1MCwieSI6NjQ1fSwiU3RvcmVLOHMiOnsieCI6NDUwLCJ5Ijo2NDV9LCJDcmVhdGVTY2hlbWEiOnsieCI6NjUwLCJ5Ijo2NDV9LCJDcmVhdGVDb2xsZWN0aW9uIjp7IngiOjI1MCwieSI6Nzk1fSwiSW5nZXN0VGVtcGxhdGVzIjp7IngiOjQ1MCwieSI6Nzk1fSwiTG9nU3RhcnR1cENvbXBsZXRlIjp7IngiOjY1MCwieSI6Nzk1fX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlYWRUZW1wbGF0ZVJlZ2lzdHJ5Ijp7IngiOjUwMCwieSI6NDV9LCJQYXJzZVRlbXBsYXRlUmVnaXN0cnkiOnsieCI6NzAwLCJ5Ijo0NX0sIlN0b3JlQ29uZmlnVG9TaGFyZWREYXRhIjp7IngiOjkwMCwieSI6NDV9LCJSZWFkSUtESW50ZXJmYWNlcyI6eyJ4IjoyNTAsInkiOjE5NX0sIlBhcnNlSUtESW50ZXJmYWNlcyI6eyJ4Ijo0NTAsInkiOjE5NX0sIlJlYWRJS0RTY2VuYXJpb3MiOnsieCI6NjUwLCJ5IjoxOTV9LCJQYXJzZUlLRFNjZW5hcmlvcyI6eyJ4IjoyNTAsInkiOjM0NX0sIlN0b3JlSUtEIjp7IngiOjQ1MCwieSI6MzQ1fSwiUmVhZE9wcyI6eyJ4Ijo2NTAsInkiOjM0NX0sIlBhcnNlT3BzIjp7IngiOjI1MCwieSI6NDk1fSwiU3RvcmVPcHMiOnsieCI6NDUwLCJ5Ijo0OTV9LCJLOHNDb25maWciOnsieCI6NjUwLCJ5Ijo0OTV9LCJLOHNJbml0Ijp7IngiOjI1MCwieSI6NjQ1fSwiU3RvcmVLOHMiOnsieCI6NDUwLCJ5Ijo2NDV9LCJDcmVhdGVTY2hlbWEiOnsieCI6NjUwLCJ5Ijo2NDV9LCJDcmVhdGVDb2xsZWN0aW9uIjp7IngiOjI1MCwieSI6Nzk1fSwiSW5nZXN0VGVtcGxhdGVzIjp7IngiOjQ1MCwieSI6Nzk1fSwiTG9nU3RhcnR1cENvbXBsZXRlIjp7IngiOjY1MCwieSI6Nzk1fSwiTG9nQ29uZmlndXJhdGlvbiI6eyJ4IjoyNTAsInkiOjQ1fX0=",
         "metadata": {
           "input": [],
           "output": [],
@@ -9082,9 +9361,16 @@
           {
             "id": 2,
             "from": "SuggestTemplates",
+            "to": "LogSuggestions",
+            "type": "label",
+            "label": "SuggestTemplates to LogSuggestions"
+          },
+          {
+            "id": 3,
+            "from": "LogSuggestions",
             "to": "ReplySuggest",
             "type": "label",
-            "label": "SuggestTemplates to ReplySuggest"
+            "label": "LogSuggestions to ReplySuggest"
           }
         ],
         "tasks": [
@@ -9135,6 +9421,30 @@
             }
           },
           {
+            "id": "LogSuggestions",
+            "name": "LogSuggestions",
+            "description": "Logs how many templates were suggested for which search",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=(string.length(coerce.toString($flow.query)) > 100) ? string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[SUGGEST] \", coerce.toString(array.count($activity[SuggestTemplates].sourceDocuments)), \" template(s) for source=\", coerce.toString($flow.source_system), \", target=\", coerce.toString($flow.target_system), \", object=\", coerce.toString($flow.business_object), \", type=\", coerce.toString($flow.interface_type), \", query='\", string.substring(coerce.toString($flow.query), 0, 100), \"...'\"), \" \") : string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[SUGGEST] \", coerce.toString(array.count($activity[SuggestTemplates].sourceDocuments)), \" template(s) for source=\", coerce.toString($flow.source_system), \", target=\", coerce.toString($flow.target_system), \", object=\", coerce.toString($flow.business_object), \", type=\", coerce.toString($flow.interface_type), \", query='\", coerce.toString($flow.query), \"'\"), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReplySuggest",
             "name": "ReplySuggest",
             "description": "Returns the ranked templates",
@@ -9155,7 +9465,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlN1Z2dlc3RUZW1wbGF0ZXMiOnsieCI6MjUwLCJ5Ijo0NX0sIlJlcGx5U3VnZ2VzdCI6eyJ4Ijo0NTAsInkiOjQ1fX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlN1Z2dlc3RUZW1wbGF0ZXMiOnsieCI6MjUwLCJ5Ijo0NX0sIlJlcGx5U3VnZ2VzdCI6eyJ4Ijo3MDAsInkiOjQ1fSwiTG9nU3VnZ2VzdGlvbnMiOnsieCI6NDUwLCJ5Ijo0NX19",
         "metadata": {
           "input": [
             {
@@ -9225,13 +9535,20 @@
           {
             "id": 3,
             "from": "GetToken",
-            "to": "ReturnUnconfigured",
+            "to": "LogUnconfigured",
             "type": "expression",
-            "label": "GetToken to ReturnUnconfigured",
+            "label": "GetToken to LogUnconfigured",
             "value": "($flow.force == true || $activity[GetToken].output.exist != true) && ($property[\"CODE_REVIEW_USERNAME\"] == \"\" || $property[\"CODE_REVIEW_PASSWORD\"] == \"\")"
           },
           {
             "id": 4,
+            "from": "LogUnconfigured",
+            "to": "ReturnUnconfigured",
+            "type": "label",
+            "label": "LogUnconfigured to ReturnUnconfigured"
+          },
+          {
+            "id": 5,
             "from": "GetToken",
             "to": "GetOps",
             "type": "expression",
@@ -9239,42 +9556,42 @@
             "value": "($flow.force == true || $activity[GetToken].output.exist != true) && $property[\"CODE_REVIEW_USERNAME\"] != \"\" && $property[\"CODE_REVIEW_PASSWORD\"] != \"\""
           },
           {
-            "id": 5,
+            "id": 6,
             "from": "GetOps",
             "to": "TokenIn",
             "type": "label",
             "label": "GetOps to TokenIn"
           },
           {
-            "id": 6,
+            "id": 7,
             "from": "TokenIn",
             "to": "TokenPlan",
             "type": "label",
             "label": "TokenIn to TokenPlan"
           },
           {
-            "id": 7,
+            "id": 8,
             "from": "TokenPlan",
             "to": "FetchToken",
             "type": "label",
             "label": "TokenPlan to FetchToken"
           },
           {
-            "id": 8,
+            "id": 9,
             "from": "FetchToken",
             "to": "ResultIn",
             "type": "label",
             "label": "FetchToken to ResultIn"
           },
           {
-            "id": 9,
+            "id": 10,
             "from": "ResultIn",
             "to": "TokenResult",
             "type": "label",
             "label": "ResultIn to TokenResult"
           },
           {
-            "id": 10,
+            "id": 11,
             "from": "TokenResult",
             "to": "StoreToken",
             "type": "expression",
@@ -9282,19 +9599,33 @@
             "value": "$activity[TokenResult].output.r.ok == true"
           },
           {
-            "id": 11,
+            "id": 12,
             "from": "StoreToken",
-            "to": "ReturnFetched",
+            "to": "LogSignedIn",
             "type": "label",
-            "label": "StoreToken to ReturnFetched"
+            "label": "StoreToken to LogSignedIn"
           },
           {
-            "id": 12,
+            "id": 13,
+            "from": "LogSignedIn",
+            "to": "ReturnFetched",
+            "type": "label",
+            "label": "LogSignedIn to ReturnFetched"
+          },
+          {
+            "id": 14,
             "from": "TokenResult",
-            "to": "ReturnFailed",
+            "to": "LogSignInFailed",
             "type": "expression",
-            "label": "TokenResult to ReturnFailed",
+            "label": "TokenResult to LogSignInFailed",
             "value": "$activity[TokenResult].output.r.ok != true"
+          },
+          {
+            "id": 15,
+            "from": "LogSignInFailed",
+            "to": "ReturnFailed",
+            "type": "label",
+            "label": "LogSignInFailed to ReturnFailed"
           }
         ],
         "tasks": [
@@ -9342,6 +9673,30 @@
                   "updated_at": "=$activity[GetToken].output.data.updated_at"
                 }
               }
+            }
+          },
+          {
+            "id": "LogUnconfigured",
+            "name": "LogUnconfigured",
+            "description": "Logs that code review has no credentials",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "[CODEREVIEW] not configured: set CODE_REVIEW_USERNAME and CODE_REVIEW_PASSWORD",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
             }
           },
           {
@@ -9588,6 +9943,30 @@
             }
           },
           {
+            "id": "LogSignedIn",
+            "name": "LogSignedIn",
+            "description": "Logs a new session token (the token itself is not logged)",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CODEREVIEW] signed in to \", $property[\"CODE_REVIEW_BASE_URL\"], \"; session token cached\"), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnFetched",
             "name": "ReturnFetched",
             "description": "ReturnFetched",
@@ -9607,6 +9986,30 @@
             }
           },
           {
+            "id": "LogSignInFailed",
+            "name": "LogSignInFailed",
+            "description": "Logs a failed sign-in",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CODEREVIEW] sign-in to \", $property[\"CODE_REVIEW_BASE_URL\"], \" failed (HTTP \", coerce.toString($activity[TokenResult].output.r.status), \"): \", coerce.toString($activity[TokenResult].output.r.error)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnFailed",
             "name": "ReturnFailed",
             "description": "ReturnFailed",
@@ -9622,7 +10025,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJHZXRUb2tlbiI6eyJ4IjozNTAsInkiOjUwfSwiUmV0dXJuQ2FjaGVkIjp7IngiOjYwMCwieSI6NTB9LCJSZXR1cm5VbmNvbmZpZ3VyZWQiOnsieCI6NjAwLCJ5IjoyMDB9LCJHZXRPcHMiOnsieCI6NjAwLCJ5IjozNTB9LCJUb2tlbkluIjp7IngiOjg1MCwieSI6MzUwfSwiVG9rZW5QbGFuIjp7IngiOjExMDAsInkiOjM1MH0sIkZldGNoVG9rZW4iOnsieCI6MTM1MCwieSI6MzUwfSwiUmVzdWx0SW4iOnsieCI6MTYwMCwieSI6MzUwfSwiVG9rZW5SZXN1bHQiOnsieCI6MTg1MCwieSI6MzUwfSwiU3RvcmVUb2tlbiI6eyJ4IjoyMTAwLCJ5IjozNTB9LCJSZXR1cm5GZXRjaGVkIjp7IngiOjIzNTAsInkiOjM1MH0sIlJldHVybkZhaWxlZCI6eyJ4IjoyMTAwLCJ5Ijo1MDB9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJHZXRUb2tlbiI6eyJ4IjozNTAsInkiOjUwfSwiUmV0dXJuQ2FjaGVkIjp7IngiOjYwMCwieSI6NTB9LCJSZXR1cm5VbmNvbmZpZ3VyZWQiOnsieCI6ODUwLCJ5IjoyMDB9LCJHZXRPcHMiOnsieCI6NjAwLCJ5IjozNTB9LCJUb2tlbkluIjp7IngiOjg1MCwieSI6MzUwfSwiVG9rZW5QbGFuIjp7IngiOjExMDAsInkiOjM1MH0sIkZldGNoVG9rZW4iOnsieCI6MTM1MCwieSI6MzUwfSwiUmVzdWx0SW4iOnsieCI6MTYwMCwieSI6MzUwfSwiVG9rZW5SZXN1bHQiOnsieCI6MTg1MCwieSI6MzUwfSwiU3RvcmVUb2tlbiI6eyJ4IjoyMTAwLCJ5IjozNTB9LCJSZXR1cm5GZXRjaGVkIjp7IngiOjI2MDAsInkiOjM1MH0sIlJldHVybkZhaWxlZCI6eyJ4IjoyMzUwLCJ5Ijo1MDB9LCJMb2dTaWduZWRJbiI6eyJ4IjoyMzUwLCJ5IjozNTB9LCJMb2dTaWduSW5GYWlsZWQiOnsieCI6MjEwMCwieSI6NTAwfSwiTG9nVW5jb25maWd1cmVkIjp7IngiOjYwMCwieSI6MjAwfX0=",
         "metadata": {
           "input": [
             {
@@ -10032,13 +10435,20 @@
           {
             "id": 3,
             "from": "ReadRun",
-            "to": "ReturnBad",
+            "to": "LogRunRejected",
             "type": "expression",
-            "label": "ReadRun to ReturnBad",
+            "label": "ReadRun to LogRunRejected",
             "value": "$activity[ReadRun].output.err != \"\""
           },
           {
             "id": 4,
+            "from": "LogRunRejected",
+            "to": "ReturnBad",
+            "type": "label",
+            "label": "LogRunRejected to ReturnBad"
+          },
+          {
+            "id": 5,
             "from": "ReadRun",
             "to": "Token1",
             "type": "expression",
@@ -10046,7 +10456,7 @@
             "value": "$activity[ReadRun].output.err == \"\""
           },
           {
-            "id": 5,
+            "id": 6,
             "from": "Token1",
             "to": "HistTokenFail",
             "type": "expression",
@@ -10054,14 +10464,21 @@
             "value": "$activity[Token1].ok != true"
           },
           {
-            "id": 6,
+            "id": 7,
             "from": "HistTokenFail",
-            "to": "ReturnTokenFail",
+            "to": "LogNoToken",
             "type": "label",
-            "label": "HistTokenFail to ReturnTokenFail"
+            "label": "HistTokenFail to LogNoToken"
           },
           {
-            "id": 7,
+            "id": 8,
+            "from": "LogNoToken",
+            "to": "ReturnTokenFail",
+            "type": "label",
+            "label": "LogNoToken to ReturnTokenFail"
+          },
+          {
+            "id": 9,
             "from": "Token1",
             "to": "Run1In",
             "type": "expression",
@@ -10069,21 +10486,21 @@
             "value": "$activity[Token1].ok == true"
           },
           {
-            "id": 8,
+            "id": 10,
             "from": "Run1In",
             "to": "Run1Plan",
             "type": "label",
             "label": "Run1In to Run1Plan"
           },
           {
-            "id": 9,
+            "id": 11,
             "from": "Run1Plan",
             "to": "Attempt1",
             "type": "label",
             "label": "Run1Plan to Attempt1"
           },
           {
-            "id": 10,
+            "id": 12,
             "from": "Attempt1",
             "to": "Token2",
             "type": "expression",
@@ -10091,42 +10508,42 @@
             "value": "($activity[Attempt1].error != \"\" || $activity[Attempt1].status >= 400)"
           },
           {
-            "id": 11,
+            "id": 13,
             "from": "Token2",
             "to": "Run2In",
             "type": "label",
             "label": "Token2 to Run2In"
           },
           {
-            "id": 12,
+            "id": 14,
             "from": "Run2In",
             "to": "Run2Plan",
             "type": "label",
             "label": "Run2In to Run2Plan"
           },
           {
-            "id": 13,
+            "id": 15,
             "from": "Run2Plan",
             "to": "Attempt2",
             "type": "label",
             "label": "Run2Plan to Attempt2"
           },
           {
-            "id": 14,
+            "id": 16,
             "from": "Attempt2",
             "to": "Outcome",
             "type": "label",
             "label": "Attempt2 to Outcome"
           },
           {
-            "id": 15,
+            "id": 17,
             "from": "Outcome",
             "to": "RunResult",
             "type": "label",
             "label": "Outcome to RunResult"
           },
           {
-            "id": 16,
+            "id": 18,
             "from": "RunResult",
             "to": "HistOk",
             "type": "expression",
@@ -10134,14 +10551,21 @@
             "value": "$activity[RunResult].output.r.ok == true"
           },
           {
-            "id": 17,
+            "id": 19,
             "from": "HistOk",
-            "to": "ReturnRun",
+            "to": "LogRunDone",
             "type": "label",
-            "label": "HistOk to ReturnRun"
+            "label": "HistOk to LogRunDone"
           },
           {
-            "id": 18,
+            "id": 20,
+            "from": "LogRunDone",
+            "to": "ReturnRun",
+            "type": "label",
+            "label": "LogRunDone to ReturnRun"
+          },
+          {
+            "id": 21,
             "from": "RunResult",
             "to": "HistFail",
             "type": "expression",
@@ -10149,14 +10573,21 @@
             "value": "$activity[RunResult].output.r.ok != true"
           },
           {
-            "id": 19,
+            "id": 22,
             "from": "HistFail",
-            "to": "ReturnRunError",
+            "to": "LogRunFailed",
             "type": "label",
-            "label": "HistFail to ReturnRunError"
+            "label": "HistFail to LogRunFailed"
           },
           {
-            "id": 20,
+            "id": 23,
+            "from": "LogRunFailed",
+            "to": "ReturnRunError",
+            "type": "label",
+            "label": "LogRunFailed to ReturnRunError"
+          },
+          {
+            "id": 24,
             "from": "Attempt1",
             "to": "Outcome",
             "type": "expression",
@@ -10218,6 +10649,30 @@
                     "type": "json",
                     "value": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"err\": {\n      \"type\": \"string\"\n    }\n  }\n}",
                     "fe_metadata": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"err\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "LogRunRejected",
+            "name": "LogRunRejected",
+            "description": "Logs an incomplete run request",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CODEREVIEW] run rejected (HTTP 400): \", coerce.toString($activity[ReadRun].output.err)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
                   }
                 }
               },
@@ -10321,6 +10776,30 @@
                     "type": "json",
                     "value": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}",
                     "fe_metadata": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\", \"type\": \"object\", \"properties\": {}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "LogNoToken",
+            "name": "LogNoToken",
+            "description": "Logs a run that could not sign in",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CODEREVIEW] run for \", coerce.toString($flow.content.repoName), \" (\", coerce.toString($flow.content.productName), \" \", coerce.toString($flow.content.version), \")\", \" not started (HTTP \", coerce.toString($activity[Token1].status), \"): \", coerce.toString($activity[Token1].error)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
                   }
                 }
               },
@@ -10733,6 +11212,30 @@
             }
           },
           {
+            "id": "LogRunDone",
+            "name": "LogRunDone",
+            "description": "Logs a completed code review run",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CODEREVIEW] run for \", coerce.toString($flow.content.repoName), \" (\", coerce.toString($flow.content.productName), \" \", coerce.toString($flow.content.version), \")\", \" completed\"), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnRun",
             "name": "ReturnRun",
             "description": "ReturnRun",
@@ -10795,6 +11298,30 @@
             }
           },
           {
+            "id": "LogRunFailed",
+            "name": "LogRunFailed",
+            "description": "Logs a failed code review run",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CODEREVIEW] run for \", coerce.toString($flow.content.repoName), \" (\", coerce.toString($flow.content.productName), \" \", coerce.toString($flow.content.version), \")\", \" failed (HTTP 502): \", coerce.toString($activity[RunResult].output.r.error)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnRunError",
             "name": "ReturnRunError",
             "description": "ReturnRunError",
@@ -10815,7 +11342,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJHZXRPcHMiOnsieCI6MzUwLCJ5Ijo1MH0sIlJlYWRSdW4iOnsieCI6NjAwLCJ5Ijo1MH0sIlJldHVybkJhZCI6eyJ4Ijo4NTAsInkiOjUwfSwiVG9rZW4xIjp7IngiOjg1MCwieSI6MjAwfSwiSGlzdFRva2VuRmFpbCI6eyJ4IjoxMTAwLCJ5IjoyMDB9LCJSZXR1cm5Ub2tlbkZhaWwiOnsieCI6MTM1MCwieSI6MjAwfSwiUnVuMUluIjp7IngiOjExMDAsInkiOjM1MH0sIlJ1bjFQbGFuIjp7IngiOjEzNTAsInkiOjM1MH0sIkF0dGVtcHQxIjp7IngiOjE2MDAsInkiOjM1MH0sIlRva2VuMiI6eyJ4IjoxODUwLCJ5Ijo0MzV9LCJSdW4ySW4iOnsieCI6MjEwMCwieSI6NDM1fSwiUnVuMlBsYW4iOnsieCI6MjM1MCwieSI6NDM1fSwiQXR0ZW1wdDIiOnsieCI6MjYwMCwieSI6NDM1fSwiT3V0Y29tZSI6eyJ4IjoyODUwLCJ5IjozNTB9LCJSdW5SZXN1bHQiOnsieCI6MzEwMCwieSI6MzUwfSwiSGlzdE9rIjp7IngiOjMzNTAsInkiOjM1MH0sIlJldHVyblJ1biI6eyJ4IjozNjAwLCJ5IjozNTB9LCJIaXN0RmFpbCI6eyJ4IjozMzUwLCJ5Ijo1MDB9LCJSZXR1cm5SdW5FcnJvciI6eyJ4IjozNjAwLCJ5Ijo1MDB9fQ==",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJHZXRPcHMiOnsieCI6MzUwLCJ5Ijo1MH0sIlJlYWRSdW4iOnsieCI6NjAwLCJ5Ijo1MH0sIlJldHVybkJhZCI6eyJ4IjoxMTAwLCJ5Ijo1MH0sIlRva2VuMSI6eyJ4Ijo4NTAsInkiOjIwMH0sIkhpc3RUb2tlbkZhaWwiOnsieCI6MTEwMCwieSI6MjAwfSwiUmV0dXJuVG9rZW5GYWlsIjp7IngiOjE2MDAsInkiOjIwMH0sIlJ1bjFJbiI6eyJ4IjoxMTAwLCJ5IjozNTB9LCJSdW4xUGxhbiI6eyJ4IjoxMzUwLCJ5IjozNTB9LCJBdHRlbXB0MSI6eyJ4IjoxNjAwLCJ5IjozNTB9LCJUb2tlbjIiOnsieCI6MTg1MCwieSI6NDM1fSwiUnVuMkluIjp7IngiOjIxMDAsInkiOjQzNX0sIlJ1bjJQbGFuIjp7IngiOjIzNTAsInkiOjQzNX0sIkF0dGVtcHQyIjp7IngiOjI2MDAsInkiOjQzNX0sIk91dGNvbWUiOnsieCI6Mjg1MCwieSI6MzUwfSwiUnVuUmVzdWx0Ijp7IngiOjMxMDAsInkiOjM1MH0sIkhpc3RPayI6eyJ4IjozMzUwLCJ5IjozNTB9LCJSZXR1cm5SdW4iOnsieCI6Mzg1MCwieSI6MzUwfSwiSGlzdEZhaWwiOnsieCI6MzM1MCwieSI6NTAwfSwiUmV0dXJuUnVuRXJyb3IiOnsieCI6Mzg1MCwieSI6NTAwfSwiTG9nUnVuRG9uZSI6eyJ4IjozNjAwLCJ5IjozNTB9LCJMb2dSdW5GYWlsZWQiOnsieCI6MzYwMCwieSI6NTAwfSwiTG9nTm9Ub2tlbiI6eyJ4IjoxMzUwLCJ5IjoyMDB9LCJMb2dSdW5SZWplY3RlZCI6eyJ4Ijo4NTAsInkiOjUwfX0=",
         "metadata": {
           "input": [
             {
@@ -11229,13 +11756,20 @@
           {
             "id": 4,
             "from": "Plan",
-            "to": "ReturnBad",
+            "to": "LogUploadRejected",
             "type": "expression",
-            "label": "Plan to ReturnBad",
+            "label": "Plan to LogUploadRejected",
             "value": "$activity[Plan].output.p.error != \"\""
           },
           {
             "id": 5,
+            "from": "LogUploadRejected",
+            "to": "ReturnBad",
+            "type": "label",
+            "label": "LogUploadRejected to ReturnBad"
+          },
+          {
+            "id": 6,
             "from": "Plan",
             "to": "FindRepo",
             "type": "expression",
@@ -11243,15 +11777,22 @@
             "value": "$activity[Plan].output.p.error == \"\""
           },
           {
-            "id": 6,
+            "id": 7,
             "from": "FindRepo",
-            "to": "ReturnUnknown",
+            "to": "LogUnknownRepository",
             "type": "expression",
-            "label": "FindRepo to ReturnUnknown",
+            "label": "FindRepo to LogUnknownRepository",
             "value": "array.count($activity[FindRepo].Output.records) == 0"
           },
           {
-            "id": 7,
+            "id": 8,
+            "from": "LogUnknownRepository",
+            "to": "ReturnUnknown",
+            "type": "label",
+            "label": "LogUnknownRepository to ReturnUnknown"
+          },
+          {
+            "id": 9,
             "from": "FindRepo",
             "to": "CheckXml",
             "type": "expression",
@@ -11259,25 +11800,39 @@
             "value": "array.count($activity[FindRepo].Output.records) > 0"
           },
           {
-            "id": 8,
+            "id": 10,
             "from": "CheckXml",
-            "to": "ReturnInvalidXml",
+            "to": "LogInvalidXml",
             "type": "error",
-            "label": "CheckXml to ReturnInvalidXml"
+            "label": "CheckXml to LogInvalidXml"
           },
           {
-            "id": 9,
+            "id": 11,
+            "from": "LogInvalidXml",
+            "to": "ReturnInvalidXml",
+            "type": "label",
+            "label": "LogInvalidXml to ReturnInvalidXml"
+          },
+          {
+            "id": 12,
             "from": "CheckXml",
             "to": "Commit",
             "type": "label",
             "label": "CheckXml to Commit"
           },
           {
-            "id": 10,
+            "id": 13,
             "from": "Commit",
+            "to": "LogUploaded",
+            "type": "label",
+            "label": "Commit to LogUploaded"
+          },
+          {
+            "id": 14,
+            "from": "LogUploaded",
             "to": "ReturnDone",
             "type": "label",
-            "label": "Commit to ReturnDone"
+            "label": "LogUploaded to ReturnDone"
           }
         ],
         "tasks": [
@@ -11368,6 +11923,30 @@
                     "type": "json",
                     "value": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"p\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"error\": {\n          \"type\": \"string\"\n        },\n        \"repo\": {\n          \"type\": \"string\"\n        },\n        \"xml\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        },\n        \"files\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {}\n          }\n        },\n        \"uploaded_files\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {}\n          }\n        },\n        \"message\": {\n          \"type\": \"string\"\n        },\n        \"error_code\": {\n          \"type\": \"integer\"\n        }\n      }\n    }\n  }\n}",
                     "fe_metadata": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"p\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"error\": {\n          \"type\": \"string\"\n        },\n        \"repo\": {\n          \"type\": \"string\"\n        },\n        \"xml\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        },\n        \"files\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {}\n          }\n        },\n        \"uploaded_files\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {}\n          }\n        },\n        \"message\": {\n          \"type\": \"string\"\n        },\n        \"error_code\": {\n          \"type\": \"integer\"\n        }\n      }\n    }\n  }\n}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "LogUploadRejected",
+            "name": "LogUploadRejected",
+            "description": "Logs a rejected upload request",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[SCHEMAS] rejected (HTTP \", coerce.toString($activity[Plan].output.p.error_code), \"): \", coerce.toString($activity[Plan].output.p.error)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
                   }
                 }
               },
@@ -11473,6 +12052,30 @@
             }
           },
           {
+            "id": "LogUnknownRepository",
+            "name": "LogUnknownRepository",
+            "description": "Logs an upload for a repository that was not generated",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[SCHEMAS] rejected (HTTP 404): repository \", coerce.toString($activity[Plan].output.p.repo), \" has not been generated yet\"), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnUnknown",
             "name": "ReturnUnknown",
             "description": "ReturnUnknown",
@@ -11508,6 +12111,30 @@
                 "ordered": false,
                 "typeCast": false
               }
+            }
+          },
+          {
+            "id": "LogInvalidXml",
+            "name": "LogInvalidXml",
+            "description": "Logs an upload with malformed XML",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[SCHEMAS] rejected (HTTP 400): invalid XML for \", coerce.toString($activity[Plan].output.p.repo), \": \", coerce.toString($error[CheckXml].message)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
             }
           },
           {
@@ -11578,6 +12205,30 @@
             }
           },
           {
+            "id": "LogUploaded",
+            "name": "LogUploaded",
+            "description": "Logs the committed schema files",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[SCHEMAS] \", coerce.toString($activity[Plan].output.p.repo), \": \", coerce.toString(array.count($activity[Plan].output.p.uploaded_files)), \" file(s) uploaded, pushed=\", coerce.toString($activity[Commit].pushed), \", commit=\", coerce.toString($activity[Commit].commitSHA), \", url=\", coerce.toString($activity[Commit].folderURL)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnDone",
             "name": "ReturnDone",
             "description": "ReturnDone",
@@ -11604,7 +12255,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJHZXRPcHMiOnsieCI6MzUwLCJ5Ijo1MH0sIlBsYW5JbiI6eyJ4Ijo2MDAsInkiOjUwfSwiUGxhbiI6eyJ4Ijo4NTAsInkiOjUwfSwiUmV0dXJuQmFkIjp7IngiOjExMDAsInkiOjUwfSwiRmluZFJlcG8iOnsieCI6MTEwMCwieSI6MjAwfSwiUmV0dXJuVW5rbm93biI6eyJ4IjoxMzUwLCJ5IjoyMDB9LCJDaGVja1htbCI6eyJ4IjoxMzUwLCJ5IjozNTB9LCJSZXR1cm5JbnZhbGlkWG1sIjp7IngiOjE2MDAsInkiOjM1MH0sIkNvbW1pdCI6eyJ4IjoxNjAwLCJ5Ijo1MDB9LCJSZXR1cm5Eb25lIjp7IngiOjE4NTAsInkiOjUwMH19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJHZXRPcHMiOnsieCI6MzUwLCJ5Ijo1MH0sIlBsYW5JbiI6eyJ4Ijo2MDAsInkiOjUwfSwiUGxhbiI6eyJ4Ijo4NTAsInkiOjUwfSwiUmV0dXJuQmFkIjp7IngiOjEzNTAsInkiOjUwfSwiRmluZFJlcG8iOnsieCI6MTEwMCwieSI6MjAwfSwiUmV0dXJuVW5rbm93biI6eyJ4IjoxNjAwLCJ5IjoyMDB9LCJDaGVja1htbCI6eyJ4IjoxMzUwLCJ5IjozNTB9LCJSZXR1cm5JbnZhbGlkWG1sIjp7IngiOjE4NTAsInkiOjM1MH0sIkNvbW1pdCI6eyJ4IjoxNjAwLCJ5Ijo1MDB9LCJSZXR1cm5Eb25lIjp7IngiOjIxMDAsInkiOjUwMH0sIkxvZ1VwbG9hZGVkIjp7IngiOjE4NTAsInkiOjUwMH0sIkxvZ1VwbG9hZFJlamVjdGVkIjp7IngiOjExMDAsInkiOjUwfSwiTG9nVW5rbm93blJlcG9zaXRvcnkiOnsieCI6MTM1MCwieSI6MjAwfSwiTG9nSW52YWxpZFhtbCI6eyJ4IjoxNjAwLCJ5IjozNTB9fQ==",
         "metadata": {
           "input": [
             {
@@ -11821,9 +12472,16 @@
           {
             "id": 5,
             "from": "ParseExtraction",
+            "to": "LogExtraction",
+            "type": "label",
+            "label": "ParseExtraction to LogExtraction"
+          },
+          {
+            "id": 6,
+            "from": "LogExtraction",
             "to": "Return",
             "type": "label",
-            "label": "ParseExtraction to Return"
+            "label": "LogExtraction to Return"
           }
         ],
         "tasks": [
@@ -11952,6 +12610,30 @@
             }
           },
           {
+            "id": "LogExtraction",
+            "name": "LogExtraction",
+            "description": "Logs what the LLM extracted",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[EXTRACT] LLM extraction: source=\", coerce.toString($activity[ParseExtraction].jsonObject.source_system), \", target=\", coerce.toString($activity[ParseExtraction].jsonObject.target_system), \", object=\", coerce.toString($activity[ParseExtraction].jsonObject.business_object), \", type=\", coerce.toString($activity[ParseExtraction].jsonObject.interface_type), \", template=\", coerce.toString($activity[ParseExtraction].jsonObject.template_type)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "Return",
             "name": "Return",
             "description": "Return",
@@ -11966,7 +12648,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlZ2V4UHJlRXh0cmFjdCI6eyJ4IjoyNTAsInkiOjQ1fSwiRXh0cmFjdFdpdGhMTE0iOnsieCI6NDUwLCJ5Ijo0NX0sIkNsZWFuSlNPTiI6eyJ4Ijo2NTAsInkiOjQ1fSwiUGFyc2VFeHRyYWN0aW9uIjp7IngiOjI1MCwieSI6MTk1fSwiUmV0dXJuIjp7IngiOjQ1MCwieSI6MTk1fX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlZ2V4UHJlRXh0cmFjdCI6eyJ4IjoyNTAsInkiOjQ1fSwiRXh0cmFjdFdpdGhMTE0iOnsieCI6NDUwLCJ5Ijo0NX0sIkNsZWFuSlNPTiI6eyJ4Ijo2NTAsInkiOjQ1fSwiUGFyc2VFeHRyYWN0aW9uIjp7IngiOjI1MCwieSI6MTk1fSwiUmV0dXJuIjp7IngiOjcwMCwieSI6MTk1fSwiTG9nRXh0cmFjdGlvbiI6eyJ4Ijo0NTAsInkiOjE5NX19",
         "metadata": {
           "input": [
             {
@@ -12036,13 +12718,20 @@
           {
             "id": 5,
             "from": "Plan",
-            "to": "PlanError",
+            "to": "LogRejected",
             "type": "expression",
-            "label": "Plan to PlanError",
+            "label": "Plan to LogRejected",
             "value": "$activity[Plan].output.plan.mode == \"error\""
           },
           {
             "id": 6,
+            "from": "LogRejected",
+            "to": "PlanError",
+            "type": "label",
+            "label": "LogRejected to PlanError"
+          },
+          {
+            "id": 7,
             "from": "Plan",
             "to": "StoreK8s",
             "type": "expression",
@@ -12050,22 +12739,29 @@
             "value": "$activity[Plan].output.plan.mode == \"immediate\" && $activity[Plan].output.plan.op == \"switch\""
           },
           {
-            "id": 7,
-            "from": "StoreK8s",
-            "to": "ReturnImmediate",
-            "type": "label",
-            "label": "StoreK8s to ReturnImmediate"
-          },
-          {
             "id": 8,
-            "from": "Plan",
-            "to": "ReturnImmediate",
-            "type": "expression",
-            "label": "Plan to ReturnImmediate",
-            "value": "$activity[Plan].output.plan.mode == \"immediate\" && $activity[Plan].output.plan.op != \"switch\""
+            "from": "StoreK8s",
+            "to": "LogAnswered",
+            "type": "label",
+            "label": "StoreK8s to LogAnswered"
           },
           {
             "id": 9,
+            "from": "Plan",
+            "to": "LogAnswered",
+            "type": "expression",
+            "label": "Plan to LogAnswered",
+            "value": "$activity[Plan].output.plan.mode == \"immediate\" && $activity[Plan].output.plan.op != \"switch\""
+          },
+          {
+            "id": 10,
+            "from": "LogAnswered",
+            "to": "ReturnImmediate",
+            "type": "label",
+            "label": "LogAnswered to ReturnImmediate"
+          },
+          {
+            "id": 11,
             "from": "Plan",
             "to": "Fetch",
             "type": "expression",
@@ -12073,25 +12769,32 @@
             "value": "$activity[Plan].output.plan.mode == \"fetch\""
           },
           {
-            "id": 10,
+            "id": 12,
             "from": "Fetch",
             "to": "Collect",
             "type": "label",
             "label": "Fetch to Collect"
           },
           {
-            "id": 11,
+            "id": 13,
             "from": "Collect",
             "to": "Transform",
             "type": "label",
             "label": "Collect to Transform"
           },
           {
-            "id": 12,
+            "id": 14,
             "from": "Transform",
+            "to": "LogOperation",
+            "type": "label",
+            "label": "Transform to LogOperation"
+          },
+          {
+            "id": 15,
+            "from": "LogOperation",
             "to": "ReturnOp",
             "type": "label",
-            "label": "Transform to ReturnOp"
+            "label": "LogOperation to ReturnOp"
           }
         ],
         "tasks": [
@@ -12212,6 +12915,30 @@
             }
           },
           {
+            "id": "LogRejected",
+            "name": "LogRejected",
+            "description": "Logs a rejected Kubernetes request",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[K8S] \", coerce.toString($flow.route), \" rejected (HTTP \", coerce.toString($activity[Plan].output.plan.error_code), \"): \", coerce.toString($activity[Plan].output.plan.error)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "PlanError",
             "name": "PlanError",
             "description": "PlanError",
@@ -12251,6 +12978,30 @@
                   }
                 }
               }
+            }
+          },
+          {
+            "id": "LogAnswered",
+            "name": "LogAnswered",
+            "description": "Logs an operation answered without a cluster call (context, switch, port-forward)",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[K8S] \", coerce.toString($activity[Plan].output.plan.op), \": \", coerce.toString($activity[Plan].output.plan.immediate)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
             }
           },
           {
@@ -12382,6 +13133,30 @@
             }
           },
           {
+            "id": "LogOperation",
+            "name": "LogOperation",
+            "description": "Logs the Kubernetes operation (request parameters, context, namespace) and its HTTP status",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "=($activity[Transform].output.out.code >= 400) ? \"WARN\" : \"INFO\"",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[K8S] \", coerce.toString($activity[Plan].output.plan.op), \" \", coerce.toString($activity[Plan].output.plan.req), \" -> HTTP \", coerce.toString($activity[Transform].output.out.code)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnOp",
             "name": "ReturnOp",
             "description": "ReturnOp",
@@ -12400,7 +13175,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJHZXRPcHMiOnsieCI6MzUwLCJ5Ijo1MH0sIkdldEs4cyI6eyJ4Ijo2MDAsInkiOjUwfSwiRmFjdHMiOnsieCI6ODUwLCJ5Ijo1MH0sIlBsYW4iOnsieCI6MTEwMCwieSI6NTB9LCJQbGFuRXJyb3IiOnsieCI6MTM1MCwieSI6NTB9LCJTdG9yZUs4cyI6eyJ4IjoxMzUwLCJ5IjoyMjB9LCJSZXR1cm5JbW1lZGlhdGUiOnsieCI6MTYwMCwieSI6MTM1fSwiRmV0Y2giOnsieCI6MTM1MCwieSI6MzcwfSwiQ29sbGVjdCI6eyJ4IjoxNjAwLCJ5IjozNzB9LCJUcmFuc2Zvcm0iOnsieCI6MTg1MCwieSI6MzcwfSwiUmV0dXJuT3AiOnsieCI6MjEwMCwieSI6MzcwfX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjEwMCwieSI6NTl9LCJHZXRPcHMiOnsieCI6MzUwLCJ5Ijo1MH0sIkdldEs4cyI6eyJ4Ijo2MDAsInkiOjUwfSwiRmFjdHMiOnsieCI6ODUwLCJ5Ijo1MH0sIlBsYW4iOnsieCI6MTEwMCwieSI6NTB9LCJQbGFuRXJyb3IiOnsieCI6MTYwMCwieSI6NTB9LCJTdG9yZUs4cyI6eyJ4IjoxMzUwLCJ5IjoyMjB9LCJSZXR1cm5JbW1lZGlhdGUiOnsieCI6MTg1MCwieSI6MTM1fSwiRmV0Y2giOnsieCI6MTM1MCwieSI6MzcwfSwiQ29sbGVjdCI6eyJ4IjoxNjAwLCJ5IjozNzB9LCJUcmFuc2Zvcm0iOnsieCI6MTg1MCwieSI6MzcwfSwiUmV0dXJuT3AiOnsieCI6MjM1MCwieSI6MzcwfSwiTG9nT3BlcmF0aW9uIjp7IngiOjIxMDAsInkiOjM3MH0sIkxvZ0Fuc3dlcmVkIjp7IngiOjE2MDAsInkiOjEzNX0sIkxvZ1JlamVjdGVkIjp7IngiOjEzNTAsInkiOjUwfX0=",
         "metadata": {
           "input": [
             {
@@ -14157,13 +14932,20 @@
           {
             "id": 2,
             "from": "FindEntry",
-            "to": "ReturnNotFound",
+            "to": "LogNotFound",
             "type": "expression",
-            "label": "Not registered",
+            "label": "FindEntry to LogNotFound",
             "value": "array.count($activity[FindEntry].Output.records) == 0"
           },
           {
             "id": 3,
+            "from": "LogNotFound",
+            "to": "ReturnNotFound",
+            "type": "label",
+            "label": "LogNotFound to ReturnNotFound"
+          },
+          {
+            "id": 4,
             "from": "FindEntry",
             "to": "Plan",
             "type": "expression",
@@ -14171,7 +14953,7 @@
             "value": "array.count($activity[FindEntry].Output.records) > 0"
           },
           {
-            "id": 4,
+            "id": 5,
             "from": "Plan",
             "to": "RemoveFolder",
             "type": "expression",
@@ -14179,28 +14961,35 @@
             "value": "$activity[Plan].output.target_mode == \"subfolder\""
           },
           {
-            "id": 5,
+            "id": 6,
             "from": "RemoveFolder",
             "to": "DeleteRows",
             "type": "label",
             "label": "RemoveFolder to DeleteRows"
           },
           {
-            "id": 6,
+            "id": 7,
             "from": "DeleteRows",
             "to": "BuildRemoved",
             "type": "label",
             "label": "DeleteRows to BuildRemoved"
           },
           {
-            "id": 7,
+            "id": 8,
             "from": "BuildRemoved",
-            "to": "ReturnRemoved",
+            "to": "LogRemoved",
             "type": "label",
-            "label": "BuildRemoved to ReturnRemoved"
+            "label": "BuildRemoved to LogRemoved"
           },
           {
-            "id": 8,
+            "id": 9,
+            "from": "LogRemoved",
+            "to": "ReturnRemoved",
+            "type": "label",
+            "label": "LogRemoved to ReturnRemoved"
+          },
+          {
+            "id": 10,
             "from": "Plan",
             "to": "DeleteRowsKept",
             "type": "expression",
@@ -14208,26 +14997,40 @@
             "value": "$activity[Plan].output.target_mode != \"subfolder\""
           },
           {
-            "id": 9,
+            "id": 11,
             "from": "DeleteRowsKept",
             "to": "BuildKept",
             "type": "label",
             "label": "DeleteRowsKept to BuildKept"
           },
           {
-            "id": 10,
+            "id": 12,
             "from": "BuildKept",
-            "to": "ReturnKept",
+            "to": "LogKept",
             "type": "label",
-            "label": "BuildKept to ReturnKept"
+            "label": "BuildKept to LogKept"
           },
           {
-            "id": 11,
+            "id": 13,
+            "from": "LogKept",
+            "to": "ReturnKept",
+            "type": "label",
+            "label": "LogKept to ReturnKept"
+          },
+          {
+            "id": 14,
             "from": "StartActivity",
-            "to": "ReturnBadName",
+            "to": "LogBadName",
             "type": "expression",
-            "label": "Invalid repository name",
+            "label": "StartActivity to LogBadName",
             "value": "string.replaceRegEx(\"^[A-Za-z0-9][A-Za-z0-9._-]*$\", coerce.toString($flow.params.repo_name), \"\") != \"\""
+          },
+          {
+            "id": 15,
+            "from": "LogBadName",
+            "to": "ReturnBadName",
+            "type": "label",
+            "label": "LogBadName to ReturnBadName"
           }
         ],
         "tasks": [
@@ -14318,6 +15121,30 @@
                     "type": "json",
                     "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"template_name\":{\"type\":\"string\"},\"github_url\":{\"type\":\"string\"},\"target_mode\":{\"type\":\"string\"}}}}}}",
                     "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"definitions\":{},\"properties\":{\"records\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"repo_name\":{\"type\":\"string\"},\"template_name\":{\"type\":\"string\"},\"github_url\":{\"type\":\"string\"},\"target_mode\":{\"type\":\"string\"}}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "LogNotFound",
+            "name": "LogNotFound",
+            "description": "Logs a cleanup for a repository that is not registered",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CLEANUP] rejected (HTTP 404): \", coerce.toString($flow.params.repo_name), \" is not in the generation registry\"), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
                   }
                 }
               },
@@ -14536,6 +15363,30 @@
             }
           },
           {
+            "id": "LogRemoved",
+            "name": "LogRemoved",
+            "description": "Logs the removed folder and registry rows",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CLEANUP] \", coerce.toString($activity[BuildRemoved].output.repo_name), \": folder removed=\", coerce.toString($activity[BuildRemoved].output.folder_removed), \", commit=\", coerce.toString($activity[BuildRemoved].output.commit_sha), \", registry rows=\", coerce.toString($activity[BuildRemoved].output.registry_rows), \", IKD rows=\", coerce.toString($activity[BuildRemoved].output.ikd_rows)), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnRemoved",
             "name": "ReturnRemoved",
             "description": "Returns the cleanup result",
@@ -14657,6 +15508,30 @@
             }
           },
           {
+            "id": "LogKept",
+            "name": "LogKept",
+            "description": "Logs the removed registry rows (the repository is kept)",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "INFO",
+                "flowInfo": true,
+                "message": "=string.replaceRegEx(\"[\\r\\n]+\", string.concat(\"[CLEANUP] \", coerce.toString($activity[BuildKept].output.repo_name), \": registry rows=\", coerce.toString($activity[BuildKept].output.registry_rows), \", IKD rows=\", coerce.toString($activity[BuildKept].output.ikd_rows), \" removed; its own repository \", coerce.toString($activity[BuildKept].output.github_url), \" is kept\"), \" \")",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
             "id": "ReturnKept",
             "name": "ReturnKept",
             "description": "Returns the cleanup result",
@@ -14672,6 +15547,30 @@
                   }
                 }
               }
+            }
+          },
+          {
+            "id": "LogBadName",
+            "name": "LogBadName",
+            "description": "Logs a cleanup with an invalid repository name",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": true,
+                "message": "[CLEANUP] rejected (HTTP 400): invalid repository name",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
             }
           },
           {
@@ -14697,7 +15596,7 @@
             }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkZpbmRFbnRyeSI6eyJ4IjoyNTAsInkiOjE1MH0sIlJldHVybk5vdEZvdW5kIjp7IngiOjQ1MCwieSI6MjUwfSwiUGxhbiI6eyJ4Ijo0NTAsInkiOjM1MH0sIlJlbW92ZUZvbGRlciI6eyJ4Ijo2NTAsInkiOjQ1MH0sIkRlbGV0ZVJvd3MiOnsieCI6ODUwLCJ5Ijo1NTB9LCJCdWlsZFJlbW92ZWQiOnsieCI6MTA1MCwieSI6NjUwfSwiUmV0dXJuUmVtb3ZlZCI6eyJ4IjoxMjUwLCJ5Ijo3NTB9LCJEZWxldGVSb3dzS2VwdCI6eyJ4Ijo2NTAsInkiOjg1MH0sIkJ1aWxkS2VwdCI6eyJ4Ijo4NTAsInkiOjk1MH0sIlJldHVybktlcHQiOnsieCI6MTA1MCwieSI6MTA1MH0sIlJldHVybkJhZE5hbWUiOnsieCI6MjUwLCJ5IjoxMTUwfX0=",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo1MH0sIkZpbmRFbnRyeSI6eyJ4IjoyNTAsInkiOjE1MH0sIlJldHVybk5vdEZvdW5kIjp7IngiOjcwMCwieSI6MjUwfSwiUGxhbiI6eyJ4Ijo0NTAsInkiOjM1MH0sIlJlbW92ZUZvbGRlciI6eyJ4Ijo2NTAsInkiOjQ1MH0sIkRlbGV0ZVJvd3MiOnsieCI6ODUwLCJ5Ijo1NTB9LCJCdWlsZFJlbW92ZWQiOnsieCI6MTA1MCwieSI6NjUwfSwiUmV0dXJuUmVtb3ZlZCI6eyJ4IjoxNTAwLCJ5Ijo3NTB9LCJEZWxldGVSb3dzS2VwdCI6eyJ4Ijo2NTAsInkiOjg1MH0sIkJ1aWxkS2VwdCI6eyJ4Ijo4NTAsInkiOjk1MH0sIlJldHVybktlcHQiOnsieCI6MTMwMCwieSI6MTA1MH0sIlJldHVybkJhZE5hbWUiOnsieCI6NTAwLCJ5IjoxMTUwfSwiTG9nUmVtb3ZlZCI6eyJ4IjoxMjUwLCJ5Ijo3NTB9LCJMb2dLZXB0Ijp7IngiOjEwNTAsInkiOjEwNTB9LCJMb2dOb3RGb3VuZCI6eyJ4Ijo0NTAsInkiOjI1MH0sIkxvZ0JhZE5hbWUiOnsieCI6MjUwLCJ5IjoxMTUwfX0=",
         "errorHandler": {
           "tasks": [
             {
