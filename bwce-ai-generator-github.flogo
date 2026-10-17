@@ -4705,28 +4705,49 @@
       "id": "flow:SendNotificationFlow",
       "data": {
         "name": "SendNotificationFlow",
-        "description": "Builds the rich HTML email (full-repo vs config-only variant) with the inline brand logo and doc attachment, and sends it via SMTP to the core integration team.",
+        "description": "Renders the notification e-mail from an HTML template with {{placeholders}} (NOTIFY_TEMPLATE, or NOTIFY_TEMPLATE_CONFIG_ONLY for config-only generations) and sends it with the inline logo over SMTP. A template that cannot be read is logged and no e-mail is sent.",
         "links": [
           {
             "id": 1,
             "from": "StartActivity",
-            "to": "BuildEmailParts",
+            "to": "ReadEmailTemplate",
             "type": "label",
-            "label": "StartActivity to BuildEmailParts"
+            "label": "StartActivity to ReadEmailTemplate"
           },
           {
             "id": 2,
-            "from": "BuildEmailParts",
-            "to": "BuildEmailAttachment",
+            "from": "ReadEmailTemplate",
+            "to": "GetOps",
             "type": "label",
-            "label": "BuildEmailParts to BuildEmailAttachment"
+            "label": "ReadEmailTemplate to GetOps"
           },
           {
             "id": 3,
-            "from": "BuildEmailAttachment",
+            "from": "GetOps",
+            "to": "BuildEmailModel",
+            "type": "label",
+            "label": "GetOps to BuildEmailModel"
+          },
+          {
+            "id": 4,
+            "from": "BuildEmailModel",
+            "to": "RenderEmail",
+            "type": "label",
+            "label": "BuildEmailModel to RenderEmail"
+          },
+          {
+            "id": 5,
+            "from": "RenderEmail",
             "to": "SendNotification",
             "type": "label",
-            "label": "BuildEmailAttachment to SendNotification"
+            "label": "RenderEmail to SendNotification"
+          },
+          {
+            "id": 6,
+            "from": "ReadEmailTemplate",
+            "to": "LogTemplateError",
+            "type": "error",
+            "label": "ReadEmailTemplate to LogTemplateError"
           }
         ],
         "tasks": [
@@ -4739,18 +4760,17 @@
             }
           },
           {
-            "id": "BuildEmailParts",
-            "name": "BuildEmailParts",
-            "description": "Pre-builds both notification variants (full repo vs config-only) as complete plain-concat strings: message, subject and the doc-attachment file/name. The downstream mapper then selects per config_only with simple ref-only ternaries (Flogo cannot parse a ternary whose branch is a function call).",
+            "id": "ReadEmailTemplate",
+            "name": "ReadEmailTemplate",
+            "description": "Reads the e-mail template: NOTIFY_TEMPLATE, or NOTIFY_TEMPLATE_CONFIG_ONLY for a config-only generation. Read for every e-mail, so template changes apply without a restart",
             "activity": {
-              "ref": "#mapper",
+              "ref": "#read",
               "input": {
+                "readAs": "Text",
+                "compress": "None",
                 "input": {
                   "mapping": {
-                    "message_full": "=string.concat(\"<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><meta name='color-scheme' content='light dark'><meta name='supported-color-schemes' content='light dark'></head><body style='margin:0;padding:0;background:#eef1f6'><div style='display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:#eef1f6;font-size:1px;line-height:1px'>New repository scaffolded &mdash; \", $flow.repo_name, \"</div><div style='margin:0;padding:24px 12px;background:#eef1f6;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif'><table role='presentation' align='center' width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0'><tr><td style='background:#0b1f3a;padding:22px 28px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr><td style='vertical-align:middle;width:44px'><img src='cid:email-logo.png' width='44' height='44' alt='BWCE AI' style='display:block;width:44px;height:44px;border-radius:10px' /></td><td style='vertical-align:middle;padding-left:14px'><div style='color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.2px'>BWCE AI Generator</div><div style='color:#9fb3c8;font-size:12px;margin-top:2px'>New integration repository scaffolded</div></td></tr></table></td></tr><tr><td style='height:3px;background:#00e0a4;line-height:3px;font-size:0'>&nbsp;</td></tr><tr><td style='padding:22px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#e6f9f2;border:1px solid #00b386;border-radius:10px'><tr><td style='padding:13px 16px;color:#04694f;font-size:14px;font-weight:600'>&#10003;&nbsp; Repository generated and registered successfully.</td></tr></table></td></tr><tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em'>Repository</div><div style='font-family:Consolas,Menlo,monospace;font-size:20px;font-weight:700;color:#0b1f3a;margin-top:5px;word-break:break-all'>\", $flow.repo_name, \"</div></td></tr><tr><td style='padding:18px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px;border-collapse:collapse'>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Template</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.template_name, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Source &rarr; Target</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6'>\", $flow.source_system, \" &rarr; \", $flow.target_system, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Business Object</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.business_object, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Interface Type</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.interface_type, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Environment</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.env, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>CDM</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", coerce.toString($flow.cdm), \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;width:42%'>Template Match Score</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;'>\", coerce.toString($flow.match_score), \"</td></tr>\", \"</table></td></tr>\", \"<tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px'>Clone</div><div style='background:#0a0c10;border-radius:8px;padding:12px 14px;font-family:Consolas,Menlo,monospace;font-size:12.5px;color:#00e0a4;word-break:break-all'>git clone \", $flow.clone_url, \"</div></td></tr><tr><td style='padding:18px 28px 26px'><a href='\", $flow.github_url, \"' style='display:inline-block;background:#00b386;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px'>Open in GitHub &rarr;</a></td></tr>\", \"<tr><td style='background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 28px;color:#94a3b8;font-size:11px;line-height:1.6'>Generation ID: \", $flow.generation_id, \"<br />Automated notification from the BWCE AI Integration Generator</td></tr></table><div style='text-align:center;color:#b4c0cf;font-size:11px;padding:14px 0 2px'>adidas &middot; Core Integration Platform</div></div></body></html>\")",
-                    "message_config": "=string.concat(\"<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><meta name='color-scheme' content='light dark'><meta name='supported-color-schemes' content='light dark'></head><body style='margin:0;padding:0;background:#eef1f6'><div style='display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:#eef1f6;font-size:1px;line-height:1px'>Config-only generation complete &mdash; \", $flow.repo_name, \"</div><div style='margin:0;padding:24px 12px;background:#eef1f6;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif'><table role='presentation' align='center' width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0'><tr><td style='background:#0b1f3a;padding:22px 28px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0'><tr><td style='vertical-align:middle;width:44px'><img src='cid:email-logo.png' width='44' height='44' alt='BWCE AI' style='display:block;width:44px;height:44px;border-radius:10px' /></td><td style='vertical-align:middle;padding-left:14px'><div style='color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.2px'>BWCE AI Generator</div><div style='color:#9fb3c8;font-size:12px;margin-top:2px'>Config-only generation &middot; scaffold skipped</div></td></tr></table></td></tr><tr><td style='height:3px;background:#00e0a4;line-height:3px;font-size:0'>&nbsp;</td></tr><tr><td style='padding:22px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#e6f9f2;border:1px solid #00b386;border-radius:10px'><tr><td style='padding:13px 16px;color:#04694f;font-size:14px;font-weight:600'>&#10003;&nbsp; Configuration generated successfully (config-only).</td></tr></table></td></tr><tr><td style='padding:20px 28px 0'><div style='color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em'>Repository (name reserved)</div><div style='font-family:Consolas,Menlo,monospace;font-size:20px;font-weight:700;color:#0b1f3a;margin-top:5px;word-break:break-all'>\", $flow.repo_name, \"</div></td></tr><tr><td style='padding:18px 28px 0'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='font-size:14px;border-collapse:collapse'>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Template</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.template_name, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Source &rarr; Target</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6'>\", $flow.source_system, \" &rarr; \", $flow.target_system, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Business Object</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.business_object, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Interface Type</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.interface_type, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>Environment</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", $flow.env, \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%'>CDM</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6;'>\", coerce.toString($flow.cdm), \"</td></tr>\", \"<tr><td style='padding:9px 0;color:#64748b;width:42%'>Template Match Score</td><td style='padding:9px 0;font-weight:600;color:#0b1f3a;'>\", coerce.toString($flow.match_score), \"</td></tr>\", \"</table></td></tr>\", \"<tr><td style='padding:20px 28px 26px'><table role='presentation' width='100%' cellpadding='0' cellspacing='0' style='background:#fff7ed;border:1px solid #fdba74;border-radius:10px'><tr><td style='padding:13px 16px;color:#9a3412;font-size:13px;line-height:1.55'><strong>Config-only run.</strong> Application code was left untouched. <strong>configs/generation.properties</strong> and <strong>configs/generation-metadata.json</strong> were refreshed in GitHub: \", $flow.github_url, \"</td></tr></table></td></tr>\", \"<tr><td style='background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 28px;color:#94a3b8;font-size:11px;line-height:1.6'>Generation ID: \", $flow.generation_id, \"<br />Automated notification from the BWCE AI Integration Generator</td></tr></table><div style='text-align:center;color:#b4c0cf;font-size:11px;padding:14px 0 2px'>adidas &middot; Core Integration Platform</div></div></body></html>\")",
-                    "subject_full": "=string.concat(\"✅ [BWCE AI Generator] New repository: \", $flow.repo_name)",
-                    "subject_config": "=string.concat(\"✅ [BWCE AI Generator] Config generated: \", $flow.repo_name)"
+                    "fileName": "=$flow.config_only == true ? $property[\"NOTIFY_TEMPLATE_CONFIG_ONLY\"] : $property[\"NOTIFY_TEMPLATE\"]"
                   }
                 }
               },
@@ -4758,15 +4778,15 @@
                 "input": {
                   "input": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"message_full\": {\"type\": \"string\"}, \"message_config\": {\"type\": \"string\"}, \"subject_full\": {\"type\": \"string\"}, \"subject_config\": {\"type\": \"string\"}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"message_full\": {\"type\": \"string\"}, \"message_config\": {\"type\": \"string\"}, \"subject_full\": {\"type\": \"string\"}, \"subject_config\": {\"type\": \"string\"}}}"
+                    "value": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileName\":{\"type\":\"string\"}},\"required\":[\"fileName\"],\"type\":\"object\"}"
                   }
                 },
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"message_full\": {\"type\": \"string\"}, \"message_config\": {\"type\": \"string\"}, \"subject_full\": {\"type\": \"string\"}, \"subject_config\": {\"type\": \"string\"}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"message_full\": {\"type\": \"string\"}, \"message_config\": {\"type\": \"string\"}, \"subject_full\": {\"type\": \"string\"}, \"subject_config\": {\"type\": \"string\"}}}"
+                    "value": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}",
+                    "fe_metadata": "{\"properties\":{\"fileMetadata\":{\"properties\":{\"fullPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"mode\":{\"type\":\"string\"},\"modTime\":{\"type\":\"string\",\"format\":\"date-time\"},\"isDir\":{\"type\":\"boolean\"}},\"type\":\"object\"},\"fileContent\":{\"properties\":{\"textContent\":{\"type\":\"string\"}},\"type\":\"object\"}},\"type\":\"object\"}"
                   }
                 }
               },
@@ -4774,16 +4794,92 @@
             }
           },
           {
-            "id": "BuildEmailAttachment",
-            "name": "BuildEmailAttachment",
-            "description": "Selects the notification variant (full repo vs config-only) for subject, HTML body and the doc attachment via ref-only ternaries on config_only, and adds the inline CID brand logo attachment.",
+            "id": "GetOps",
+            "name": "GetOps",
+            "description": "Reads the jq programs (shared data APP_OPS); email.subject and email.message render the template",
+            "activity": {
+              "ref": "#shareddata",
+              "settings": {
+                "scope": "Application",
+                "operation": "GET",
+                "type": "object"
+              },
+              "input": {
+                "key": "APP_OPS",
+                "input": {
+                  "mapping": {}
+                }
+              },
+              "schemas": {
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "BuildEmailModel",
+            "name": "BuildEmailModel",
+            "description": "The template text and the values for its {{placeholders}}: the generation's details and NOTIFY_ORGANIZATION",
             "activity": {
               "ref": "#mapper",
               "input": {
                 "input": {
                   "mapping": {
-                    "subject": "=$flow.config_only == true ? $activity[BuildEmailParts].output.subject_config : $activity[BuildEmailParts].output.subject_full",
-                    "message": "=$flow.config_only == true ? $activity[BuildEmailParts].output.message_config : $activity[BuildEmailParts].output.message_full",
+                    "template": "=$activity[ReadEmailTemplate].output.fileContent.textContent",
+                    "values": {
+                      "repo_name": "=$flow.repo_name",
+                      "github_url": "=$flow.github_url",
+                      "clone_url": "=$flow.clone_url",
+                      "template_name": "=$flow.template_name",
+                      "match_score": "=coerce.toString($flow.match_score)",
+                      "source_system": "=$flow.source_system",
+                      "target_system": "=$flow.target_system",
+                      "business_object": "=$flow.business_object",
+                      "interface_type": "=$flow.interface_type",
+                      "env": "=$flow.env",
+                      "cdm": "=coerce.toString($flow.cdm)",
+                      "generation_id": "=$flow.generation_id",
+                      "organization": "=$property[\"NOTIFY_ORGANIZATION\"]"
+                    }
+                  }
+                }
+              },
+              "schemas": {
+                "input": {
+                  "input": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"template\": {\"type\": \"string\"}, \"values\": {\"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\"}, \"github_url\": {\"type\": \"string\"}, \"clone_url\": {\"type\": \"string\"}, \"template_name\": {\"type\": \"string\"}, \"match_score\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"generation_id\": {\"type\": \"string\"}, \"organization\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"template\": {\"type\": \"string\"}, \"values\": {\"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\"}, \"github_url\": {\"type\": \"string\"}, \"clone_url\": {\"type\": \"string\"}, \"template_name\": {\"type\": \"string\"}, \"match_score\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"generation_id\": {\"type\": \"string\"}, \"organization\": {\"type\": \"string\"}}}}}"
+                  }
+                },
+                "output": {
+                  "output": {
+                    "type": "json",
+                    "value": "{\"type\": \"object\", \"properties\": {\"template\": {\"type\": \"string\"}, \"values\": {\"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\"}, \"github_url\": {\"type\": \"string\"}, \"clone_url\": {\"type\": \"string\"}, \"template_name\": {\"type\": \"string\"}, \"match_score\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"generation_id\": {\"type\": \"string\"}, \"organization\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"template\": {\"type\": \"string\"}, \"values\": {\"type\": \"object\", \"properties\": {\"repo_name\": {\"type\": \"string\"}, \"github_url\": {\"type\": \"string\"}, \"clone_url\": {\"type\": \"string\"}, \"template_name\": {\"type\": \"string\"}, \"match_score\": {\"type\": \"string\"}, \"source_system\": {\"type\": \"string\"}, \"target_system\": {\"type\": \"string\"}, \"business_object\": {\"type\": \"string\"}, \"interface_type\": {\"type\": \"string\"}, \"env\": {\"type\": \"string\"}, \"cdm\": {\"type\": \"string\"}, \"generation_id\": {\"type\": \"string\"}, \"organization\": {\"type\": \"string\"}}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
+          },
+          {
+            "id": "RenderEmail",
+            "name": "RenderEmail",
+            "description": "Renders the subject (the template's <title>) and the HTML body with the jq programs email.subject and email.message (values HTML-escaped), and attaches the logo (BRAND_LOGO_FILE, inline as cid:email-logo.png)",
+            "activity": {
+              "ref": "#mapper",
+              "input": {
+                "input": {
+                  "mapping": {
+                    "subject": "=coerce.toString(array.get(json.jq($activity[BuildEmailModel].output, $activity[GetOps].output.data.email.subject), 0))",
+                    "message": "=coerce.toString(array.get(json.jq($activity[BuildEmailModel].output, $activity[GetOps].output.data.email.message), 0))",
                     "attachments": [
                       {
                         "file": "=string.concat(\"file://\", $property[\"BRAND_LOGO_FILE\"])",
@@ -4817,7 +4913,7 @@
           {
             "id": "SendNotification",
             "name": "SendNotification",
-            "description": "Sends an email notification (via the configured SMTP server / maildev mock) to the core integration team announcing the newly scaffolded repository.",
+            "description": "Sends the rendered e-mail over SMTP (SMTP_*) from NOTIFY_SENDER to NOTIFY_RECIPIENTS",
             "settings": {
               "retryOnError": {
                 "count": 3,
@@ -4839,9 +4935,9 @@
                 "cc_recipients": "",
                 "bcc_recipients": "",
                 "reply_to": "",
-                "subject": "=$activity[BuildEmailAttachment].output.subject",
-                "message": "=$activity[BuildEmailAttachment].output.message",
-                "attachments": "=$activity[BuildEmailAttachment].output.attachments"
+                "subject": "=$activity[RenderEmail].output.subject",
+                "message": "=$activity[RenderEmail].output.message",
+                "attachments": "=$activity[RenderEmail].output.attachments"
               },
               "schemas": {
                 "input": {
@@ -4859,9 +4955,33 @@
               },
               "feSchemaMap": {}
             }
+          },
+          {
+            "id": "LogTemplateError",
+            "name": "LogTemplateError",
+            "description": "The template could not be read: logs a warning and sends no e-mail; the generation itself has succeeded",
+            "activity": {
+              "ref": "#log",
+              "input": {
+                "Log Level": "WARN",
+                "flowInfo": false,
+                "message": "=string.concat(\"[NOTIFY] no e-mail for \", $flow.repo_name, \": cannot read the e-mail template: \", $error[ReadEmailTemplate].message)",
+                "logLevel": ""
+              },
+              "schemas": {
+                "input": {
+                  "dynamicLogFields": {
+                    "type": "json",
+                    "value": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}",
+                    "fe_metadata": "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"value\":{\"type\":\"string\"}},\"required\":[\"name\",\"value\"]}}}}"
+                  }
+                }
+              },
+              "feSchemaMap": {}
+            }
           }
         ],
-        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIkJ1aWxkRW1haWxQYXJ0cyI6eyJ4IjoyNTAsInkiOjQ1fSwiQnVpbGRFbWFpbEF0dGFjaG1lbnQiOnsieCI6NDUwLCJ5Ijo0NX0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6NjUwLCJ5Ijo0NX19",
+        "fe_metadata": "eyJTdGFydEFjdGl2aXR5Ijp7IngiOjUwLCJ5Ijo0NX0sIlJlYWRFbWFpbFRlbXBsYXRlIjp7IngiOjI1MCwieSI6NDV9LCJHZXRPcHMiOnsieCI6NDUwLCJ5Ijo0NX0sIkJ1aWxkRW1haWxNb2RlbCI6eyJ4Ijo2NTAsInkiOjQ1fSwiUmVuZGVyRW1haWwiOnsieCI6ODUwLCJ5Ijo0NX0sIlNlbmROb3RpZmljYXRpb24iOnsieCI6MTA1MCwieSI6NDV9LCJMb2dUZW1wbGF0ZUVycm9yIjp7IngiOjQ1MCwieSI6MTk1fX0=",
         "metadata": {
           "input": [
             {
@@ -5348,8 +5468,8 @@
                 "output": {
                   "jsonObject": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}"
                   }
                 }
               },
@@ -5379,8 +5499,8 @@
                 "input": {
                   "input": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}"
                   }
                 }
               },
@@ -6212,8 +6332,8 @@
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}"
                   }
                 }
               },
@@ -7040,8 +7160,8 @@
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}"
                   }
                 }
               },
@@ -7874,8 +7994,8 @@
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}"
                   }
                 }
               },
@@ -8707,8 +8827,8 @@
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}"
                   }
                 }
               },
@@ -8982,8 +9102,8 @@
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}"
                   }
                 }
               },
@@ -9806,8 +9926,8 @@
                 "output": {
                   "output": {
                     "type": "json",
-                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}",
-                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}}}}}"
+                    "value": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}",
+                    "fe_metadata": "{\"type\": \"object\", \"properties\": {\"exist\": {\"type\": \"boolean\"}, \"data\": {\"type\": \"object\", \"properties\": {\"k8s\": {\"type\": \"object\", \"properties\": {\"prelude\": {\"type\": \"string\"}, \"route\": {\"type\": \"string\"}, \"routes\": {\"type\": \"object\"}, \"init\": {\"type\": \"string\"}, \"ops\": {\"type\": \"object\"}}}, \"schemas\": {\"type\": \"object\", \"properties\": {\"wrapper_template\": {\"type\": \"string\"}, \"plan\": {\"type\": \"string\"}}}, \"codereview\": {\"type\": \"object\", \"properties\": {\"token_request\": {\"type\": \"string\"}, \"token_result\": {\"type\": \"string\"}, \"run_check\": {\"type\": \"string\"}, \"run_request\": {\"type\": \"string\"}, \"run_result\": {\"type\": \"string\"}, \"netdebug\": {\"type\": \"string\"}}}, \"cicd\": {\"type\": \"object\", \"properties\": {\"templates\": {\"type\": \"array\"}, \"render\": {\"type\": \"string\"}}}, \"email\": {\"type\": \"object\", \"properties\": {\"message\": {\"type\": \"string\"}, \"subject\": {\"type\": \"string\"}}}}}}}"
                   }
                 }
               },
@@ -12718,17 +12838,32 @@
     {
       "name": "NOTIFY_SENDER",
       "type": "string",
-      "value": "bwce-generator@adidas.com"
+      "value": "bwce-ai-generator@example.com"
     },
     {
       "name": "NOTIFY_RECIPIENTS",
       "type": "string",
-      "value": "core-integration@adidas.com"
+      "value": "integration-team@example.com"
     },
     {
       "name": "BRAND_LOGO_FILE",
       "type": "string",
       "value": "static/email-logo.png"
+    },
+    {
+      "name": "NOTIFY_TEMPLATE",
+      "type": "string",
+      "value": "config/email/new-repository.html"
+    },
+    {
+      "name": "NOTIFY_TEMPLATE_CONFIG_ONLY",
+      "type": "string",
+      "value": "config/email/config-only.html"
+    },
+    {
+      "name": "NOTIFY_ORGANIZATION",
+      "type": "string",
+      "value": "Integration Platform"
     },
     {
       "name": "IKD_SCENARIOS_FILE",

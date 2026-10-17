@@ -290,7 +290,7 @@ flowchart LR
 | Templates | `api_templates_suggest_POST` | `POST /api/templates/suggest`, subflow of `generate_POST` | Weaviate hybrid search (BM25 and vector) over the catalog; ranked suggestions |
 | Generation | `generate_POST` | `POST /generate`, MCP `generate_code` | The generation pipeline: naming, validation, IKD check, duplicate check, template selection, scaffolding, registry and IKD registration, e-mail ([gates](#generation-gates)) |
 | Generation | `ScaffoldArtifactsFlow` | subflow of `generate_POST` | Renders the CI/CD files and runs the Git Repo Scaffolder: materializes the template and publishes everything in one commit, to a folder of the shared repository or a new repository |
-| Generation | `SendNotificationFlow` | subflow of `generate_POST` | HTML e-mail (full repository or config-only variant) with the logo and an attachment, sent over SMTP |
+| Generation | `SendNotificationFlow` | subflow of `generate_POST` | HTML e-mail rendered from a template ([Notification e-mail](#notification-e-mail)), full repository or config-only variant, with the inline logo, sent over SMTP |
 | Registry | `api_tracker_GET` | `GET /api/tracker` | The newest 100 registrations with their GitHub location, plus the template source and UI settings |
 | Registry | `api_tracker_repo_DELETE` | `DELETE /api/tracker/{repo_name}` | [Cleanup](#where-the-code-is-published): deletes the folder in one commit (shared repository) and the registry and IKD rows |
 | Registry | `ikd_GET` | `GET /api/ikd` | The IKD registry in the reference `IKD_*.txt` format |
@@ -400,7 +400,7 @@ Try the tools interactively with the MCP Inspector: `npx @modelcontextprotocol/i
 ## Operations
 
 All logic is Flogo flows; data-shaped logic (Kubernetes request planning and response mapping, code review, schema
-upload planning, CI/CD rendering) runs
+upload planning, CI/CD and e-mail rendering) runs
 as **jq programs** (TIBCO `json.jq`) loaded at startup from `config/ops-programs.json` into shared data, so one
 generic flow serves many endpoints. Only OOTB activities are used (REST Invoke, PostgreSQL, Shared Data,
 XML-to-JSON, Mapper) plus the Git Repo Scaffolder. Outbound HTTP goes through two subflows built from the OOTB
@@ -551,7 +551,7 @@ the property name in upper case with dots replaced by underscores (`PostgreSQL.G
 | Weaviate | `WEAVIATE_WEAVIATETEMPLATEKB_HOST`, `_PORT`, `_SCHEME` (`https` for TLS), `_API_KEY`; `VECTOR_COLLECTION` |
 | LLM | `LLM_PROVIDER` (`Ollama`; `OpenAI`, `Azure OpenAI` or `Custom` for an OpenAI-compatible endpoint), `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` |
 | Embeddings | `LLM_EMBEDDING_PROVIDER`, `LLM_EMBEDDING_BASE_URL`, `LLM_EMBEDDING_MODEL`, `LLM_EMBEDDING_API_KEY`, `LLM_EMBEDDING_DIMENSIONS` |
-| Mail server | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURITY` (`NONE`, `TLS` for STARTTLS, `SSL`), `SMTP_USERNAME`, `SMTP_PASSWORD`, `NOTIFY_SENDER`, `NOTIFY_RECIPIENTS` |
+| Mail server | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURITY` (`NONE`, `TLS` for STARTTLS, `SSL`), `SMTP_USERNAME`, `SMTP_PASSWORD`, `NOTIFY_SENDER`, `NOTIFY_RECIPIENTS`, `NOTIFY_ORGANIZATION`; the e-mail text: [Notification e-mail](#notification-e-mail) |
 | Kubernetes (optional) | `K8S_CONTEXTS`, `K8S_CONTEXT`, `K8S_INSECURE`, `K8S_CA_CERT` |
 | Code review (optional) | `CODE_REVIEW_BASE_URL`, `CODE_REVIEW_USERNAME`, `CODE_REVIEW_PASSWORD` and the other `CODE_REVIEW_*` settings |
 
@@ -592,7 +592,7 @@ Expose port 9999 through Kong (see [Access control](#access-control-kong)).
 
 **3. Check** `GET /health` and the log: at startup the app creates or upgrades its tables and ingests the template
 catalog (`IngestDocuments: success … ingested=37`). PostgreSQL must be reachable at startup; the app does not start
-without it. To use your own template catalog or IKD lists without rebuilding the image, mount them over
+without it. To use your own template catalog, IKD lists or e-mail templates without rebuilding the image, mount them over
 `/app/config`.
 
 When you change the embedding model, set `LLM_EMBEDDING_DIMENSIONS` to its vector size and use a new
@@ -609,13 +609,47 @@ When you change the embedding model, set `LLM_EMBEDDING_DIMENSIONS` to its vecto
 | LLM and search | `LLM_PROVIDER` (`Ollama`), `LLM_BASE_URL`, `LLM_MODEL` (`qwen2.5:7b`), `LLM_API_KEY`, `LLM_EMBEDDING_PROVIDER` (`OpenAI`), `LLM_EMBEDDING_BASE_URL`, `LLM_EMBEDDING_MODEL` (`nomic-embed-text`), `LLM_EMBEDDING_API_KEY`, `LLM_EMBEDDING_DIMENSIONS` (`768`), `EXTRACTION_SYSTEM_PROMPT`, `VECTOR_COLLECTION` (`BWCECiTemplates768`), `weaviate.WeaviateTemplateKB.*` (connection, including `Scheme`) |
 | Registry | `PostgreSQL.GenerationRegistry.*` (host, port, database, user, password, pool, `TLS`, `TLS_Mode`, `CA_Certificate`) |
 | Files | `TEMPLATE_REGISTRY` (`config/ci-bwcetemplates.json`), `RULES_PATH` (`rules/`), `IKD_INTERFACES_FILE`, `IKD_SCENARIOS_FILE` (`config/ikd/…`), `OPS_PROGRAMS` (`config/ops-programs.json`), `BRAND_LOGO_FILE` |
-| Notification | `SMTP_HOST` (`localhost`), `SMTP_PORT` (`1025`), `SMTP_SECURITY` (`NONE`), `SMTP_USERNAME`, `SMTP_PASSWORD`, `NOTIFY_SENDER`, `NOTIFY_RECIPIENTS` |
+| Notification | `SMTP_HOST` (`localhost`), `SMTP_PORT` (`1025`), `SMTP_SECURITY` (`NONE`), `SMTP_USERNAME`, `SMTP_PASSWORD`, `NOTIFY_SENDER` (`bwce-ai-generator@example.com`), `NOTIFY_RECIPIENTS` (`integration-team@example.com`), `NOTIFY_ORGANIZATION` (`Integration Platform`), `NOTIFY_TEMPLATE` (`config/email/new-repository.html`), `NOTIFY_TEMPLATE_CONFIG_ONLY` (`config/email/config-only.html`) |
 | Kubernetes | `K8S_CONTEXTS` (JSON: context → `url`, `namespace`, `token`), `K8S_CONTEXT`, `K8S_INSECURE` (`false`), `K8S_CA_CERT` (PEM, base64 PEM or `file:///var/run/secrets/kubernetes.io/serviceaccount/ca.crt`; empty = system CAs) |
 | Code review | `CODE_REVIEW_BASE_URL` (placeholder; set it per deployment), `CODE_REVIEW_USERNAME`/`_PASSWORD`/`_USERID`/`_USERTYPE`/`_COOKIE`, `CODE_REVIEW_INSECURE` (`true`: no certificate check, the reference default), `CODE_REVIEW_TOKEN_METHOD` (`POST`; `GET` matches the reference but puts the password in the URL, which the REST Invoke logs) |
 | UI and MCP | `QASSIST_URL` (empty: QAssist not configured), `REST_PORT` (`9999`), `MCP_PORT` (`8081`) |
 
 Secrets (`GITHUB_TOKEN`, database, SMTP, LLM and code review credentials) belong in the environment, not in the
 `.flogo`.
+
+### Notification e-mail
+
+After each generation the app e-mails `NOTIFY_RECIPIENTS`. The e-mail is an HTML template with placeholders, so its
+text, layout and branding change without touching a flow:
+
+| Template | Sent after |
+|----------|------------|
+| [config/email/new-repository.html](config/email/new-repository.html) (`NOTIFY_TEMPLATE`) | a generated repository |
+| [config/email/config-only.html](config/email/config-only.html) (`NOTIFY_TEMPLATE_CONFIG_ONLY`) | a config-only generation |
+
+- The `<title>` is the subject.
+- Placeholders: `{{repo_name}}`, `{{github_url}}` (the repository, or its folder, on GitHub), `{{clone_url}}`,
+  `{{template_name}}`, `{{match_score}}`, `{{source_system}}`, `{{target_system}}`, `{{business_object}}`,
+  `{{interface_type}}`, `{{env}}`, `{{cdm}}`, `{{generation_id}}` and `{{organization}}` (`NOTIFY_ORGANIZATION`,
+  the footer). Values are HTML-escaped; an unknown placeholder stays as it is.
+- `cid:email-logo.png` is the logo in `BRAND_LOGO_FILE`, attached inline.
+- Comments (`<!-- … -->`) are removed before sending; conditional comments such as `<!--[if mso]>` are kept.
+- The template is read for every e-mail, so an edit applies to the next one without a restart. If it cannot be read,
+  the generation still succeeds, no e-mail is sent and the log shows
+  `[NOTIFY] no e-mail for <repo>: cannot read the e-mail template: …`.
+
+In a container, mount your templates over `/app/config/email`, for example on Kubernetes from a ConfigMap
+(`kubectl -n bwce-ai-generator create configmap bwce-ai-generator-email --from-file=config/email/`) with this in
+[deploy/kubernetes.yaml](deploy/kubernetes.yaml):
+
+```yaml
+          volumeMounts:
+            - { name: email-templates, mountPath: /app/config/email }
+      volumes:
+        - { name: email-templates, configMap: { name: bwce-ai-generator-email } }
+```
+
+The rendering itself is the jq programs `email.subject` and `email.message` in `config/ops-programs.json`.
 
 ---
 
@@ -650,7 +684,7 @@ design CLI.
 
 **Flow structure.** Every REST handler is an operation of the embedded API definition, one handler per flow, named
 after the flow (see [Flows](#flows)). Each handler maps the request (`pathParams`, `queryParams`, `body`) to the inputs
-the flow declares, and the flow's `code` + `responseBody` outputs to the reply. Data-shaped logic (Kubernetes,
+the flow declares, and the flow's `code` + `responseBody` outputs to the reply. Data-shaped logic (Kubernetes, e-mail,
 code review, schema upload, CI/CD files) is jq programs in `config/ops-programs.json`, loaded into shared data at
 startup (see [Operations](#operations)).
 
@@ -672,7 +706,8 @@ the result.
 bwce-ai-generator-github.flogo   the Flogo application
 config/ci-bwcetemplates.json     template catalog (ingested into Weaviate)
 config/ikd/                      IKD interface and scenario id lists
-config/ops-programs.json         jq programs: Kubernetes, code review, schema upload, CI/CD file templates
+config/email/                    notification e-mail templates (HTML with {{placeholders}})
+config/ops-programs.json         jq programs: Kubernetes, code review, schema upload, CI/CD file templates, e-mail
 deploy/                          container image, Kubernetes manifest, settings and secrets templates
 rules/                           rule engine packs: nlu-extraction.yaml, spec-validation.yaml
 static/                          web UI (chat-github.html), e-mail logo

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+  Notification e-mail after a config-only generation (app property NOTIFY_TEMPLATE_CONFIG_ONLY): the repository
+  name is reserved and only the configuration files are written.
+  The app reads this file for every e-mail: changes apply without a restart or a rebuild.
+
+  Subject: the text of the title element below (plain text).
+  Placeholders, replaced with the values of the generation (HTML-escaped; unknown names stay as they are):
+    {{repo_name}}         repository name (folder name in the shared repository in subfolder mode)
+    {{github_url}}        the repository, or its folder, on GitHub
+    {{clone_url}}         URL for git clone
+    {{template_name}}     CI template the configuration was generated for
+    {{match_score}}       template match score
+    {{source_system}}  {{target_system}}  {{business_object}}  {{interface_type}}  {{env}}  {{cdm}}
+    {{generation_id}}     id of the generation in the registry
+    {{organization}}      app property NOTIFY_ORGANIZATION (footer)
+  Logo: cid:email-logo.png is the file in BRAND_LOGO_FILE, attached inline.
+  Comments like this one are removed before the e-mail is sent.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>✅ [BWCE AI Generator] Config generated: {{repo_name}}</title>
+</head>
+<body style="margin:0;padding:0;background:#eef1f6">
+  <!-- Preview text: shown next to the subject in the inbox -->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:#eef1f6;font-size:1px;line-height:1px">Config-only generation complete &mdash; {{repo_name}}</div>
+  <div style="margin:0;padding:24px 12px;background:#eef1f6;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+    <table role="presentation" align="center" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0">
+      <!-- Header -->
+      <tr>
+        <td style="background:#0b1f3a;padding:22px 28px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="vertical-align:middle;width:44px"><img src="cid:email-logo.png" width="44" height="44" alt="BWCE AI" style="display:block;width:44px;height:44px;border-radius:10px" /></td>
+              <td style="vertical-align:middle;padding-left:14px">
+                <div style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:0.2px">BWCE AI Generator</div>
+                <div style="color:#9fb3c8;font-size:12px;margin-top:2px">Config-only generation &middot; scaffold skipped</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr><td style="height:3px;background:#00e0a4;line-height:3px;font-size:0">&nbsp;</td></tr>
+      <!-- Status -->
+      <tr>
+        <td style="padding:22px 28px 0">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e6f9f2;border:1px solid #00b386;border-radius:10px">
+            <tr><td style="padding:13px 16px;color:#04694f;font-size:14px;font-weight:600">&#10003;&nbsp; Configuration generated successfully (config-only).</td></tr>
+          </table>
+        </td>
+      </tr>
+      <!-- Repository -->
+      <tr>
+        <td style="padding:20px 28px 0">
+          <div style="color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.08em">Repository (name reserved)</div>
+          <div style="font-family:Consolas,Menlo,monospace;font-size:20px;font-weight:700;color:#0b1f3a;margin-top:5px;word-break:break-all">{{repo_name}}</div>
+        </td>
+      </tr>
+      <!-- Details -->
+      <tr>
+        <td style="padding:18px 28px 0">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;border-collapse:collapse">
+            <tr>
+              <td style="padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%">Template</td>
+              <td style="padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6">{{template_name}}</td>
+            </tr>
+            <tr>
+              <td style="padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%">Source &rarr; Target</td>
+              <td style="padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6">{{source_system}} &rarr; {{target_system}}</td>
+            </tr>
+            <tr>
+              <td style="padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%">Business Object</td>
+              <td style="padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6">{{business_object}}</td>
+            </tr>
+            <tr>
+              <td style="padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%">Interface Type</td>
+              <td style="padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6">{{interface_type}}</td>
+            </tr>
+            <tr>
+              <td style="padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%">Environment</td>
+              <td style="padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6">{{env}}</td>
+            </tr>
+            <tr>
+              <td style="padding:9px 0;color:#64748b;border-bottom:1px solid #eef1f6;width:42%">CDM</td>
+              <td style="padding:9px 0;font-weight:600;color:#0b1f3a;border-bottom:1px solid #eef1f6">{{cdm}}</td>
+            </tr>
+            <tr>
+              <td style="padding:9px 0;color:#64748b;width:42%">Template Match Score</td>
+              <td style="padding:9px 0;font-weight:600;color:#0b1f3a">{{match_score}}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <!-- What was written -->
+      <tr>
+        <td style="padding:20px 28px 26px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fff7ed;border:1px solid #fdba74;border-radius:10px">
+            <tr><td style="padding:13px 16px;color:#9a3412;font-size:13px;line-height:1.55"><strong>Config-only run.</strong> Application code was left untouched. <strong>configs/generation.properties</strong> and <strong>configs/generation-metadata.json</strong> were refreshed in GitHub: <a href="{{github_url}}" style="color:#9a3412;word-break:break-all">{{github_url}}</a></td></tr>
+          </table>
+        </td>
+      </tr>
+      <!-- Footer -->
+      <tr>
+        <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 28px;color:#94a3b8;font-size:11px;line-height:1.6">Generation ID: {{generation_id}}<br />Automated notification from the BWCE AI Integration Generator</td>
+      </tr>
+    </table>
+    <div style="text-align:center;color:#b4c0cf;font-size:11px;padding:14px 0 2px">{{organization}}</div>
+  </div>
+</body>
+</html>
