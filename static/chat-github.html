@@ -1612,7 +1612,7 @@
 
                     <div class="schema-upload-section" id="schema-upload-section">
                         <div class="schema-section-header">📁 Upload schemas (optional)</div>
-                        <div class="schema-destination" id="schema-destination">Files are committed to the module's <code>Schemas</code> folder.</div>
+                        <div class="schema-destination" id="schema-destination">XSD files go to the module's <code>Schemas</code> folder, WSDL and OpenAPI/Swagger files to its <code>Service Descriptors</code> folder.</div>
 
                         <div class="schema-upload-box">
                             <label class="schema-upload-label">Source schema (XSD)</label>
@@ -2445,7 +2445,7 @@
             currentRepositoryName = repositoryName;
             const repo = escapeHtml(repositoryName);
             document.getElementById('schema-destination').innerHTML =
-                `XSD, WSDL and OpenAPI/Swagger files go to the module's Schemas folder: <code>code/${repo}/${repo}.module/Schemas</code>`;
+                `XSD files go to <code>code/${repo}/${repo}.module/Schemas</code>; WSDL and OpenAPI/Swagger files go to <code>code/${repo}/${repo}.module/Service Descriptors</code>.`;
             document.getElementById('schema-upload-section').classList.add('visible');
             setConfigDrawer(true);
         }

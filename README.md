@@ -160,7 +160,7 @@ OpenAPI tool).
 | GET | `/api/tracker` | Generated repositories with their GitHub location, the template source and UI settings |
 | DELETE | `/api/tracker/{repo_name}` | Clean up a generated repository |
 | GET | `/api/ikd?kind=InterfaceIDs\|ScenarioIDs` | IKD registry in the reference `IKD_*.txt` format (`<id>:<repo>` lines) |
-| POST | `/api/schemas/upload/{kind}` | Commit XSD, WSDL and OpenAPI/Swagger files into `code/<repo>/<repo>.module/Schemas` of a generated repository (`source`, `target`, `batch`) |
+| POST | `/api/schemas/upload/{kind}` | Commit schema files into a generated repository's module: XSD to `code/<repo>/<repo>.module/Schemas`, WSDL and OpenAPI/Swagger to `code/<repo>/<repo>.module/Service Descriptors` (`source`, `target`, `batch`) |
 | POST | `/api/codereview/token`, `/api/codereview/run` | Code review token, code review run |
 | GET | `/api/codereview/history`, `/api/codereview/network-debug` | Code review history, connectivity check |
 | GET | `/k8s/{resource}`, `/k8s/{resource}/{name}`, `/k8s/{resource}/{name}/{view}` | Cluster health, context, status, lists, one item, rollout, logs, port-forward |
@@ -213,7 +213,7 @@ timeout) takes the error link to `Failed`, so both subflows always return `statu
 |------|-----------|-------|
 | Kubernetes | `GET /k8s/{resource}` (health, context, status, deployments, pods, services, events), `GET /k8s/{resource}/{name}`, `GET /k8s/{resource}/{name}/{view}` (rollout, logs, port-forward), `POST /k8s/deployments/{name}/{action}` (scale, restart), `POST /k8s/context/switch` | Same URLs as the reference; the route selects the operation (`k8s.routes` in `config/ops-programs.json`, anything else is 404). Calls the Kubernetes REST API directly (no kubectl) with the response shapes of the reference; contexts from `K8S_CONTEXTS` (JSON: url, namespace, token; TLS for all contexts from `K8S_INSECURE` and `K8S_CA_CERT`); restrict the `POST` routes (scale, restart, switch) in Kong if only operators may use them |
 | Code review | `POST /api/codereview/token`, `POST /api/codereview/run`, `GET /api/codereview/history`, `GET /api/codereview/network-debug` | intginvent token cached in shared data, one retry with a refreshed token, history (newest 500) in PostgreSQL, report links extracted and query strings redacted |
-| Schemas | `POST /api/schemas/upload/{kind}` (source, target, batch) | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); source: `.xsd`; target: `.xsd`, `.wsdl` or OpenAPI/Swagger (`.json`, `.yaml`, `.yml`); XSD/WSDL must be well-formed XML and OpenAPI/Swagger files must declare `openapi` or `swagger`; every file is committed into `code/<repo>/<repo>.module/Schemas` of the generated repository in one commit; a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
+| Schemas | `POST /api/schemas/upload/{kind}` (source, target, batch) | JSON body (`repository_name`, `filename`, `content` / `source_schemas[]`, `target_schemas[]`); source: `.xsd`; target: `.xsd`, `.wsdl` or OpenAPI/Swagger (`.json`, `.yaml`, `.yml`); XSD/WSDL must be well-formed XML and OpenAPI/Swagger files must declare `openapi` or `swagger`; every file is committed in one commit, XSDs into `code/<repo>/<repo>.module/Schemas`, WSDL and OpenAPI/Swagger files into `code/<repo>/<repo>.module/Service Descriptors`; a source XSD gets the reference `adidasIntegrationMessage.xsd` wrapper |
 
 ---
 
@@ -335,7 +335,7 @@ static/                          web UI (chat-github.html), e-mail logo
 
 Sign-in, accounts, roles and the audit log (Entra ID SSO included) are left to Kong; the code review network check
 infers DNS/TCP/TLS from one HTTP probe; rollout status is a snapshot (no blocking wait); schema upload takes JSON
-instead of multipart and requires a previously generated repository (404 otherwise); uploaded WSDL and OpenAPI/Swagger
-files go to `Schemas` like XSDs (the reference puts WSDLs in `Service Descriptors`); `CODE_REVIEW_INSECURE` replaces
+instead of multipart, requires a previously generated repository (404 otherwise) and also accepts OpenAPI/Swagger
+files (to `Service Descriptors`, like WSDLs); `CODE_REVIEW_INSECURE` replaces
 the reference's `CODE_REVIEW_VERIFY_SSL`, because the REST Invoke binds "Disable SSL Verification" to a property, not
 an expression.
