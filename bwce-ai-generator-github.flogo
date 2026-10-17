@@ -9136,6 +9136,7 @@
                   "responseBody": {
                     "mapping": {
                       "body": {
+                        "count": "=array.count($activity[QueryTracker].Output.records)",
                         "records": "=$activity[QueryTracker].Output.records",
                         "target_repo_url": "=$property[\"TARGET_REPO_URL\"]",
                         "target_branch": "=$property[\"TARGET_BRANCH\"]",

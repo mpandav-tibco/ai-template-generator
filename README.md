@@ -346,7 +346,7 @@ OpenAPI tool).
 | GET | `/api/templates` | Template catalog |
 | POST | `/api/templates/suggest` | Ranked templates for a (partial) spec; `/generate` uses the same search |
 | POST | `/generate` | Generate and publish (`spec`, `config_only`, `target_mode`) |
-| GET | `/api/tracker` | Generated repositories with their GitHub location, the template source and UI settings |
+| GET | `/api/tracker` | Generated repositories (`count` and `records`) with their GitHub location, the template source and UI settings |
 | DELETE | `/api/tracker/{repo_name}` | Clean up a generated repository |
 | GET | `/api/ikd?kind=InterfaceIDs\|ScenarioIDs` | IKD registry in the reference `IKD_*.txt` format (`<id>:<repo>` lines) |
 | POST | `/api/schemas/upload/{kind}` | Commit schema files into a generated repository's module: XSD to `code/<repo>/<repo>.module/Schemas`, WSDL and OpenAPI/Swagger to `code/<repo>/<repo>.module/Service Descriptors` (`source`, `target`, `batch`) |
@@ -383,7 +383,7 @@ or query parameters).
 | `list_templates` | `GET /api/templates` | — | the template catalog |
 | `suggest_templates` | `POST /api/templates/suggest` | any of `source_system`, `target_system`, `business_object`, `interface_type`, `query` | ranked templates |
 | `generate_code` | `POST /generate` | `spec` (required: `source_system`, `target_system`, `business_object`, `interface_type`), `config_only`, `target_mode` (`subfolder` or `newRepo`), `context` (conversation text for the template choice) | the generation result: same pipeline, registry and notification |
-| `list_repositories` | `GET /api/tracker` | — | the registry with GitHub locations, the template source and the publishing settings |
+| `list_repositories` | `GET /api/tracker` | — | `count` and the registry with GitHub locations, the template source and the publishing settings |
 | `delete_repository` | `DELETE /api/tracker/{repo_name}` | `repo_name` | the cleanup result |
 | `get_ikd_registry` | `GET /api/ikd` | `kind` (`InterfaceIDs` or `ScenarioIDs`) | `<id>:<repository>` lines |
 | `upload_schemas` | `POST /api/schemas/upload/batch` | `repository_name`, `source_schemas`, `target_schemas` (each a list of `filename` and `content`) | the committed files and the commit |
