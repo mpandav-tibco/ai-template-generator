@@ -1,0 +1,77 @@
+# BWCE AI Generator on Kubernetes.
+#
+#   kubectl create namespace bwce-ai-generator
+#   kubectl -n bwce-ai-generator create configmap bwce-ai-generator-config --from-env-file=deploy/config.env
+#   kubectl -n bwce-ai-generator create secret generic bwce-ai-generator-secrets --from-env-file=deploy/secrets.env
+#   kubectl -n bwce-ai-generator apply -f deploy/kubernetes.yaml
+#
+# Set the image below. Expose port 9999 (UI and REST API) through Kong; keep 8081 (MCP) internal or behind Kong too.
+# After changing config.env or secrets.env, recreate the ConfigMap/Secret and run
+# kubectl -n bwce-ai-generator rollout restart deployment/bwce-ai-generator.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bwce-ai-generator
+  labels:
+    app: bwce-ai-generator
+spec:
+  # One replica: the Kubernetes context switch and the code review token cache live in the app's memory.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bwce-ai-generator
+  template:
+    metadata:
+      labels:
+        app: bwce-ai-generator
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: bwce-ai-generator
+          image: <registry>/bwce-ai-generator:1.0.0
+          ports:
+            - name: http
+              containerPort: 9999
+            - name: mcp
+              containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: bwce-ai-generator-config
+            - secretRef:
+                name: bwce-ai-generator-secrets
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bwce-ai-generator
+  labels:
+    app: bwce-ai-generator
+spec:
+  selector:
+    app: bwce-ai-generator
+  ports:
+    - name: http
+      port: 9999
+      targetPort: http
+    - name: mcp
+      port: 8081
+      targetPort: mcp

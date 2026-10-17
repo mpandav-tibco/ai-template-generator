@@ -517,7 +517,7 @@ sequenceDiagram
 
 ---
 
-## Build and run
+## Build and run locally
 
 ```bash
 # once: a build context from the Flogo 2.26.8 VS Code extension package and the custom extensions checkout
@@ -529,9 +529,75 @@ FLOGO_APP_PROPS_ENV=auto FLOGO_EXPOSE_SWAGGER_EP=true GITHUB_TOKEN=<token> ./bwc
 ```
 
 Start it from the repository root: it reads `config/`, `rules/` and `static/` relative to the working directory.
-With `FLOGO_APP_PROPS_ENV=auto`, app properties can be overridden with environment variables of the same name (for
-example `TARGET_MODE=newRepo`). UI: http://localhost:9999 · API definition: http://localhost:9999/api/v2/swagger.json
-(with `FLOGO_EXPOSE_SWAGGER_EP=true`) · MCP: http://localhost:8081/mcp.
+With `FLOGO_APP_PROPS_ENV=auto`, every app property can be set with an environment variable (for example
+`TARGET_MODE=newRepo`; see [Deploy in your environment](#deploy-in-your-environment)). UI: http://localhost:9999 ·
+API definition: http://localhost:9999/api/v2/swagger.json (with `FLOGO_EXPOSE_SWAGGER_EP=true`) · MCP:
+http://localhost:8081/mcp.
+
+---
+
+## Deploy in your environment
+
+Every connection to infrastructure — GitHub, PostgreSQL, Weaviate, the LLM and embedding endpoints, the mail server,
+Kubernetes and the code review service — is an app property, so the same `.flogo` runs against your systems without
+changing a flow or an activity. With `FLOGO_APP_PROPS_ENV=auto` each property is read from an environment variable:
+the property name in upper case with dots replaced by underscores (`PostgreSQL.GenerationRegistry.Host` →
+`POSTGRESQL_GENERATIONREGISTRY_HOST`). A variable that is not set keeps the default built into the app.
+
+| Your system | Environment variables |
+|-------------|-----------------------|
+| GitHub or GitHub Enterprise | `GITHUB_TOKEN`, `GITHUB_API_URL`, `TEMPLATE_REPO_URL`, `TEMPLATE_REF`, `TARGET_MODE`, `TARGET_REPO_URL`, `TARGET_OWNER_URL`, `TARGET_BRANCH`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL` |
+| PostgreSQL | `POSTGRESQL_GENERATIONREGISTRY_HOST`, `_PORT`, `_DATABASE_NAME`, `_USER`, `_PASSWORD`; TLS: `_TLS`, `_TLS_MODE` (`VerifyCA` or `VerifyFull`), `_CA_CERTIFICATE` (base64-encoded PEM) |
+| Weaviate | `WEAVIATE_WEAVIATETEMPLATEKB_HOST`, `_PORT`, `_SCHEME` (`https` for TLS), `_API_KEY`; `VECTOR_COLLECTION` |
+| LLM | `LLM_PROVIDER` (`Ollama`; `OpenAI`, `Azure OpenAI` or `Custom` for an OpenAI-compatible endpoint), `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` |
+| Embeddings | `LLM_EMBEDDING_PROVIDER`, `LLM_EMBEDDING_BASE_URL`, `LLM_EMBEDDING_MODEL`, `LLM_EMBEDDING_API_KEY`, `LLM_EMBEDDING_DIMENSIONS` |
+| Mail server | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURITY` (`NONE`, `TLS` for STARTTLS, `SSL`), `SMTP_USERNAME`, `SMTP_PASSWORD`, `NOTIFY_SENDER`, `NOTIFY_RECIPIENTS` |
+| Kubernetes (optional) | `K8S_CONTEXTS`, `K8S_CONTEXT`, `K8S_INSECURE`, `K8S_CA_CERT` |
+| Code review (optional) | `CODE_REVIEW_BASE_URL`, `CODE_REVIEW_USERNAME`, `CODE_REVIEW_PASSWORD` and the other `CODE_REVIEW_*` settings |
+
+[deploy/config.env.example](deploy/config.env.example) lists every setting with its default and notes, and
+[deploy/secrets.env.example](deploy/secrets.env.example) the secrets. Copy them to `deploy/config.env` and
+`deploy/secrets.env` (git ignores both) and fill them in.
+
+**1. Build.** Linux executables and images are built with your licensed TIBCO Flogo tooling; the free VS Code edition
+builds only for the local machine. On TIBCO Platform, deploy the `.flogo` there and set the same app properties in the
+platform. For a container image:
+
+```bash
+mkdir -p build
+fcli build-exe -f bwce-ai-generator-github.flogo -c <context> -p linux/amd64 -n bwce-ai-generator-github -o build
+docker build -f deploy/Dockerfile -t <registry>/bwce-ai-generator:1.0.0 .
+```
+
+The image ([deploy/Dockerfile](deploy/Dockerfile)) holds the executable with `config/`, `rules/` and `static/`, runs
+as a non-root user and sets `FLOGO_APP_PROPS_ENV=auto` and `FLOGO_EXPOSE_SWAGGER_EP=true`.
+
+**2. Run** with Docker:
+
+```bash
+docker run -d --name bwce-ai-generator -p 9999:9999 -p 8081:8081 \
+  --env-file deploy/config.env --env-file deploy/secrets.env <registry>/bwce-ai-generator:1.0.0
+```
+
+or on Kubernetes ([deploy/kubernetes.yaml](deploy/kubernetes.yaml): Deployment and Service; set the image first):
+
+```bash
+kubectl create namespace bwce-ai-generator
+kubectl -n bwce-ai-generator create configmap bwce-ai-generator-config --from-env-file=deploy/config.env
+kubectl -n bwce-ai-generator create secret generic bwce-ai-generator-secrets --from-env-file=deploy/secrets.env
+kubectl -n bwce-ai-generator apply -f deploy/kubernetes.yaml
+```
+
+Expose port 9999 through Kong (see [Access control](#access-control-kong)).
+
+**3. Check** `GET /health` and the log: at startup the app creates or upgrades its tables and ingests the template
+catalog (`IngestDocuments: success … ingested=37`). PostgreSQL must be reachable at startup; the app does not start
+without it. To use your own template catalog or IKD lists without rebuilding the image, mount them over
+`/app/config`.
+
+When you change the embedding model, set `LLM_EMBEDDING_DIMENSIONS` to its vector size and use a new
+`VECTOR_COLLECTION`: a collection keeps one vector size. The LLM and embedding requests do not go through an HTTP proxy
+(`HTTPS_PROXY`), so those endpoints must be reachable directly.
 
 ---
 
@@ -540,15 +606,16 @@ example `TARGET_MODE=newRepo`). UI: http://localhost:9999 · API definition: htt
 | Area | App properties (default) |
 |------|--------------------------|
 | Publishing | `TARGET_MODE` (`subfolder`), `TARGET_REPO_URL`, `TARGET_BRANCH` (`main`), `TARGET_OWNER_URL`, `TEMPLATE_REPO_URL`, `TEMPLATE_REF` (`main`), `GITHUB_TOKEN` (environment only), `GITHUB_API_URL`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GENERATE_CICD` (`true`) |
-| LLM and search | `LLM_BASE_URL`, `LLM_MODEL` (`qwen2.5:7b`), `LLM_EMBEDDING_BASE_URL`, `LLM_EMBEDDING_MODEL` (`nomic-embed-text`), `EXTRACTION_SYSTEM_PROMPT`, `VECTOR_COLLECTION` (`BWCECiTemplates768`), `weaviate.WeaviateTemplateKB.*` (connection) |
-| Registry | `PostgreSQL.GenerationRegistry.*` (host, port, database, user, password, pool) |
+| LLM and search | `LLM_PROVIDER` (`Ollama`), `LLM_BASE_URL`, `LLM_MODEL` (`qwen2.5:7b`), `LLM_API_KEY`, `LLM_EMBEDDING_PROVIDER` (`OpenAI`), `LLM_EMBEDDING_BASE_URL`, `LLM_EMBEDDING_MODEL` (`nomic-embed-text`), `LLM_EMBEDDING_API_KEY`, `LLM_EMBEDDING_DIMENSIONS` (`768`), `EXTRACTION_SYSTEM_PROMPT`, `VECTOR_COLLECTION` (`BWCECiTemplates768`), `weaviate.WeaviateTemplateKB.*` (connection, including `Scheme`) |
+| Registry | `PostgreSQL.GenerationRegistry.*` (host, port, database, user, password, pool, `TLS`, `TLS_Mode`, `CA_Certificate`) |
 | Files | `TEMPLATE_REGISTRY` (`config/ci-bwcetemplates.json`), `RULES_PATH` (`rules/`), `IKD_INTERFACES_FILE`, `IKD_SCENARIOS_FILE` (`config/ikd/…`), `OPS_PROGRAMS` (`config/ops-programs.json`), `BRAND_LOGO_FILE` |
-| Notification | `SMTP_HOST` (`localhost`), `SMTP_PORT` (`1025`), `NOTIFY_SENDER`, `NOTIFY_RECIPIENTS` |
+| Notification | `SMTP_HOST` (`localhost`), `SMTP_PORT` (`1025`), `SMTP_SECURITY` (`NONE`), `SMTP_USERNAME`, `SMTP_PASSWORD`, `NOTIFY_SENDER`, `NOTIFY_RECIPIENTS` |
 | Kubernetes | `K8S_CONTEXTS` (JSON: context → `url`, `namespace`, `token`), `K8S_CONTEXT`, `K8S_INSECURE` (`false`), `K8S_CA_CERT` (PEM, base64 PEM or `file:///var/run/secrets/kubernetes.io/serviceaccount/ca.crt`; empty = system CAs) |
 | Code review | `CODE_REVIEW_BASE_URL` (placeholder; set it per deployment), `CODE_REVIEW_USERNAME`/`_PASSWORD`/`_USERID`/`_USERTYPE`/`_COOKIE`, `CODE_REVIEW_INSECURE` (`true`: no certificate check, the reference default), `CODE_REVIEW_TOKEN_METHOD` (`POST`; `GET` matches the reference but puts the password in the URL, which the REST Invoke logs) |
-| UI and MCP | `QASSIST_URL` (empty: QAssist not configured), `MCP_PORT` (`8081`) |
+| UI and MCP | `QASSIST_URL` (empty: QAssist not configured), `REST_PORT` (`9999`), `MCP_PORT` (`8081`) |
 
-Secrets (`GITHUB_TOKEN`, database and code review passwords) belong in the environment, not in the `.flogo`.
+Secrets (`GITHUB_TOKEN`, database, SMTP, LLM and code review credentials) belong in the environment, not in the
+`.flogo`.
 
 ---
 
@@ -606,6 +673,7 @@ bwce-ai-generator-github.flogo   the Flogo application
 config/ci-bwcetemplates.json     template catalog (ingested into Weaviate)
 config/ikd/                      IKD interface and scenario id lists
 config/ops-programs.json         jq programs: Kubernetes, code review, schema upload, CI/CD file templates
+deploy/                          container image, Kubernetes manifest, settings and secrets templates
 rules/                           rule engine packs: nlu-extraction.yaml, spec-validation.yaml
 static/                          web UI (chat-github.html), e-mail logo
 ```

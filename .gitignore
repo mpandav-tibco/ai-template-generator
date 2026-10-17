@@ -1,5 +1,6 @@
 # Build outputs
 bin/
+build/
 *.exe
 *.dll
 # Flogo native binaries (build artifacts)

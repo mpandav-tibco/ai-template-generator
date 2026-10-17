@@ -1,0 +1,6 @@
+# Build context for deploy/Dockerfile: only what the image needs
+*
+!config/
+!rules/
+!static/
+!build/bwce-ai-generator-github

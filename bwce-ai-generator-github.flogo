@@ -45,7 +45,7 @@
       "name": "tibco-wi-rest",
       "description": "AI-powered accelerator that generates TIBCO BWCE integration repositories through natural language conversation",
       "settings": {
-        "port": 9999,
+        "port": "=$property[\"REST_PORT\"]",
         "APISpecUpdate": true,
         "swagger": "spec://9fa13808-932f-485a-94b0-2ccbe0cb3547",
         "swaggerVersion": "v3",
@@ -4830,9 +4830,9 @@
                 "Server": "=$property[\"SMTP_HOST\"]",
                 "Port": "=$property[\"SMTP_PORT\"]",
                 "authorizationType": "Basic",
-                "Username": "",
-                "Password": "",
-                "Connection Security": "NONE",
+                "Username": "=$property[\"SMTP_USERNAME\"]",
+                "Password": "=$property[\"SMTP_PASSWORD\"]",
+                "Connection Security": "=$property[\"SMTP_SECURITY\"]",
                 "message_content_type": "text/html",
                 "sender": "=$property[\"NOTIFY_SENDER\"]",
                 "recipients": "=$property[\"NOTIFY_RECIPIENTS\"]",
@@ -5535,7 +5535,7 @@
               },
               "input": {
                 "collectionName": "=$property[\"VECTOR_COLLECTION\"]",
-                "dimensions": 768,
+                "dimensions": "=$property[\"LLM_EMBEDDING_DIMENSIONS\"]",
                 "distanceMetric": "cosine",
                 "onDisk": false,
                 "replicationFactor": 1
@@ -5555,11 +5555,11 @@
                 "chunkSize": 1000,
                 "chunkOverlap": 200,
                 "useConnectorEmbedding": false,
-                "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:Ps/QiweK4loMaJ15qYwHlYgnUuImug==",
+                "embeddingProvider": "=$property[\"LLM_EMBEDDING_PROVIDER\"]",
+                "embeddingAPIKey": "=$property[\"LLM_EMBEDDING_API_KEY\"]",
                 "embeddingBaseURL": "=$property[\"LLM_EMBEDDING_BASE_URL\"]",
                 "embeddingModel": "=$property[\"LLM_EMBEDDING_MODEL\"]",
-                "embeddingDimensions": 768,
+                "embeddingDimensions": "=$property[\"LLM_EMBEDDING_DIMENSIONS\"]",
                 "defaultCollection": "",
                 "contentField": "text",
                 "timeoutSeconds": 60,
@@ -6755,11 +6755,11 @@
               "settings": {
                 "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
-                "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:6mtK6zYLT8J40cTPaJ4U4icfb9RXxg==",
+                "embeddingProvider": "=$property[\"LLM_EMBEDDING_PROVIDER\"]",
+                "embeddingAPIKey": "=$property[\"LLM_EMBEDDING_API_KEY\"]",
                 "embeddingBaseURL": "=$property[\"LLM_EMBEDDING_BASE_URL\"]",
                 "embeddingModel": "=$property[\"LLM_EMBEDDING_MODEL\"]",
-                "embeddingDimensions": 768,
+                "embeddingDimensions": "=$property[\"LLM_EMBEDDING_DIMENSIONS\"]",
                 "defaultCollection": "",
                 "defaultTopK": 5,
                 "scoreThreshold": 0,
@@ -6769,9 +6769,9 @@
                 "useHybridSearch": true,
                 "hybridAlpha": 0.25,
                 "enableLLMGenerate": false,
-                "llmProvider": "Ollama",
+                "llmProvider": "=$property[\"LLM_PROVIDER\"]",
                 "llmBaseURL": "=$property[\"LLM_BASE_URL\"]",
-                "llmAPIKey": "",
+                "llmAPIKey": "=$property[\"LLM_API_KEY\"]",
                 "llmModel": "=$property[\"LLM_MODEL\"]",
                 "systemPrompt": "You are a helpful assistant. Answer the question using only the provided context. If the context does not contain enough information, say so.",
                 "maxTokens": 1024,
@@ -9549,11 +9549,11 @@
               "settings": {
                 "connection": "conn://6c0d4f9e-c11f-4b05-8d4b-e95f88cc3924",
                 "useConnectorEmbedding": false,
-                "embeddingProvider": "OpenAI",
-                "embeddingAPIKey": "SECRET:T9fT53QjdO0Zvprk+rYvs5TgvUAnxg==",
+                "embeddingProvider": "=$property[\"LLM_EMBEDDING_PROVIDER\"]",
+                "embeddingAPIKey": "=$property[\"LLM_EMBEDDING_API_KEY\"]",
                 "embeddingBaseURL": "=$property[\"LLM_EMBEDDING_BASE_URL\"]",
                 "embeddingModel": "=$property[\"LLM_EMBEDDING_MODEL\"]",
-                "embeddingDimensions": 768,
+                "embeddingDimensions": "=$property[\"LLM_EMBEDDING_DIMENSIONS\"]",
                 "defaultCollection": "",
                 "defaultTopK": 5,
                 "scoreThreshold": 0.9999,
@@ -9563,9 +9563,9 @@
                 "useHybridSearch": false,
                 "hybridAlpha": 0.5,
                 "enableLLMGenerate": true,
-                "llmProvider": "Ollama",
+                "llmProvider": "=$property[\"LLM_PROVIDER\"]",
                 "llmBaseURL": "=$property[\"LLM_BASE_URL\"]",
-                "llmAPIKey": "",
+                "llmAPIKey": "=$property[\"LLM_API_KEY\"]",
                 "llmModel": "=$property[\"LLM_MODEL\"]",
                 "systemPrompt": "=$property[\"EXTRACTION_SYSTEM_PROMPT\"]",
                 "maxTokens": 1024,
@@ -12556,6 +12556,21 @@
       "value": 20
     },
     {
+      "name": "PostgreSQL.GenerationRegistry.TLS",
+      "type": "boolean",
+      "value": false
+    },
+    {
+      "name": "PostgreSQL.GenerationRegistry.TLS_Mode",
+      "type": "string",
+      "value": "VerifyCA"
+    },
+    {
+      "name": "PostgreSQL.GenerationRegistry.CA_Certificate",
+      "type": "string",
+      "value": ""
+    },
+    {
       "name": "weaviate.WeaviateTemplateKB.Host",
       "type": "string",
       "value": "localhost"
@@ -12576,7 +12591,12 @@
       "value": false
     },
     {
-      "name": "weaviate.WeaviateTemplateKB.Timeout_(seconds)",
+      "name": "weaviate.WeaviateTemplateKB.Scheme",
+      "type": "string",
+      "value": "http"
+    },
+    {
+      "name": "weaviate.WeaviateTemplateKB.Timeout_Seconds",
       "type": "float64",
       "value": 30
     },
@@ -12586,7 +12606,7 @@
       "value": 3
     },
     {
-      "name": "weaviate.WeaviateTemplateKB.Retry_Backoff_(ms)",
+      "name": "weaviate.WeaviateTemplateKB.Retry_Backoff_Ms",
       "type": "float64",
       "value": 500
     },
@@ -12599,6 +12619,16 @@
       "name": "LLM_MODEL",
       "type": "string",
       "value": "qwen2.5:7b"
+    },
+    {
+      "name": "LLM_PROVIDER",
+      "type": "string",
+      "value": "Ollama"
+    },
+    {
+      "name": "LLM_API_KEY",
+      "type": "string",
+      "value": ""
     },
     {
       "name": "LLM_EMBEDDING_MODEL",
@@ -12616,6 +12646,21 @@
       "value": "http://localhost:11434/v1"
     },
     {
+      "name": "LLM_EMBEDDING_PROVIDER",
+      "type": "string",
+      "value": "OpenAI"
+    },
+    {
+      "name": "LLM_EMBEDDING_API_KEY",
+      "type": "string",
+      "value": ""
+    },
+    {
+      "name": "LLM_EMBEDDING_DIMENSIONS",
+      "type": "float64",
+      "value": 768
+    },
+    {
       "name": "EXTRACTION_SYSTEM_PROMPT",
       "type": "string",
       "value": "You convert a user's integration request into a JSON spec. Use ONLY the user's Question text for values; the Context section is a template catalog you may use ONLY to choose template_type. Output ONLY one JSON object, no code fences and no prose, with these string keys: source_system, target_system, business_object, interface_type, template_type, cdm, interface_id, scenario_id, bitbucket_project, email, env, k8s_domain, country_code, unique_id. interface_type must be one of pub, sub or service. Use pub for publish or publisher or produce, sub for subscribe or subscriber or consume, and service for request-reply or api. cdm must be \"true\" or \"false\". Use \"\" for any field the user did not mention. Never split a template_type identifier like S4HANA_PUB_To_KAFKATopic into source_system or target_system; source_system and target_system come only from the integration description, not from a template name. Example Question: I need a publisher from SAP ECC to MQ for invoice data with CDM enabled. Example JSON: {\"source_system\":\"SAP ECC\",\"target_system\":\"MQ\",\"business_object\":\"invoice\",\"interface_type\":\"pub\",\"template_type\":\"\",\"cdm\":\"true\",\"interface_id\":\"\",\"scenario_id\":\"\",\"bitbucket_project\":\"\",\"email\":\"\",\"env\":\"\",\"k8s_domain\":\"\",\"country_code\":\"\",\"unique_id\":\"\"}"
@@ -12629,6 +12674,11 @@
       "name": "RULES_PATH",
       "type": "string",
       "value": "rules/"
+    },
+    {
+      "name": "REST_PORT",
+      "type": "float64",
+      "value": 9999
     },
     {
       "name": "TEMPLATE_REGISTRY",
@@ -12649,6 +12699,21 @@
       "name": "SMTP_PORT",
       "type": "float64",
       "value": 1025
+    },
+    {
+      "name": "SMTP_SECURITY",
+      "type": "string",
+      "value": "NONE"
+    },
+    {
+      "name": "SMTP_USERNAME",
+      "type": "string",
+      "value": ""
+    },
+    {
+      "name": "SMTP_PASSWORD",
+      "type": "string",
+      "value": ""
     },
     {
       "name": "NOTIFY_SENDER",
@@ -12868,9 +12933,9 @@
         "connectionretrydelay": "=$property[\"PostgreSQL.GenerationRegistry.Connection_Retry_Delay\"]",
         "connectiontimeout": "=$property[\"PostgreSQL.GenerationRegistry.Connection_Timeout\"]",
         "onprem": false,
-        "tlsconfig": false,
-        "tlsparam": "VerifyCA",
-        "cacert": "",
+        "tlsconfig": "=$property[\"PostgreSQL.GenerationRegistry.TLS\"]",
+        "tlsparam": "=$property[\"PostgreSQL.GenerationRegistry.TLS_Mode\"]",
+        "cacert": "=$property[\"PostgreSQL.GenerationRegistry.CA_Certificate\"]",
         "clientcert": "",
         "clientkey": ""
       }
@@ -12887,10 +12952,10 @@
         "apiKey": "=$property[\"weaviate.WeaviateTemplateKB.API_Key\"]",
         "useTLS": "=$property[\"weaviate.WeaviateTemplateKB.Secure_Connection\"]",
         "tlsInsecureSkipVerify": false,
-        "timeoutSeconds": "=$property[\"weaviate.WeaviateTemplateKB.Timeout_(seconds)\"]",
+        "timeoutSeconds": "=$property[\"weaviate.WeaviateTemplateKB.Timeout_Seconds\"]",
         "maxRetries": "=$property[\"weaviate.WeaviateTemplateKB.Max_Retries\"]",
-        "retryBackoffMs": "=$property[\"weaviate.WeaviateTemplateKB.Retry_Backoff_(ms)\"]",
-        "scheme": "http",
+        "retryBackoffMs": "=$property[\"weaviate.WeaviateTemplateKB.Retry_Backoff_Ms\"]",
+        "scheme": "=$property[\"weaviate.WeaviateTemplateKB.Scheme\"]",
         "enableEmbedding": "=$property[\"weaviate.WeaviateTemplateKB.Configure_Embedding_Provider\"]",
         "embeddingProvider": "OpenAI"
       }
