@@ -8972,7 +8972,7 @@
                     ],
                     "cicd": {
                       "enabled": "=$flow.config_only != true && $property[\"GENERATE_CICD\"] == true",
-                      "templates": "=$activity[GetOps].output.data.cicd.templates",
+                      "templates": "=coerce.toArray(coerce.toString($activity[GetOps].output.data.cicd.templates))",
                       "vars": {
                         "repo": "=$flow.repo_name",
                         "template_type": "=$flow.template_name",
@@ -12857,9 +12857,9 @@
                     "query": "=$flow.query",
                     "params": "=$flow.params",
                     "body": "=$flow.content",
-                    "ctx": "=$activity[GetK8s].output.data.active",
-                    "contexts": "=$activity[GetK8s].output.data.contexts",
-                    "k8s": "=$activity[GetOps].output.data.k8s"
+                    "ctx": "=coerce.toObject(coerce.toString($activity[GetK8s].output.data.active))",
+                    "contexts": "=coerce.toObject(coerce.toString($activity[GetK8s].output.data.contexts))",
+                    "k8s": "=coerce.toObject(coerce.toString($activity[GetOps].output.data.k8s))"
                   }
                 }
               },

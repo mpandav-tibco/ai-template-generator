@@ -748,7 +748,9 @@ design CLI.
 after the flow (see [Flows](#flows)). Each handler maps the request (`pathParams`, `queryParams`, `body`) to the inputs
 the flow declares, and the flow's `code` + `responseBody` outputs to the reply. Data-shaped logic (Kubernetes, e-mail,
 code review, schema upload, CI/CD files) is jq programs in `config/ops-programs.json`, loaded into shared data at
-startup (see [Operations](#operations)).
+startup (see [Operations](#operations)). A jq input never holds a shared-data object itself: the mapper that builds
+the input copies it (`coerce.toObject(coerce.toString(…))`), because `json.jq` rewrites its input in place and two
+requests doing that to the same stored object at once crash the engine (`concurrent map iteration and map write`).
 
 **Designer validation.** The designer's **Validate** reports no errors in any flow. It resolves every mapped path
 against declared schemas and checks each expression's result type, so: the request-body flow inputs (`content`, the
