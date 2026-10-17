@@ -316,10 +316,13 @@ flowchart LR
 `GET /` serves `static/chat-github.html`, read on every request (UI changes need no rebuild):
 
 - **Chat** with quick prompts and the commands `/templates`, `/suggest`, `/analyze`, `/generate`, `/newrepo`,
-  `/shared`, `/upload <repo>` and `/cleanup <repo>`; configuration drawer and schema upload.
-- **Repos Generated** — the registry with GitHub links and repository actions: deployment status, code review,
-  links to the generated Kubernetes, configuration and Jenkins files, and cleanup. The Jenkins and Fortanix steps
-  need the customer's systems.
+  `/shared`, `/upload <repo>` and `/cleanup <repo>`. Typing `/` opens a command menu that shows what each command
+  would do at that moment (for example the fields `/generate` still needs) and offers repository names for `/upload`
+  and `/cleanup`. Configuration drawer and schema upload (several source and target files at once, committed
+  together; also opened from the sidebar and from a repository's actions).
+- **Repos Generated** — the registry with GitHub links and repository actions: schema upload, deployment status,
+  code review, links to the generated Kubernetes, configuration and Jenkins files, and cleanup. The Jenkins and
+  Fortanix steps need the customer's systems.
 - **Code Review** and **QAssist** (opens `QASSIST_URL`).
 
 ---
